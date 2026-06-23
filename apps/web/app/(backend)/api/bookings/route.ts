@@ -46,23 +46,29 @@ export async function POST(req: NextRequest) {
 
   const cls = await prisma.class.findUnique({ where: { id: classId } })
   if (!cls) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
-  if (cls.spotsLeft <= 0) return NextResponse.json({ error: 'No spots available' }, { status: 409 })
 
   const existing = await prisma.booking.findUnique({
     where: { userId_classId: { userId: session.user.id, classId } },
   })
   if (existing) return NextResponse.json({ error: 'Already booked' }, { status: 409 })
 
-  const booking = await prisma.$transaction(async (tx) => {
-    await tx.class.update({
-      where: { id: classId },
-      data: { spotsLeft: { decrement: 1 } },
+  try {
+    const booking = await prisma.$transaction(async (tx) => {
+      const updated = await tx.class.updateMany({
+        where: { id: classId, spotsLeft: { gt: 0 } },
+        data: { spotsLeft: { decrement: 1 } },
+      })
+      if (updated.count === 0) throw new Error('NO_SPOTS')
+      return tx.booking.create({
+        data: { userId: session.user.id, classId },
+        include: { class: { include: { client: { include: { clientProfile: true } } } } },
+      })
     })
-    return tx.booking.create({
-      data: { userId: session.user.id, classId },
-      include: { class: { include: { client: { include: { clientProfile: true } } } } },
-    })
-  })
-
-  return NextResponse.json(toDTO(booking), { status: 201 })
+    return NextResponse.json(toDTO(booking), { status: 201 })
+  } catch (e: any) {
+    if (e?.message === 'NO_SPOTS') {
+      return NextResponse.json({ error: 'No spots available' }, { status: 409 })
+    }
+    throw e
+  }
 }

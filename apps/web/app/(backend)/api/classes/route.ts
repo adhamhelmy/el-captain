@@ -28,12 +28,14 @@ export async function GET(req: NextRequest) {
   const type = searchParams.get('type')
   const date = searchParams.get('date')
   const city = searchParams.get('city')
+  const clientId = searchParams.get('clientId')
 
   const classes = await prisma.class.findMany({
     where: {
       ...(type ? { type: { contains: type, mode: 'insensitive' } } : {}),
       ...(date ? { date: { gte: new Date(date) } } : {}),
       ...(city ? { city: { contains: city, mode: 'insensitive' } } : {}),
+      ...(clientId ? { clientId } : {}),
     },
     include: { client: { include: { clientProfile: true } } },
     orderBy: { date: 'asc' },

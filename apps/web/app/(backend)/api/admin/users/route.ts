@@ -30,6 +30,11 @@ export async function PATCH(req: NextRequest) {
   const { userId, role } = await req.json()
   if (!userId || !role) return NextResponse.json({ error: 'userId and role required' }, { status: 400 })
 
+  const VALID_ROLES = ['ADMIN', 'CLIENT', 'USER']
+  if (!VALID_ROLES.includes(role)) {
+    return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+  }
+
   await prisma.user.update({ where: { id: userId }, data: { role } })
   return NextResponse.json({ success: true })
 }

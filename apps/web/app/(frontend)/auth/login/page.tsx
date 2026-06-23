@@ -9,7 +9,8 @@ import Link from 'next/link'
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') ?? '/dashboard'
+  const rawRedirect = searchParams.get('redirect') ?? '/dashboard'
+  const redirect = rawRedirect.startsWith('/') ? rawRedirect : '/dashboard'
 
   const form = useForm({
     initialValues: { email: '', password: '' },

@@ -4,15 +4,19 @@ import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
 import { useEffect, useState } from 'react'
 import { notifications } from '@mantine/notifications'
+import { useSession } from 'next-auth/react'
 import type { ClassDTO } from '@el-captain/types'
 
 export default function ClientClassesPage() {
   const [classes, setClasses] = useState<ClassDTO[]>([])
   const [opened, { open, close }] = useDisclosure(false)
+  const { data: session } = useSession()
 
   useEffect(() => {
-    fetch('/api/classes').then(r => r.json()).then(setClasses)
-  }, [])
+    if (session?.user?.id) {
+      fetch(`/api/classes?clientId=${session.user.id}`).then(r => r.json()).then(setClasses)
+    }
+  }, [session])
 
   const form = useForm({
     initialValues: {
