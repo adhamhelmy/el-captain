@@ -30,6 +30,9 @@ describe('POST /api/bookings', () => {
   it('returns 409 when no spots left', async () => {
     vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'u1', role: 'USER' } } as any)
     vi.mocked(prisma.class.findUnique).mockResolvedValue({ id: 'c1', spotsLeft: 0 } as any)
+    vi.mocked(prisma.booking.findUnique).mockResolvedValue(null)
+    // Simulate the transaction throwing NO_SPOTS (updateMany count === 0)
+    vi.mocked(prisma.$transaction).mockRejectedValue(new Error('NO_SPOTS'))
     const req = new Request('http://localhost/api/bookings', {
       method: 'POST',
       body: JSON.stringify({ classId: 'c1' }),
