@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  name          String
+  role          Role           @default(USER)
+  clientProfile ClientProfile?
+  bookings      Booking[]
+  classes       Class[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+  USER
+}
+
+model ClientProfile {
+  id                String  @id @default(cuid())
+  studioName        String
+  studioDescription String?
+  city              String
+  logoUrl           String?
+  userId            String  @unique
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Class {
+  id              String    @id @default(cuid())
+  title           String
+  type            String
+  description     String?
+  date            DateTime
+  durationMinutes Int
+  city            String
+  address         String
+  capacity        Int
+  spotsLeft       Int
+  imageUrl        String?
+  clientId        String
+  client          User      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  bookings        Booking[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  status    BookingStatus @default(CONFIRMED)
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class         @relation(fields: [classId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([userId, classId])
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
