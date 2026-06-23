@@ -9,7 +9,7 @@ export const metadata = { title: 'El Captain', description: 'Find and book fitne
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <ColorSchemeScript />
       </head>

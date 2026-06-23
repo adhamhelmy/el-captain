@@ -2,25 +2,26 @@
 import { Container, Title, Text, Badge, Button, Group, Stack, Paper, Divider } from '@mantine/core'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { notifications } from '@mantine/notifications'
 import type { ClassDTO } from '@el-captain/types'
 
-export default function ClassDetailPage({ params }: { params: { id: string } }) {
+export default function ClassDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const { data: session } = useSession()
   const router = useRouter()
   const [cls, setCls] = useState<ClassDTO | null>(null)
   const [booking, setBooking] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/classes/${params.id}`)
+    fetch(`/api/classes/${id}`)
       .then(r => r.json())
       .then(setCls)
-  }, [params.id])
+  }, [id])
 
   async function handleBook() {
     if (!session) {
-      router.push(`/auth/login?redirect=/classes/${params.id}`)
+      router.push(`/auth/login?redirect=/classes/${id}`)
       return
     }
 
@@ -28,7 +29,7 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
     const res = await fetch('/api/bookings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ classId: params.id }),
+      body: JSON.stringify({ classId: id }),
     })
     setBooking(false)
 

@@ -15,20 +15,22 @@ function toDTO(c: any) {
   }
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const cls = await prisma.class.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { client: { include: { clientProfile: true } } },
   })
   if (!cls) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json(toDTO(cls))
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const cls = await prisma.class.findUnique({ where: { id: params.id } })
+  const cls = await prisma.class.findUnique({ where: { id } })
   if (!cls) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const isOwner = cls.clientId === session.user.id
@@ -37,7 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const body = await req.json()
   const updated = await prisma.class.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       ...(body.title && { title: body.title }),
       ...(body.type && { type: body.type }),
@@ -54,17 +56,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json(toDTO(updated))
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const cls = await prisma.class.findUnique({ where: { id: params.id } })
+  const cls = await prisma.class.findUnique({ where: { id } })
   if (!cls) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const isOwner = cls.clientId === session.user.id
   const isAdmin = session.user.role === 'ADMIN'
   if (!isOwner && !isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  await prisma.class.delete({ where: { id: params.id } })
+  await prisma.class.delete({ where: { id } })
   return NextResponse.json({ success: true })
 }
