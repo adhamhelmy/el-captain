@@ -31,15 +31,31 @@ el-captain/
 ├── apps/
 │   └── web/
 │       ├── app/
-│       │   ├── (public)/          # landing, class search, class detail
-│       │   ├── auth/              # login, register
-│       │   ├── dashboard/         # role-gated dashboard pages
-│       │   └── api/               # Next.js API routes
-│       ├── components/            # Mantine-based UI components
-│       ├── lib/                   # prisma client, auth config, helpers
-│       └── prisma/                # schema.prisma + migrations
+│       │   ├── (frontend)/
+│       │   │   ├── page.tsx                        # landing / class search
+│       │   │   ├── classes/[id]/page.tsx
+│       │   │   ├── auth/
+│       │   │   │   ├── login/page.tsx
+│       │   │   │   └── register/page.tsx
+│       │   │   └── dashboard/
+│       │   │       ├── bookings/page.tsx            # USER
+│       │   │       ├── classes/page.tsx             # CLIENT
+│       │   │       └── admin/page.tsx               # ADMIN
+│       │   └── (backend)/
+│       │       └── api/
+│       │           ├── auth/[...nextauth]/route.ts
+│       │           ├── classes/route.ts
+│       │           ├── classes/[id]/route.ts
+│       │           ├── bookings/route.ts
+│       │           ├── bookings/[id]/cancel/route.ts
+│       │           └── admin/
+│       │               ├── users/route.ts
+│       │               └── classes/route.ts
+│       ├── components/                              # Mantine-based UI components
+│       ├── lib/                                     # prisma client, auth config, helpers
+│       └── prisma/                                  # schema.prisma + migrations
 ├── packages/
-│   └── types/                     # shared TypeScript types/DTOs
+│   └── types/                                       # shared TypeScript types/DTOs
 ├── turbo.json
 └── package.json
 ```
