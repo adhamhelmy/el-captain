@@ -7,6 +7,7 @@ export function NavBar() {
   const { data: session, status } = useSession()
 
   return (
+    <div style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
     <Container size="lg" py="sm">
       <Group justify="space-between">
         <Text fw={700} size="xl" component={Link} href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -32,5 +33,6 @@ export function NavBar() {
         </Group>
       </Group>
     </Container>
+    </div>
   )
 }
