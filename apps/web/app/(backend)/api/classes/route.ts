@@ -25,20 +25,38 @@ function toDTO(c: any) {
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const type = searchParams.get('type')
+  const types = searchParams.getAll('type')
   const date = searchParams.get('date')
   const city = searchParams.get('city')
   const clientId = searchParams.get('clientId')
+  const q = searchParams.get('q')
+  const limit = Math.min(Number(searchParams.get('limit') ?? 12), 50)
+  const offset = Number(searchParams.get('offset') ?? 0)
 
   const classes = await prisma.class.findMany({
     where: {
-      ...(type ? { type: { contains: type, mode: 'insensitive' } } : {}),
-      ...(date ? { date: { gte: new Date(date) } } : {}),
+      // default: show from start of today, or from the chosen date
+      ...(!clientId ? {
+        date: {
+          gte: date ? new Date(date) : (() => { const d = new Date(); d.setHours(0,0,0,0); return d })()
+        }
+      } : {}),
+      ...(date && clientId ? { date: { gte: new Date(date) } } : {}),
+      ...(types.length ? { type: { in: types.map(t => t.toLowerCase()), mode: 'insensitive' } } : {}),
       ...(city ? { city: { contains: city, mode: 'insensitive' } } : {}),
       ...(clientId ? { clientId } : {}),
+      ...(q ? {
+        OR: [
+          { title: { contains: q, mode: 'insensitive' } },
+          { type: { contains: q, mode: 'insensitive' } },
+          { description: { contains: q, mode: 'insensitive' } },
+        ],
+      } : {}),
     },
     include: { client: { include: { clientProfile: true } } },
     orderBy: { date: 'asc' },
+    take: limit,
+    skip: offset,
   })
 
   return NextResponse.json(classes.map(toDTO))
@@ -46,7 +64,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
-  if (!session || session.user.role !== 'CLIENT') {
+  if (!session || (session.user.role !== 'CLIENT' && session.user.role !== 'ADMIN')) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

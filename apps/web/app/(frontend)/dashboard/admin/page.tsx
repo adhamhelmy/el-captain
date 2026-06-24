@@ -1,5 +1,5 @@
 'use client'
-import { Title, Stack, Tabs, Table, Badge, Text, Select, Button } from '@mantine/core'
+import { Title, Stack, Tabs, TabsList, TabsTab, TabsPanel, Table, TableThead, TableTbody, TableTr, TableTh, TableTd, Badge, Select, Button } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { notifications } from '@mantine/notifications'
 import type { ClassDTO } from '@el-captain/types'
@@ -45,30 +45,30 @@ export default function AdminPage() {
     <Stack gap="lg">
       <Title order={2}>Admin Dashboard</Title>
       <Tabs defaultValue="users">
-        <Tabs.List>
-          <Tabs.Tab value="users">Users ({users.length})</Tabs.Tab>
-          <Tabs.Tab value="classes">Classes ({classes.length})</Tabs.Tab>
-        </Tabs.List>
+        <TabsList>
+          <TabsTab value="users">Users ({users.length})</TabsTab>
+          <TabsTab value="classes">Classes ({classes.length})</TabsTab>
+        </TabsList>
 
-        <Tabs.Panel value="users" pt="md">
+        <TabsPanel value="users" pt="md">
           <Table>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Name</Table.Th>
-                <Table.Th>Email</Table.Th>
-                <Table.Th>Role</Table.Th>
-                <Table.Th>Joined</Table.Th>
-                <Table.Th>Action</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
+            <TableThead>
+              <TableTr>
+                <TableTh>Name</TableTh>
+                <TableTh>Email</TableTh>
+                <TableTh>Role</TableTh>
+                <TableTh>Joined</TableTh>
+                <TableTh>Action</TableTh>
+              </TableTr>
+            </TableThead>
+            <TableTbody>
               {users.map(u => (
-                <Table.Tr key={u.id}>
-                  <Table.Td>{u.name}</Table.Td>
-                  <Table.Td>{u.email}</Table.Td>
-                  <Table.Td><Badge variant="light">{u.role}</Badge></Table.Td>
-                  <Table.Td>{new Date(u.createdAt).toLocaleDateString()}</Table.Td>
-                  <Table.Td>
+                <TableTr key={u.id}>
+                  <TableTd>{u.name}</TableTd>
+                  <TableTd>{u.email}</TableTd>
+                  <TableTd><Badge variant="light">{u.role}</Badge></TableTd>
+                  <TableTd>{new Date(u.createdAt).toLocaleDateString()}</TableTd>
+                  <TableTd>
                     <Select
                       size="xs"
                       value={u.role}
@@ -76,45 +76,45 @@ export default function AdminPage() {
                       onChange={(role) => role && handleRoleChange(u.id, role)}
                       w={100}
                     />
-                  </Table.Td>
-                </Table.Tr>
+                  </TableTd>
+                </TableTr>
               ))}
-            </Table.Tbody>
+            </TableTbody>
           </Table>
-        </Tabs.Panel>
+        </TabsPanel>
 
-        <Tabs.Panel value="classes" pt="md">
+        <TabsPanel value="classes" pt="md">
           <Table>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Title</Table.Th>
-                <Table.Th>Type</Table.Th>
-                <Table.Th>Studio</Table.Th>
-                <Table.Th>City</Table.Th>
-                <Table.Th>Date</Table.Th>
-                <Table.Th>Spots</Table.Th>
-                <Table.Th></Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
+            <TableThead>
+              <TableTr>
+                <TableTh>Title</TableTh>
+                <TableTh>Type</TableTh>
+                <TableTh>Studio</TableTh>
+                <TableTh>City</TableTh>
+                <TableTh>Date</TableTh>
+                <TableTh>Spots</TableTh>
+                <TableTh></TableTh>
+              </TableTr>
+            </TableThead>
+            <TableTbody>
               {classes.map(c => (
-                <Table.Tr key={c.id}>
-                  <Table.Td>{c.title}</Table.Td>
-                  <Table.Td><Badge variant="light" color="blue">{c.type}</Badge></Table.Td>
-                  <Table.Td>{c.studioName ?? c.clientName}</Table.Td>
-                  <Table.Td>{c.city}</Table.Td>
-                  <Table.Td>{new Date(c.date).toLocaleDateString()}</Table.Td>
-                  <Table.Td>{c.spotsLeft}/{c.capacity}</Table.Td>
-                  <Table.Td>
+                <TableTr key={c.id}>
+                  <TableTd>{c.title}</TableTd>
+                  <TableTd><Badge variant="light" color="blue">{c.type}</Badge></TableTd>
+                  <TableTd>{c.studioName ?? c.clientName}</TableTd>
+                  <TableTd>{c.city}</TableTd>
+                  <TableTd>{new Date(c.date).toLocaleDateString()}</TableTd>
+                  <TableTd>{c.spotsLeft}/{c.capacity}</TableTd>
+                  <TableTd>
                     <Button size="xs" color="red" variant="subtle" onClick={() => handleDeleteClass(c.id)}>
                       Delete
                     </Button>
-                  </Table.Td>
-                </Table.Tr>
+                  </TableTd>
+                </TableTr>
               ))}
-            </Table.Tbody>
+            </TableTbody>
           </Table>
-        </Tabs.Panel>
+        </TabsPanel>
       </Tabs>
     </Stack>
   )

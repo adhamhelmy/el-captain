@@ -31,8 +31,11 @@ model ClientProfile {
   id                String  @id @default(cuid())
   studioName        String
   studioDescription String?
-  city              String
+  city              String?
   logoUrl           String?
+  website           String?
+  instagram         String?
+  phone             String?
   userId            String  @unique
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

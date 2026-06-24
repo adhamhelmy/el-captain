@@ -1,4 +1,4 @@
-import { Card, Text, Badge, Button, Group, Stack } from '@mantine/core'
+import { Card, Text, Badge, Button, Group, Stack, Image } from '@mantine/core'
 import Link from 'next/link'
 import type { ClassDTO } from '@el-captain/types'
 
@@ -7,12 +7,18 @@ interface Props { class: ClassDTO }
 export function ClassCard({ class: c }: Props) {
   const date = new Date(c.date)
   const spotsColor = c.spotsLeft === 0 ? 'red' : c.spotsLeft <= 3 ? 'orange' : 'green'
+  const displayType = c.type.charAt(0).toUpperCase() + c.type.slice(1)
 
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
-      <Stack gap="xs">
+      {c.imageUrl && (
+        <Card.Section>
+          <Image src={c.imageUrl} alt={c.title} height={140} fit="cover" />
+        </Card.Section>
+      )}
+      <Stack gap="xs" mt={c.imageUrl ? 'md' : 0}>
         <Group justify="space-between">
-          <Badge color="blue" variant="light">{c.type}</Badge>
+          <Badge color="blue" variant="light">{displayType}</Badge>
           <Badge color={spotsColor} variant="light">
             {c.spotsLeft === 0 ? 'Full' : `${c.spotsLeft} spots left`}
           </Badge>

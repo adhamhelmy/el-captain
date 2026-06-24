@@ -1,4 +1,5 @@
 'use client'
+import { Suspense } from 'react'
 import { TextInput, PasswordInput, Button, Paper, Title, Text, Container, Stack, Anchor } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { signIn } from 'next-auth/react'
@@ -6,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { notifications } from '@mantine/notifications'
 import Link from 'next/link'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const rawRedirect = searchParams.get('redirect') ?? '/dashboard'
@@ -51,5 +52,13 @@ export default function LoginPage() {
         </form>
       </Paper>
     </Container>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }

@@ -1,19 +1,24 @@
 'use client'
-import { Group, Button, Text, Container } from '@mantine/core'
+import { Group, Button, Text, Container, Skeleton } from '@mantine/core'
 import { signOut, useSession } from 'next-auth/react'
 import Link from 'next/link'
 
 export function NavBar() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
 
   return (
     <Container size="lg" py="sm">
       <Group justify="space-between">
-        <Text fw={700} size="xl" component={Link} href="/" style={{ textDecoration: 'none' }}>
+        <Text fw={700} size="xl" component={Link} href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
           El Captain
         </Text>
         <Group>
-          {session ? (
+          {status === 'loading' ? (
+            <>
+              <Skeleton height={36} width={90} radius="md" />
+              <Skeleton height={36} width={90} radius="md" />
+            </>
+          ) : session ? (
             <>
               <Button variant="subtle" component={Link} href="/dashboard">Dashboard</Button>
               <Button variant="outline" onClick={() => signOut({ callbackUrl: '/' })}>Sign out</Button>

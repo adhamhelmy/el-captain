@@ -35,7 +35,20 @@ export interface BookingDTO {
 }
 
 export interface SearchParams {
-  type?: string
+  q?: string
+  types?: string[]
   date?: string
   city?: string
+}
+
+export interface ClientProfileDTO {
+  id: string
+  userId: string
+  clientName: string
+  studioName: string | null
+  bio: string | null
+  location: string | null
+  website: string | null
+  instagram: string | null
+  phone: string | null
 }

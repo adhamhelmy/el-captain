@@ -29,7 +29,7 @@ export async function GET(_req: NextRequest) {
   const bookings = await prisma.booking.findMany({
     where: { userId: session.user.id },
     include: { class: { include: { client: { include: { clientProfile: true } } } } },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { class: { date: 'asc' } },
   })
 
   return NextResponse.json(bookings.map(toDTO))
@@ -50,7 +50,11 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.booking.findUnique({
     where: { userId_classId: { userId: session.user.id, classId } },
   })
-  if (existing) return NextResponse.json({ error: 'Already booked' }, { status: 409 })
+
+  // Already confirmed — don't double-book
+  if (existing?.status === 'CONFIRMED') {
+    return NextResponse.json({ error: 'You already have an active booking for this class' }, { status: 409 })
+  }
 
   try {
     const booking = await prisma.$transaction(async (tx) => {
@@ -59,6 +63,16 @@ export async function POST(req: NextRequest) {
         data: { spotsLeft: { decrement: 1 } },
       })
       if (updated.count === 0) throw new Error('NO_SPOTS')
+
+      if (existing?.status === 'CANCELLED') {
+        // Re-activate cancelled booking
+        return tx.booking.update({
+          where: { id: existing.id },
+          data: { status: 'CONFIRMED' },
+          include: { class: { include: { client: { include: { clientProfile: true } } } } },
+        })
+      }
+
       return tx.booking.create({
         data: { userId: session.user.id, classId },
         include: { class: { include: { client: { include: { clientProfile: true } } } } },
