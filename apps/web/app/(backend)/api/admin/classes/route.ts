@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
+
+type ClassWithClient = Prisma.ClassGetPayload<{ include: { client: { include: { clientProfile: true } } } }>
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -14,7 +17,7 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: 'desc' },
   })
 
-  return NextResponse.json(classes.map(c => ({
+  return NextResponse.json(classes.map((c: ClassWithClient) => ({
     id: c.id, title: c.title, type: c.type, description: c.description,
     date: c.date.toISOString(), durationMinutes: c.durationMinutes,
     city: c.city, address: c.address, capacity: c.capacity, spotsLeft: c.spotsLeft,
