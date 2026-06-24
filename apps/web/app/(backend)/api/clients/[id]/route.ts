@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import type { PrismaClient } from '@prisma/client'
+
+type Tx = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>
 
 function toDTO(user: any) {
   return {
@@ -38,7 +41,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json()
   const { studioName, studioDescription, city, logoUrl, website, instagram, phone, name } = body
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: Tx) => {
     if (name) await tx.user.update({ where: { id }, data: { name } })
     await tx.clientProfile.upsert({
       where: { userId: id },

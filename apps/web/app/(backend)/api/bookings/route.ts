@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import type { PrismaClient } from '@prisma/client'
+
+type Tx = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>
 
 function toDTO(b: any) {
   const c = b.class
@@ -57,7 +60,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const booking = await prisma.$transaction(async (tx) => {
+    const booking = await prisma.$transaction(async (tx: Tx) => {
       const updated = await tx.class.updateMany({
         where: { id: classId, spotsLeft: { gt: 0 } },
         data: { spotsLeft: { decrement: 1 } },
