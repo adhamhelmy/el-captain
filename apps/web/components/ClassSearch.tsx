@@ -26,13 +26,12 @@ interface Props {
 export function ClassSearch({ onSearch }: Props) {
   const [q, setQ] = useState('')
   const [types, setTypes] = useState<string[]>([])
-  const [date, setDate] = useState('')
   const [city, setCity] = useState<string | null>(null)
 
   const trigger = useDebouncedCallback((params: SearchParams) => onSearch(params), 300)
 
   function build(overrides: Partial<SearchParams>) {
-    return { q: q || undefined, types, date: date || undefined, city: city || undefined, ...overrides }
+    return { q: q || undefined, types, city: city || undefined, ...overrides }
   }
 
   return (
@@ -50,12 +49,6 @@ export function ClassSearch({ onSearch }: Props) {
           data={CLASS_TYPES}
           value={types}
           onChange={(v) => { setTypes(v); trigger(build({ types: v })) }}
-        />
-        <TextInput
-          type="date"
-          placeholder="Date"
-          value={date}
-          onChange={(e) => { setDate(e.currentTarget.value); trigger(build({ date: e.currentTarget.value || undefined })) }}
         />
         <Select
           placeholder="Area / City"
