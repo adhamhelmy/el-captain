@@ -1,14 +1,19 @@
 {
   "name": "el-captain",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "lint": "turbo lint"
+    "lint": "turbo lint",
+    "prepare": "husky"
   },
   "packageManager": "npm@10.0.0",
   "devDependencies": {
+    "husky": "^9.1.7",
     "turbo": "^2.0.0",
     "typescript": "^5.4.0"
   }

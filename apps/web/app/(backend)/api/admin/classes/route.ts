@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session || session.user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -14,7 +14,6 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: 'desc' },
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return NextResponse.json(classes.map((c: any) => ({
     id: c.id, title: c.title, type: c.type, description: c.description,
     date: c.date.toISOString(), durationMinutes: c.durationMinutes,

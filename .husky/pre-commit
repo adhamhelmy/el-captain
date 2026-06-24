@@ -1,0 +1,7 @@
+#!/bin/sh
+cd apps/web
+echo "Running tsc..."
+npx tsc --noEmit || { echo "TypeScript errors — commit blocked."; exit 1; }
+echo "Running eslint..."
+npm run lint || { echo "ESLint errors — commit blocked."; exit 1; }
+echo "✓ Pre-commit checks passed."

@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     orderBy: { createdAt: 'asc' },
   })
 
-  return NextResponse.json(bookings.map(b => ({
+  return NextResponse.json(bookings.map((b: any) => ({
     bookingId: b.id,
     userId: b.user.id,
     name: b.user.name,

@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-async function requireAdmin(req: NextRequest) {
+async function requireAdmin(_req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session || session.user.role !== 'ADMIN') return null
   return session
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: 'desc' },
   })
 
-  return NextResponse.json(users.map(u => ({ ...u, createdAt: u.createdAt.toISOString() })))
+  return NextResponse.json(users.map((u: any) => ({ ...u, createdAt: u.createdAt.toISOString() })))
 }
 
 export async function PATCH(req: NextRequest) {

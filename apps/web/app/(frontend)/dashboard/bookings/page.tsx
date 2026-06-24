@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react'
 import { BookingCard } from '@/components/BookingCard'
 import type { BookingDTO } from '@el-captain/types'
 
+function SkeletonGrid() {
+  return (
+    <SimpleGrid cols={{ base: 1, sm: 2 }}>
+      {[1,2,3].map(i => <Skeleton key={i} height={160} radius="md" />)}
+    </SimpleGrid>
+  )
+}
+
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<BookingDTO[]>([])
   const [loading, setLoading] = useState(true)
@@ -19,12 +27,6 @@ export default function BookingsPage() {
   const now = new Date()
   const upcoming = bookings.filter(b => new Date(b.class.date) >= now)
   const past = bookings.filter(b => new Date(b.class.date) < now)
-
-  const SkeletonGrid = () => (
-    <SimpleGrid cols={{ base: 1, sm: 2 }}>
-      {[1,2,3].map(i => <Skeleton key={i} height={160} radius="md" />)}
-    </SimpleGrid>
-  )
 
   return (
     <Stack gap="lg">

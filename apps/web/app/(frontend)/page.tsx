@@ -44,6 +44,7 @@ export default function HomePage() {
     setLoadingMore(false)
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchClasses() }, [fetchClasses])
 
   return (
