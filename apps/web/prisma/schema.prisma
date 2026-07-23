@@ -9,21 +9,25 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  passwordHash  String
-  name          String
-  role          Role           @default(USER)
-  clientProfile ClientProfile?
-  bookings      Booking[]
-  classes       Class[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id              String          @id @default(cuid())
+  email           String          @unique
+  passwordHash    String
+  name            String
+  role            Role            @default(USER)
+  clientProfile   ClientProfile?
+  coachProfile    CoachProfile?
+  bookings        Booking[]
+  classes         Class[]
+  sessionRequests SessionRequest[] @relation("SessionRequests")
+  coachSessions   SessionRequest[] @relation("CoachSessions")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }
 
 enum Role {
   ADMIN
   CLIENT
+  COACH
   USER
 }
 
@@ -38,6 +42,19 @@ model ClientProfile {
   phone             String?
   userId            String  @unique
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CoachProfile {
+  id          String  @id @default(cuid())
+  bio         String?
+  specialties String?
+  city        String?
+  photoUrl    String?
+  website     String?
+  instagram   String?
+  phone       String?
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Class {
@@ -74,4 +91,22 @@ model Booking {
 enum BookingStatus {
   CONFIRMED
   CANCELLED
+}
+
+model SessionRequest {
+  id          String              @id @default(cuid())
+  message     String
+  status      SessionRequestStatus @default(PENDING)
+  userId      String
+  user        User                @relation("SessionRequests", fields: [userId], references: [id], onDelete: Cascade)
+  coachId     String
+  coach       User                @relation("CoachSessions", fields: [coachId], references: [id], onDelete: Cascade)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+enum SessionRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }

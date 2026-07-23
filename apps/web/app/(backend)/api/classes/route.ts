@@ -18,7 +18,8 @@ function toDTO(c: any) {
     imageUrl: c.imageUrl,
     clientId: c.clientId,
     clientName: c.client.name,
-    studioName: c.client.clientProfile?.studioName ?? null,
+    studioName: c.client.clientProfile?.studioName ?? (c.client.coachProfile ? null : null),
+    isCoach: !!c.client.coachProfile,
     createdAt: c.createdAt.toISOString(),
   }
 }
@@ -53,7 +54,7 @@ export async function GET(req: NextRequest) {
         ],
       } : {}),
     },
-    include: { client: { include: { clientProfile: true } } },
+    include: { client: { include: { clientProfile: true, coachProfile: true } } },
     orderBy: { date: 'asc' },
     take: limit,
     skip: offset,
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
-  if (!session || (session.user.role !== 'CLIENT' && session.user.role !== 'ADMIN')) {
+  if (!session || (session.user.role !== 'CLIENT' && session.user.role !== 'COACH' && session.user.role !== 'ADMIN')) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
       imageUrl: imageUrl ?? null,
       clientId: session.user.id,
     },
-    include: { client: { include: { clientProfile: true } } },
+    include: { client: { include: { clientProfile: true, coachProfile: true } } },
   })
 
   return NextResponse.json(toDTO(cls), { status: 201 })

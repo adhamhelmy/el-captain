@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest) {
   }
 
   const classes = await prisma.class.findMany({
-    include: { client: { include: { clientProfile: true } } },
+    include: { client: { include: { clientProfile: true, coachProfile: true } } },
     orderBy: { createdAt: 'desc' },
   })
 
@@ -21,6 +21,7 @@ export async function GET(_req: NextRequest) {
     imageUrl: c.imageUrl, clientId: c.clientId,
     clientName: c.client.name,
     studioName: c.client.clientProfile?.studioName ?? null,
+    isCoach: !!c.client.coachProfile,
     createdAt: c.createdAt.toISOString(),
   })))
 }

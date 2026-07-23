@@ -9,10 +9,13 @@ export default withAuth(
     if (path.startsWith('/dashboard/admin') && role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
-    if (path.startsWith('/dashboard/classes') && role !== 'CLIENT' && role !== 'ADMIN') {
+    if (path.startsWith('/dashboard/classes') && role !== 'CLIENT' && role !== 'COACH' && role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
     if (path.startsWith('/dashboard/bookings') && role !== 'USER' && role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+    if (path.startsWith('/dashboard/sessions') && role !== 'COACH' && role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
   },

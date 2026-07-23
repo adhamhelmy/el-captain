@@ -9,12 +9,15 @@ export default function ProfilePage() {
   const { data: session } = useSession()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const isCoach = session?.user.role === 'COACH'
 
   const form = useForm({
     initialValues: {
       name: '',
       studioName: '',
       studioDescription: '',
+      bio: '',
+      specialties: '',
       city: '',
       website: '',
       instagram: '',
@@ -24,18 +27,35 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!session?.user?.id) return
-    fetch(`/api/clients/${session.user.id}`)
+    const endpoint = isCoach ? `/api/coaches/${session.user.id}` : `/api/clients/${session.user.id}`
+    fetch(endpoint)
       .then(r => r.json())
       .then(data => {
-        form.setValues({
-          name: data.clientName ?? '',
-          studioName: data.studioName ?? '',
-          studioDescription: data.studioDescription ?? '',
-          city: data.city ?? '',
-          website: data.website ?? '',
-          instagram: data.instagram ?? '',
-          phone: data.phone ?? '',
-        })
+        if (isCoach) {
+          form.setValues({
+            name: data.coachName ?? '',
+            bio: data.bio ?? '',
+            specialties: data.specialties ?? '',
+            city: data.city ?? '',
+            website: data.website ?? '',
+            instagram: data.instagram ?? '',
+            phone: data.phone ?? '',
+            studioName: '',
+            studioDescription: '',
+          })
+        } else {
+          form.setValues({
+            name: data.clientName ?? '',
+            studioName: data.studioName ?? '',
+            studioDescription: data.studioDescription ?? '',
+            city: data.city ?? '',
+            website: data.website ?? '',
+            instagram: data.instagram ?? '',
+            phone: data.phone ?? '',
+            bio: '',
+            specialties: '',
+          })
+        }
         setLoading(false)
       })
   }, [session])
@@ -43,7 +63,8 @@ export default function ProfilePage() {
   async function handleSubmit(values: typeof form.values) {
     if (!session?.user?.id) return
     setSaving(true)
-    const res = await fetch(`/api/clients/${session.user.id}`, {
+    const endpoint = isCoach ? `/api/coaches/${session.user.id}` : `/api/clients/${session.user.id}`
+    const res = await fetch(endpoint, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
@@ -65,11 +86,20 @@ export default function ProfilePage() {
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">
             <TextInput label="Your name" {...form.getInputProps('name')} />
-            <TextInput label="Studio name" placeholder="Cairo Fitness Studio" {...form.getInputProps('studioName')} />
-            <Textarea label="Bio / Description" placeholder="Tell people about your studio..." autosize minRows={3} {...form.getInputProps('studioDescription')} />
+            {isCoach ? (
+              <>
+                <Textarea label="Bio" placeholder="Tell people about yourself and your coaching style..." autosize minRows={3} {...form.getInputProps('bio')} />
+                <TextInput label="Specialties" placeholder="Boxing, HIIT, Strength training..." {...form.getInputProps('specialties')} />
+              </>
+            ) : (
+              <>
+                <TextInput label="Studio name" placeholder="Cairo Fitness Studio" {...form.getInputProps('studioName')} />
+                <Textarea label="Bio / Description" placeholder="Tell people about your studio..." autosize minRows={3} {...form.getInputProps('studioDescription')} />
+              </>
+            )}
             <TextInput label="City / Area" placeholder="Maadi, Cairo" {...form.getInputProps('city')} />
-            <TextInput label="Website" placeholder="https://yourstudio.com" {...form.getInputProps('website')} />
-            <TextInput label="Instagram" placeholder="@yourstudio" {...form.getInputProps('instagram')} />
+            <TextInput label="Website" placeholder="https://..." {...form.getInputProps('website')} />
+            <TextInput label="Instagram" placeholder="@handle" {...form.getInputProps('instagram')} />
             <TextInput label="Phone" placeholder="+20 100 000 0000" {...form.getInputProps('phone')} />
             <Button type="submit" loading={saving}>Save changes</Button>
           </Stack>

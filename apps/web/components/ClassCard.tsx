@@ -24,7 +24,9 @@ export function ClassCard({ class: c }: Props) {
           </Badge>
         </Group>
         <Text fw={600} size="lg">{c.title}</Text>
-        <Text size="sm" c="dimmed">{c.studioName ?? c.clientName}</Text>
+        <Text size="sm" c="dimmed" component={Link} href={c.isCoach ? `/coaches/${c.clientId}` : `/clients/${c.clientId}`} style={{ textDecoration: 'none' }}>
+          {c.isCoach ? `Coach: ${c.clientName}` : (c.studioName ?? c.clientName)}
+        </Text>
         <Text size="sm">{date.toLocaleDateString()} · {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
         <Text size="sm">{c.city} · {c.durationMinutes} min</Text>
         <Button component={Link} href={`/classes/${c.id}`} variant="light" fullWidth mt="xs">

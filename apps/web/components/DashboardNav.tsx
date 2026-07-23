@@ -13,9 +13,12 @@ export function DashboardNav({ role }: { role: string }) {
         {role === 'USER' && (
           <TabsTab value="bookings" renderRoot={(props) => <Link href="/dashboard/bookings" {...props} />}>My Bookings</TabsTab>
         )}
-        {role === 'CLIENT' && (
+        {(role === 'CLIENT' || role === 'COACH') && (
           <>
             <TabsTab value="classes" renderRoot={(props) => <Link href="/dashboard/classes" {...props} />}>My Classes</TabsTab>
+            {role === 'COACH' && (
+              <TabsTab value="sessions" renderRoot={(props) => <Link href="/dashboard/sessions" {...props} />}>Session Requests</TabsTab>
+            )}
             <TabsTab value="profile" renderRoot={(props) => <Link href="/dashboard/profile" {...props} />}>My Profile</TabsTab>
           </>
         )}

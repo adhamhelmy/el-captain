@@ -13,6 +13,7 @@ export default function DashboardPage() {
     if (!session) { router.push('/auth/login'); return }
     if (session.user.role === 'ADMIN') router.push('/dashboard/admin')
     else if (session.user.role === 'CLIENT') router.push('/dashboard/classes')
+    else if (session.user.role === 'COACH') router.push('/dashboard/classes')
     else router.push('/dashboard/bookings')
   }, [session, status, router])
 

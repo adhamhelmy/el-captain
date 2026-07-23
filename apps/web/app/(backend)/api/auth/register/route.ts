@@ -27,6 +27,9 @@ export async function POST(req: NextRequest) {
       ...(role === 'CLIENT' && studioName && city
         ? { clientProfile: { create: { studioName, city } } }
         : {}),
+      ...(role === 'COACH'
+        ? { coachProfile: { create: {} } }
+        : {}),
     },
   })
 

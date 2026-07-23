@@ -11,6 +11,7 @@ function toDTO(c: any) {
     imageUrl: c.imageUrl, clientId: c.clientId,
     clientName: c.client.name,
     studioName: c.client.clientProfile?.studioName ?? null,
+    isCoach: !!c.client.coachProfile,
     createdAt: c.createdAt.toISOString(),
   }
 }
@@ -19,7 +20,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params
   const cls = await prisma.class.findUnique({
     where: { id },
-    include: { client: { include: { clientProfile: true } } },
+    include: { client: { include: { clientProfile: true, coachProfile: true } } },
   })
   if (!cls) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json(toDTO(cls))
@@ -50,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(body.address && { address: body.address }),
       ...(body.imageUrl !== undefined && { imageUrl: body.imageUrl }),
     },
-    include: { client: { include: { clientProfile: true } } },
+    include: { client: { include: { clientProfile: true, coachProfile: true } } },
   })
 
   return NextResponse.json(toDTO(updated))

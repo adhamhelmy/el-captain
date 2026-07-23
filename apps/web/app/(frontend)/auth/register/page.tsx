@@ -20,6 +20,7 @@ export default function RegisterPage() {
       studioName: (v, values) => (values.role === 'CLIENT' && !v ? 'Required for studios' : null),
       city: (v, values) => (values.role === 'CLIENT' && !v ? 'Required for studios' : null),
     },
+
   })
 
   async function handleSubmit(values: typeof form.values) {
@@ -58,6 +59,7 @@ export default function RegisterPage() {
               data={[
                 { value: 'USER', label: 'Looking for classes' },
                 { value: 'CLIENT', label: 'Studio / gym owner' },
+                { value: 'COACH', label: 'Private coach' },
               ]}
               {...form.getInputProps('role')}
             />

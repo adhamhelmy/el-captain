@@ -1,5 +1,6 @@
-export type Role = 'ADMIN' | 'CLIENT' | 'USER'
+export type Role = 'ADMIN' | 'CLIENT' | 'COACH' | 'USER'
 export type BookingStatus = 'CONFIRMED' | 'CANCELLED'
+export type SessionRequestStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED'
 
 export interface UserSession {
   id: string
@@ -13,7 +14,7 @@ export interface ClassDTO {
   title: string
   type: string
   description: string | null
-  date: string            // ISO string
+  date: string
   durationMinutes: number
   city: string
   address: string
@@ -23,6 +24,7 @@ export interface ClassDTO {
   clientId: string
   clientName: string
   studioName: string | null
+  isCoach: boolean
   createdAt: string
 }
 
@@ -51,4 +53,29 @@ export interface ClientProfileDTO {
   website: string | null
   instagram: string | null
   phone: string | null
+}
+
+export interface CoachProfileDTO {
+  id: string
+  userId: string
+  coachName: string
+  bio: string | null
+  specialties: string | null
+  city: string | null
+  photoUrl: string | null
+  website: string | null
+  instagram: string | null
+  phone: string | null
+}
+
+export interface SessionRequestDTO {
+  id: string
+  message: string
+  status: SessionRequestStatus
+  userId: string
+  userName: string
+  userEmail: string
+  coachId: string
+  coachName: string
+  createdAt: string
 }
