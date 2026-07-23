@@ -1,6 +1,10 @@
 #!/bin/sh
+export PATH="$HOME/.local/share/sonarqube-cli/bin:$PATH"
+
 echo "Running tsc..."
 node_modules/.bin/tsc -p apps/web/tsconfig.json --noEmit || { echo "TypeScript errors — commit blocked."; exit 1; }
 echo "Running eslint..."
 npm run lint --workspace=apps/web || { echo "ESLint errors — commit blocked."; exit 1; }
+echo "Running sonarqube..."
+sonar analyze --staged --force || { echo "SonarQube issues found — commit blocked."; exit 1; }
 echo "✓ Pre-commit checks passed."
