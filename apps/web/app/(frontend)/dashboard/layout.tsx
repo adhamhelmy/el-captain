@@ -1,4 +1,4 @@
-import { Container } from '@mantine/core'
+import { Container, Box } from '@mantine/core'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
@@ -12,8 +12,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <Container size="lg" py="xl">
-      <DashboardNav role={role} />
-      {children}
+      <Box style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+        <DashboardNav role={role} />
+        <Box style={{ flex: 1, minWidth: 0 }}>{children}</Box>
+      </Box>
     </Container>
   )
 }
