@@ -24,6 +24,16 @@ describe('POST /api/auth/register', () => {
     expect(res.status).toBe(400)
   })
 
+  it('returns 400 for a role that cannot self-register', async () => {
+    const req = new Request('http://localhost/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email: 'a@b.com', password: 'pass', name: 'X', role: 'ADMIN' }),
+    })
+    const res = await POST(req as any)
+    expect(res.status).toBe(400)
+    expect(prisma.user.create).not.toHaveBeenCalled()
+  })
+
   it('returns 409 when email is taken', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: '1' } as any)
     const req = new Request('http://localhost/api/auth/register', {

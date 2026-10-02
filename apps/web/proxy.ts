@@ -1,22 +1,17 @@
 import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
-import { homeForRole } from '@/lib/routes'
+import { canAccess, homeForRole } from '@/lib/routes'
 
 export default withAuth(
-  function middleware(req) {
+  function proxy(req) {
     const role = req.nextauth.token?.role
-    const path = req.nextUrl.pathname
-    const deny = () => NextResponse.redirect(new URL(homeForRole(role), req.url))
-
-    if (path.startsWith('/admin') && role !== 'ADMIN') return deny()
-    // Only the /classes list is protected; /classes/[id] is a public page.
-    if (path === '/classes' && role !== 'STUDIO' && role !== 'COACH' && role !== 'ADMIN') return deny()
-    if (path.startsWith('/bookings') && role !== 'USER' && role !== 'ADMIN') return deny()
-    if (path.startsWith('/sessions') && role !== 'COACH' && role !== 'ADMIN') return deny()
+    if (!canAccess(role, req.nextUrl.pathname)) {
+      return NextResponse.redirect(new URL(homeForRole(role), req.url))
+    }
   },
-  { pages: { signIn: '/auth/login' } }
+  { pages: { signIn: '/login' } }
 )
 
 export const config = {
-  matcher: ['/admin/:path*', '/classes', '/bookings/:path*', '/sessions/:path*', '/profile/:path*'],
+  matcher: ['/admin/:path*', '/coach/:path*', '/user/:path*'],
 }

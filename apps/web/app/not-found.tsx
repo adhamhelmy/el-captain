@@ -1,20 +1,11 @@
-'use client'
-import { Container, Title, Text, Button, Stack } from '@mantine/core'
 import Link from 'next/link'
 
 export default function NotFound() {
   return (
-    <Container size="sm" py={80} ta="center">
-      <Stack align="center" gap="md">
-        <Text size="80px" lh={1}>🏋️</Text>
-        <Title order={1}>404 — Page not found</Title>
-        <Text c="dimmed" size="lg">
-          Looks like this page took a rest day.
-        </Text>
-        <Button component={Link} href="/" size="md" mt="md">
-          Back to classes
-        </Button>
-      </Stack>
-    </Container>
+    <div className='page' style={{ textAlign: 'center', paddingTop: 120 }}>
+      <div className='display' style={{ fontSize: 96, lineHeight: 0.9 }}>404</div>
+      <div className='muted' style={{ fontSize: 16, margin: '12px 0 28px' }}>This page took a rest day.</div>
+      <Link href='/' className='btn'>Back home</Link>
+    </div>
   )
 }
