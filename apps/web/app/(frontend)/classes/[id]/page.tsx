@@ -105,7 +105,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
         </Group>
 
         <Title>{cls.title}</Title>
-        <Anchor component={Link} href={`/clients/${cls.clientId}`} c="dimmed" size="lg" underline="hover">
+        <Anchor component={Link} href={`/studios/${cls.clientId}`} c="dimmed" size="lg" underline="hover">
           {cls.studioName ?? cls.clientName}
         </Anchor>
 
@@ -129,7 +129,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
         ) : bookingState === 'booked' ? (
           <Stack gap="xs">
             <Button size="lg" fullWidth color="green" variant="light" disabled>✓ You&apos;re booked</Button>
-            <Button size="sm" variant="subtle" component={Link} href="/dashboard/bookings" fullWidth>View my bookings</Button>
+            <Button size="sm" variant="subtle" component={Link} href="/bookings" fullWidth>View my bookings</Button>
           </Stack>
         ) : (
           <Button

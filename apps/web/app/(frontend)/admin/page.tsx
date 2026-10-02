@@ -72,7 +72,7 @@ export default function AdminPage() {
                     <Select
                       size="xs"
                       value={u.role}
-                      data={['ADMIN', 'CLIENT', 'USER']}
+                      data={['ADMIN', 'STUDIO', 'USER']}
                       onChange={(role) => role && handleRoleChange(u.id, role)}
                       w={100}
                     />

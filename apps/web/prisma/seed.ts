@@ -22,7 +22,7 @@ async function main() {
       email: 'studio@elcaptain.com',
       passwordHash: await hash('studio123'),
       name: 'Cairo Fitness',
-      role: 'CLIENT',
+      role: 'STUDIO',
       clientProfile: {
         create: {
           studioName: 'Cairo Fitness',

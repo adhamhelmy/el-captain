@@ -6,5 +6,7 @@ node_modules/.bin/tsc -p apps/web/tsconfig.json --noEmit || { echo "TypeScript e
 echo "Running eslint..."
 npm run lint --workspace=apps/web || { echo "ESLint errors — commit blocked."; exit 1; }
 echo "Running sonarqube..."
-sonar analyze --staged --force || { echo "SonarQube issues found — commit blocked."; exit 1; }
+# sonar-scanner, not `sonar analyze`: the CLI's analyze uses /api/v2/a3s, which
+# SonarQube Community Edition doesn't have. Settings live in sonar-project.properties.
+sonar-scanner -Dsonar.log.level=WARN || { echo "SonarQube quality gate failed — commit blocked."; exit 1; }
 echo "✓ Pre-commit checks passed."

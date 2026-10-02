@@ -70,7 +70,7 @@ export default function CoachProfilePage({ params }: { params: Promise<{ id: str
             </Group>
           </Stack>
           {isOwner && (
-            <Button variant="light" component={Link} href="/dashboard/profile">Edit profile</Button>
+            <Button variant="light" component={Link} href="/profile">Edit profile</Button>
           )}
           {canRequest && (
             <Button onClick={open}>Request private session</Button>

@@ -1,5 +1,5 @@
 /** Platform user roles. */
-export type Role = 'ADMIN' | 'CLIENT' | 'COACH' | 'USER'
+export type Role = 'ADMIN' | 'STUDIO' | 'COACH' | 'USER'
 
 /** Booking lifecycle status. */
 export type BookingStatus = 'CONFIRMED' | 'CANCELLED'
@@ -17,7 +17,7 @@ export interface UserSession {
 
 /**
  * A fitness class as returned by the API.
- * Posted by a user with role CLIENT or COACH.
+ * Posted by a user with role STUDIO or COACH.
  */
 export interface ClassDTO {
   id: string
@@ -33,11 +33,11 @@ export interface ClassDTO {
   capacity: number
   spotsLeft: number
   imageUrl: string | null
-  /** User ID of the posting CLIENT or COACH. */
+  /** User ID of the posting STUDIO or COACH. */
   clientId: string
   /** Display name of the posting user. */
   clientName: string
-  /** Studio name — set for CLIENT posts, null for COACH posts. */
+  /** Studio name — set for STUDIO posts, null for COACH posts. */
   studioName: string | null
   /** True when the class was posted by a COACH (not a studio). */
   isCoach: boolean
@@ -68,7 +68,7 @@ export interface SearchParams {
   city?: string
 }
 
-/** Public profile of a studio or gym owner (CLIENT role). */
+/** Public profile of a studio or gym owner (STUDIO role). */
 export interface ClientProfileDTO {
   id: string
   userId: string

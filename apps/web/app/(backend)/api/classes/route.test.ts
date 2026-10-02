@@ -35,7 +35,7 @@ describe('GET /api/classes', () => {
 describe('POST /api/classes', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('returns 403 for non-CLIENT', async () => {
+  it('returns 403 for non-STUDIO', async () => {
     vi.mocked(getServerSession).mockResolvedValue({ user: { role: 'USER', id: 'u1' } } as any)
     const req = new Request('http://localhost/api/classes', {
       method: 'POST',
@@ -45,8 +45,8 @@ describe('POST /api/classes', () => {
     expect(res.status).toBe(403)
   })
 
-  it('creates class for CLIENT', async () => {
-    vi.mocked(getServerSession).mockResolvedValue({ user: { role: 'CLIENT', id: 'u1' } } as any)
+  it('creates class for STUDIO', async () => {
+    vi.mocked(getServerSession).mockResolvedValue({ user: { role: 'STUDIO', id: 'u1' } } as any)
     vi.mocked(prisma.class.create).mockResolvedValue(makeClass() as any)
     const req = new Request('http://localhost/api/classes', {
       method: 'POST',

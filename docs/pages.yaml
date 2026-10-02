@@ -1,0 +1,35 @@
+- auth:
+    - login
+    - register
+    - forgot-password
+    - reset-password
+- admin (admin):
+    - dashboard
+    - users
+    - users/[id]
+    - coaches
+    - coaches/[id]
+    - sessions
+    - sessions/[id]
+- coach (coach):
+    - dashboard
+    - profile
+    - sessions
+    - sessions/[id]
+    - sessions/me
+    - users/[id]
+    - users/me
+- user (user):
+    - dashboard
+    - profile
+    - sessions
+    - sessions/[id]
+    - sessions/me
+    - coaches
+    - coaches/[id]
+    - coaches/me
+- public:
+    - home
+    - about
+    - contact
+    - faq
