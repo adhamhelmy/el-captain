@@ -11,7 +11,7 @@ describe('authOptions', () => {
     expect(authOptions.providers[0].id).toBe('credentials')
   })
 
-  it('redirects sign-in to /auth/login', () => {
-    expect(authOptions.pages?.signIn).toBe('/auth/login')
+  it('redirects sign-in to /login', () => {
+    expect(authOptions.pages?.signIn).toBe('/login')
   })
 })

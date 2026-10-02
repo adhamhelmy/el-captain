@@ -3,5 +3,5 @@ node_modules/
 .next/
 .scannerwork/
 .DS_Store
-
-
+docs/designs
+coverage/
