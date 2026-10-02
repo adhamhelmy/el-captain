@@ -47,7 +47,7 @@ export function BookingCard({ booking, onCancelled }: Props) {
           <Anchor component={Link} href={`/classes/${c.id}`} fw={600} size="lg" underline="hover" c="inherit">
             {c.title}
           </Anchor>
-          <Anchor component={Link} href={`/clients/${c.clientId}`} size="sm" c="dimmed" underline="hover">
+          <Anchor component={Link} href={`/studios/${c.clientId}`} size="sm" c="dimmed" underline="hover">
             {c.studioName ?? c.clientName}
           </Anchor>
           <Text size="sm">{date.toLocaleDateString()} · {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>

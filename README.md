@@ -9,7 +9,7 @@ Fitness class discovery and booking platform. Studios and private coaches post c
 | Role | Description |
 |------|-------------|
 | `USER` | Searches and books classes, requests private sessions from coaches |
-| `CLIENT` | Studio or gym owner — posts group classes, manages profile |
+| `STUDIO` | Studio or gym owner — posts group classes, manages profile |
 | `COACH` | Private coach — posts classes, receives and responds to session requests |
 | `ADMIN` | Platform administrator — manages all users and classes |
 
@@ -46,9 +46,9 @@ el-captain/
 │       │   │   └── dashboard/            # Role-specific dashboards
 │       │   │       ├── admin/            # ADMIN overview
 │       │   │       ├── bookings/         # USER bookings (upcoming/past)
-│       │   │       ├── classes/          # CLIENT/COACH class management
+│       │   │       ├── classes/          # STUDIO/COACH class management
 │       │   │       ├── sessions/         # COACH session requests
-│       │   │       └── profile/          # CLIENT/COACH profile edit
+│       │   │       └── profile/          # STUDIO/COACH profile edit
 │       │   └── (backend)/
 │       │       └── api/                  # API routes
 │       ├── components/                   # Shared React components
@@ -129,11 +129,11 @@ See [docs/api.md](docs/api.md) for full endpoint documentation.
 ```
 User ──< Booking >── Class
  │                    │
- ├── ClientProfile    └── (posted by CLIENT or COACH user)
+ ├── ClientProfile    └── (posted by STUDIO or COACH user)
  ├── CoachProfile
  └──< SessionRequest >── (to a COACH user)
 ```
 
-- A `Class` is posted by a `User` with role `CLIENT` or `COACH`
+- A `Class` is posted by a `User` with role `STUDIO` or `COACH`
 - A `Booking` links a `USER` to a `Class` (unique per user/class)
 - A `SessionRequest` links a `USER` to a `COACH` (message-based, not time-specific)

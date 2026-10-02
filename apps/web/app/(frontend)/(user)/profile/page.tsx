@@ -58,7 +58,9 @@ export default function ProfilePage() {
         }
         setLoading(false)
       })
-  }, [session])
+    // `form` is a new object every render; listing it would refetch in a loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id, isCoach])
 
   async function handleSubmit(values: typeof form.values) {
     if (!session?.user?.id) return

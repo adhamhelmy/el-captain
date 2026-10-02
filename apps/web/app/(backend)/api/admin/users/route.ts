@@ -30,7 +30,7 @@ export async function PATCH(req: NextRequest) {
   const { userId, role } = await req.json()
   if (!userId || !role) return NextResponse.json({ error: 'userId and role required' }, { status: 400 })
 
-  const VALID_ROLES = ['ADMIN', 'CLIENT', 'USER']
+  const VALID_ROLES = ['ADMIN', 'STUDIO', 'USER']
   if (!VALID_ROLES.includes(role)) {
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
   }

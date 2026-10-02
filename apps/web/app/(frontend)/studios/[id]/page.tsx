@@ -82,7 +82,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
             </Stack>
           </Group>
           {isOwner && (
-            <Anchor component={Link} href="/dashboard/profile" fw={500}>
+            <Anchor component={Link} href="/profile" fw={500}>
               Edit profile
             </Anchor>
           )}
@@ -91,7 +91,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
         {profile.studioDescription ? (
           <Text>{profile.studioDescription}</Text>
         ) : isOwner ? (
-          <Text c="dimmed" fs="italic">No description yet — <Anchor component={Link} href="/dashboard/profile">add one</Anchor>.</Text>
+          <Text c="dimmed" fs="italic">No description yet — <Anchor component={Link} href="/profile">add one</Anchor>.</Text>
         ) : null}
 
         {(profile.website || profile.instagram || profile.phone) && (

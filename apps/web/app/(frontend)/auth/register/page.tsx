@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { notifications } from '@mantine/notifications'
 import Link from 'next/link'
+import { homeForRole } from '@/lib/routes'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -17,8 +18,8 @@ export default function RegisterPage() {
       password: (v) => (v.length >= 8 ? null : 'Min 8 characters'),
       confirmPassword: (v, values) => (v === values.password ? null : 'Passwords do not match'),
       role: (v) => (v ? null : 'Select a role'),
-      studioName: (v, values) => (values.role === 'CLIENT' && !v ? 'Required for studios' : null),
-      city: (v, values) => (values.role === 'CLIENT' && !v ? 'Required for studios' : null),
+      studioName: (v, values) => (values.role === 'STUDIO' && !v ? 'Required for studios' : null),
+      city: (v, values) => (values.role === 'STUDIO' && !v ? 'Required for studios' : null),
     },
 
   })
@@ -37,7 +38,7 @@ export default function RegisterPage() {
     }
 
     await signIn('credentials', { redirect: false, email: values.email, password: values.password })
-    router.push('/dashboard')
+    router.push(homeForRole(values.role))
   }
 
   return (
@@ -58,12 +59,12 @@ export default function RegisterPage() {
               label="I am a..."
               data={[
                 { value: 'USER', label: 'Looking for classes' },
-                { value: 'CLIENT', label: 'Studio / gym owner' },
+                { value: 'STUDIO', label: 'Studio / gym owner' },
                 { value: 'COACH', label: 'Private coach' },
               ]}
               {...form.getInputProps('role')}
             />
-            {form.values.role === 'CLIENT' && (
+            {form.values.role === 'STUDIO' && (
               <>
                 <TextInput label="Studio Name" placeholder="Cairo Fitness" {...form.getInputProps('studioName')} />
                 <TextInput label="City" placeholder="Cairo" {...form.getInputProps('city')} />

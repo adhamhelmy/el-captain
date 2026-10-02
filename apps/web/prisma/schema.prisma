@@ -26,7 +26,7 @@ model User {
 
 enum Role {
   ADMIN
-  CLIENT
+  STUDIO
   COACH
   USER
 }
