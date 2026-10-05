@@ -3,664 +3,253 @@
       post:
         summary: Register a new user
         request:
-          email:
-            type: string
-          password:
-            type: string
-          type:
-            type: string
-            enum: [admin, coach, user]
-        responses:
-          '201':
-            description: User registered successfully
-          '400':
-            description: Invalid input
+          email: string
+          password: string
+          type: [admin, coach, user]
     - verify-email:
       post:
         summary: Verify user email
         request:
-          token:
-            type: string
-        responses:
-          '200':
-            description: Email verified successfully
-          '400':
-            description: Invalid or expired token
+          token: string
     - resend-verification:
       post:
         summary: Resend email verification
         request:
-          email:
-            type: string
-        responses:
-          '200':
-            description: Verification email resent successfully     
+          email: string
     - login:
       post:
         summary: Login a user
         request:
-          email:
-            type: string
-          password:
-            type: string
-        responses:
-          '200':
-            description: User logged in successfully
-          '401':
-            description: Invalid credentials
+          email: string
+          password: string
     - logout:
       post:
         summary: Logout a user
-        responses:
-          '200':
-            description: User logged out successfully
-          '401':
-            description: User not logged in
     - refresh:
       post:
         summary: Refresh authentication token
-        responses:
-          '200':
-            description: Token refreshed successfully
-          '401':
-            description: Invalid or expired token
     - forgot-password:
       post:
         summary: Request password reset
         request:
-          email:
-            type: string
-        responses:
-          '200':
-            description: Password reset email sent
-          '404':
-            description: Email not found
+          email: string
     - reset-password:
       post:
         summary: Reset user password
         request:
-          token:
-            type: string
-          new_password:
-            type: string
-        responses:
-          '200':
-            description: Password reset successfully
-          '400':
-            description: Invalid token or password
+          token: string
+          new_password: string
     - me:
       get:
         summary: Get current user information
-        responses:
-          '200':
-            description: Current user information retrieved successfully
-          '401':
-            description: User not logged in
 - admin (admin):
     - dashboard:
       get:
         summary: Get admin dashboard information
-        responses:
-          '200':
-            description: Admin dashboard information retrieved successfully
-          '401':
-            description: User not logged in
     - users:
       - list:
           get:
             summary: List all users
-            responses:
-              '200':
-                description: List of users retrieved successfully
-              '401':
-                description: User not logged in
       - get:
           get:
             summary: Get user by ID
             parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
-            responses:
-              '200':
-                description: User information retrieved successfully
-              '404':
-                description: User not found
-              '401':
-                description: User not logged in
+              - id: string
       - update:
           put:
             summary: Update user information
             parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
+              - id: string
             request:
-              email:
-                type: string
-              password:
-                type: string
-              type:
-                type: string
-                enum: [admin, coach, user]
-            responses:
-              '200':
-                description: User updated successfully
-              '400':
-                description: Invalid input
-              '404':
-                description: User not found
-              '401':
-                description: User not logged in
+              email: string
+              password: string
+              type: [admin, coach, user]
       - delete:
           delete:
             summary: Delete user by ID
             parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
-            responses:
-              '200':
-                description: User deleted successfully
-              '404':
-                description: User not found
-              '401':
-                description: User not logged in      
+              - id: string
     - coaches:
       - list:
           get:
             summary: List all coaches
-            responses:
-              '200':
-                description: List of coaches retrieved successfully
-              '401':
-                description: User not logged in
       - get:
           get:
             summary: Get coach by ID
             parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
-            responses:
-              '200':
-                description: Coach information retrieved successfully
-              '404':
-                description: Coach not found
-              '401':
-                description: User not logged in
+              - id: string
       - update:
           put:
             summary: Update coach information
             parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
+              - id: string
             request:
               email :
                 type: string
-              password:
-                type: string
-            responses:
-              '200':
-                description: Coach updated successfully
-              '400':
-                description: Invalid input
-              '404':
-                description: Coach not found
-              '401':
-                description: User not logged in
+              password: string
       - delete:
       delete:
         summary: Delete coach by ID
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
-        responses:
-          '200':
-            description: Coach deleted successfully
-          '404':
-            description: Coach not found
-          '401':
-            description: User not logged in        
+          - id: string
 - coach (coach):
     - dashboard:
       get:
         summary: Get coach dashboard information
-        responses:
-          '200':
-            description: Coach dashboard information retrieved successfully
-          '401':
-            description: User not logged in
     - profile:
       get:
         summary: Get coach profile information
-        responses:
-          '200':
-            description: Coach profile information retrieved successfully
-          '401':
-            description: User not logged in
       put:
         summary: Update coach profile information
         request:
-          email:
-            type: string
-          password:
-            type: string
-        responses:
-          '200':
-            description: Coach profile updated successfully
-          '400':
-            description: Invalid input
-          '401':
-            description: User not logged in          
+          email: string
+          password: string
     - locations:
       - list:
           get:
             summary: List all locations for the coach
-            responses:
-              '200':
-                description: List of locations retrieved successfully
-              '401':
-                description: User not logged in
       - get:
           get:
             summary: Get location by ID for the coach
             parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
-            responses:
-              '200':
-                description: Location information retrieved successfully
-              '404':
-                description: Location not found
-              '401':
-                description: User not logged in          
+              - id: string
       - create:
           post:
             summary: Create a new location for the coach
             request:
-              name:
-                type: string
-              address:
-                type: string
-            responses:
-              '201':
-                description: Location created successfully
-              '400':
-                description: Invalid input
-              '401':
-                description: User not logged in
+              name: string
+              address: string
       - update:
           put:
             summary: Update location information for the coach
             parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
+              - id: string
             request:
-              name:
-                type: string
-              address:
-                type: string
-            responses:
-              '200':
-                description: Location updated successfully
-              '400':
-                description: Invalid input
-              '404':
-                description: Location not found
-              '401':
-                description: User not logged in
+              name: string
+              address: string
       - delete:
           delete:
             summary: Delete location by ID for the coach
             parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
-            responses:
-              '200':
-                description: Location deleted successfully
-              '404':
-                description: Location not found
-              '401':
-                description: User not logged in
+              - id: string
 - user (user):
     - dashboard:
       get:
         summary: Get user dashboard information
-        responses:
-          '200':
-            description: User dashboard information retrieved successfully
-          '401':
-            description: User not logged in
     - profile:
       get:
         summary: Get user profile information
-        responses:
-          '200':
-            description: User profile information retrieved successfully
-          '401':
-            description: User not logged in
       put:
         summary: Update user profile information
         request:
           email :
             type: string
-          password:
-            type: string
-        responses:
-          '200':
-            description: User profile updated successfully
-          '400':
-            description: Invalid input
-          '401':
-            description: User not logged in            
+          password: string
 - sessions:
     - list:
       get:
         summary: List all sessions
-        responses:
-          '200':
-            description: List of sessions retrieved successfully
-          '401':
-            description: User not logged in
     - get:
       get:
         summary: Get session by ID
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
-        responses:
-          '200':
-            description: Session information retrieved successfully
-          '404':
-            description: Session not found
-          '401':
-            description: User not logged in
+          - id: string
     - create (admin, coach):
       post:
         summary: Create a new session
         request:
-          title:
-            type: string
-          description:
-            type: string
-          coach_id:
-            type: string
-        responses:
-          '201':
-            description: Session created successfully
-          '400':
-            description: Invalid input
-          '401':
-            description: User not logged in
+          title: string
+          description: string
+          coach_id: string
     - update (admin, coach):
       put:
         summary: Update session information
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
+          - id: string
         request:
-          title:
-            type: string
-          description:
-            type: string
-        responses:
-          '200':
-            description: Session updated successfully
-          '400':
-            description: Invalid input
-          '404':
-            description: Session not found
-          '401':
-            description: User not logged in
+          title: string
+          description: string
     - delete (admin, coach):
       delete:
         summary: Delete session by ID
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
-        responses:
-          '200':
-            description: Session deleted successfully
-          '404':
-            description: Session not found
-          '401':
-            description: User not logged in
+          - id: string
     - me (coach, user):
         - list:
           get:
             summary: List sessions for the current user
-            responses:
-              '200':
-                description: List of sessions for the current user retrieved successfully
-              '401':
-                description: User not logged in
 - coaches:
     - list:
       get:
         summary: List all coaches
-        responses:
-          '200':
-            description: List of coaches retrieved successfully
-          '401':
-            description: User not logged in
     - get:
       get:
         summary: Get coach by ID
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
-        responses:
-          '200':
-            description: Coach information retrieved successfully
-          '404':
-            description: Coach not found
-          '401':
-            description: User not logged in     
+          - id: string
     - me (user):
       get:
         summary: Get current user's coach information
-        responses:
-          '200':
-            description: Current user's coach information retrieved successfully
-          '401':
-            description: User not logged in
     - [id]:
       - favorite (user):
           post:
             summary: Add a coach to user's favorites
             parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
-            responses:
-              '200':
-                description: Coach added to favorites successfully
-              '404':
-                description: Coach not found
-              '401':
-                description: User not logged in
+              - id: string
       - unfavorite (user):
           delete:
             summary: Remove a coach from user's favorites
             parameters:
-              - name: id
-                in: path
-                required: true
-                type: string
-            responses:
-              '200':
-                description: Coach removed from favorites successfully
-              '404':
-                description: Coach not found
-              '401':
-                description: User not logged in          
+              - id: string
 - bookings:
     - list (admin):
       get:
         summary: List all bookings for the current user
-        responses:
-          '200':
-            description: List of bookings retrieved successfully
-          '401':
-            description: User not logged in
     - get (admin, user):
       get:
         summary: Get booking by ID for the current user
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
-        responses:
-          '200':
-            description: Booking information retrieved successfully
-          '404':
-            description: Booking not found
-          '401':
-            description: User not logged in
+          - id: string
     - create (user):
       post:
         summary: Create a new booking
         request:
-          coach_id:
-            type: string
-          date:
-            type: string
-            format: date-time
-          duration:
-            type: integer
-        responses:
-          '201':
-            description: Booking created successfully
-          '400':
-            description: Invalid input
-          '404':
-            description: Coach not found
-          '401':
-            description: User not logged in  
+          coach_id: string
+          date: date-time
+          duration: integer
     - update (user):
       put:
         summary: Update booking information for the current user                    
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
+          - id: string
         request:
-          date:
-            type: string
-            format: date-time
-          duration:
-            type: integer
-        responses:
-          '200':
-            description: Booking updated successfully
-          '400':
-            description: Invalid input
-          '404':
-            description: Booking not found
-          '401':
-            description: User not logged in        
+          date: date-time
+          duration: integer
     - cancel (user):
       delete:
         summary: Cancel a booking by ID
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
-        responses:
-          '200':
-            description: Booking canceled successfully
-          '404':
-            description: Booking not found
-          '401':
-            description: User not logged in    
+          - id: string
     - accept (coach):
       post:
         summary: Accept a booking by ID
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
-        responses:
-          '200':
-            description: Booking accepted successfully
-          '404':
-            description: Booking not found
-          '401':
-            description: User not logged in
+          - id: string
     - reject (coach):
       post:
         summary: Reject a booking by ID
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
-        responses:
-          '200':
-            description: Booking rejected successfully
-          '404':
-            description: Booking not found
-          '401':
-            description: User not logged in
+          - id: string
     - me (user, coach):
       - list:
           get:
             summary: List bookings for the current user
-            responses:
-              '200':
-                description: List of bookings for the current user retrieved successfully
-              '401':
-                description: User not logged in
 - locations:
     - list:
       get:
         summary: List all locations
-        responses:
-          '200':
-            description: List of locations retrieved successfully
-          '401':
-            description: User not logged in
     - get:
       get:
         summary: Get location by ID
         parameters:
-          - name: id
-            in: path
-            required: true
-            type: string
-        responses:
-          '200':
-            description: Location information retrieved successfully
-          '404':
-            description: Location not found
-          '401':
-            description: User not logged in
-
+          - id: string
