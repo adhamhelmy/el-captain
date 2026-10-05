@@ -1,27 +1,33 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Person, Segmented, Table, Tag } from '@/components/ui'
-import { cap, coaches, type CoachStatus } from '@/lib/mock'
+import { coaches, type CoachStatus } from '@/lib/mock'
+import { useSessionText } from '@/lib/session-text'
+import { isolate } from '@/i18n/locale'
 
 export default function AdminCoachesPage() {
+  const t = useTranslations('admin')
+  const tst = useTranslations('status')
+  const x = useSessionText()
   const [filter, setFilter] = useState<'all' | CoachStatus>('all')
   const list = coaches.filter(c => filter === 'all' || c.status === filter)
 
   return (
     <div className='page'>
       <div className='between' style={{ marginBottom: 24 }}>
-        <div className='title'>COACHES</div>
-        <Segmented options={[['All', 'all'], ['Active', 'active'], ['Pending', 'pending'], ['Suspended', 'suspended']]} value={filter} onChange={setFilter} />
+        <div className='title'>{t('coaches')}</div>
+        <Segmented options={[[x.category('all'), 'all'], [tst('active'), 'active'], [tst('pending'), 'pending'], [tst('suspended'), 'suspended']]} value={filter} onChange={setFilter} />
       </div>
-      <Table cols='minmax(0,2.2fr) minmax(0,0.8fr) minmax(0,0.8fr) minmax(0,0.8fr) minmax(0,1fr)' head={['Coach', 'Rating', 'Clients', 'Revenue', 'Status']}>
+      <Table cols='minmax(0,2.2fr) minmax(0,0.8fr) minmax(0,0.8fr) minmax(0,0.8fr) minmax(0,1fr)' head={[t('head.coach'), t('head.rating'), t('head.clients'), t('head.revenue'), t('head.status')]}>
         {list.map(c => (
           <Link key={c.id} href={`/admin/coaches/${c.id}`} className='tr'>
-            <Person initials={c.initials} name={c.name} sub={`${c.specialty} · ${c.location}`} />
+            <Person initials={x.initials(c)} name={x.name(c)} sub={`${x.category(c.specialty)} · ${isolate(c.location)}`} />
             <span className='muted'>{c.rating} ★</span>
             <span className='muted'>{c.clients}</span>
-            <span className='muted'>${c.revenue}</span>
-            <span><Tag kind={c.status}>{cap(c.status)}</Tag></span>
+            <span className='muted'>{x.price(c.revenue)}</span>
+            <span><Tag kind={c.status}>{tst(c.status)}</Tag></span>
           </Link>
         ))}
       </Table>

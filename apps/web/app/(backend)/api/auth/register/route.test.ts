@@ -22,6 +22,7 @@ describe('POST /api/auth/register', () => {
     })
     const res = await POST(req as any)
     expect(res.status).toBe(400)
+    expect((await res.json()).code).toBe('missing_fields')
   })
 
   it('returns 400 for a role that cannot self-register', async () => {
@@ -31,6 +32,7 @@ describe('POST /api/auth/register', () => {
     })
     const res = await POST(req as any)
     expect(res.status).toBe(400)
+    expect((await res.json()).code).toBe('invalid_role')
     expect(prisma.user.create).not.toHaveBeenCalled()
   })
 
@@ -42,6 +44,7 @@ describe('POST /api/auth/register', () => {
     })
     const res = await POST(req as any)
     expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('email_taken')
   })
 
   it('creates user and returns 201', async () => {

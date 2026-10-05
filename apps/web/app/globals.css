@@ -1,4 +1,6 @@
 /* Design tokens and shared styles — see docs/designs/README.md */
+/* Dark is the default. Light applies when the OS prefers it (unless the user picked dark)
+   or when the user picked light; see lib/theme.ts. Keep the two light blocks in sync. */
 :root {
   --bg: #131417;
   --surface: #1c1e23;
@@ -7,34 +9,96 @@
   --text: #f4f5f0;
   --text-2: #93959f;
   --text-3: #5c5e68;
+  /* Lime is a fill only (with --on-accent ink); lime-coloured text uses --accent-text. */
   --accent: #d7ff3d;
   --on-accent: #0e1200;
+  --accent-text: #d7ff3d;
+  --accent-tint: rgba(215, 255, 61, 0.12);
+  --accent-tag: rgba(215, 255, 61, 0.14);
+  --hover-border: #d7ff3d;
+  --focus-border: #d7ff3d;
   --warn: #ff5a36;
+  --warn-tint: rgba(255, 90, 54, 0.14);
   --pending: #ffc53d;
-  --stripes: repeating-linear-gradient(135deg, #25272e 0 18px, #2b2d34 18px 36px);
-  --stripes-hero: repeating-linear-gradient(135deg, #1c1e23 0 22px, #212328 22px 44px);
+  --pending-tint: rgba(255, 197, 61, 0.14);
+  --pending-border: rgba(255, 197, 61, 0.3);
+  --past-tint: rgba(147, 149, 159, 0.14);
+  --header-bg: rgba(19, 20, 23, 0.92);
+  --stripe-a: #25272e;
+  --stripe-b: #2b2d34;
+  --hero-a: #1c1e23;
+  --hero-b: #212328;
+  --stripes: repeating-linear-gradient(135deg, var(--stripe-a) 0 18px, var(--stripe-b) 18px 36px);
+  --stripes-hero: repeating-linear-gradient(135deg, var(--hero-a) 0 22px, var(--hero-b) 22px 44px);
   --font-display: var(--font-bebas), sans-serif;
   --font-ui: var(--font-space), sans-serif;
   color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --bg: #f6f6f2; --surface: #ffffff; --surface-2: #eeeee8; --border: #dcddd5;
+    --text: #131417; --text-2: #5c5e68; --text-3: #73757e;
+    --accent-text: #4d6b00; --accent-tint: #eef6cf; --accent-tag: #e9f5c4;
+    --hover-border: #8fb300; --focus-border: #4d6b00;
+    --warn: #c2330f; --warn-tint: #fde3db;
+    --pending: #8a5a00; --pending-tint: #fbefcf; --pending-border: #ecd38a; --past-tint: #ebebe5;
+    --header-bg: rgba(246, 246, 242, 0.92);
+    --stripe-a: #eeeee8; --stripe-b: #e4e5dd; --hero-a: #efefe9; --hero-b: #e8e9e2;
+    color-scheme: light;
+  }
+}
+:root[data-theme='light'] {
+  --bg: #f6f6f2; --surface: #ffffff; --surface-2: #eeeee8; --border: #dcddd5;
+  --text: #131417; --text-2: #5c5e68; --text-3: #73757e;
+  --accent-text: #4d6b00; --accent-tint: #eef6cf; --accent-tag: #e9f5c4;
+  --hover-border: #8fb300; --focus-border: #4d6b00;
+  --warn: #c2330f; --warn-tint: #fde3db;
+  --pending: #8a5a00; --pending-tint: #fbefcf; --pending-border: #ecd38a; --past-tint: #ebebe5;
+  --header-bg: rgba(246, 246, 242, 0.92);
+  --stripe-a: #eeeee8; --stripe-b: #e4e5dd; --hero-a: #efefe9; --hero-b: #e8e9e2;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: var(--font-ui); min-height: 100vh; -webkit-font-smoothing: antialiased; }
 button, input, textarea, select { font-family: inherit; }
+/* Cairo's default leading is ~1.9, which makes Arabic labels taller than Latin ones next to them.
+   1.3 matches Space Grotesk's default, so mixed rows line up and boxes keep the English sizes. */
+:lang(ar) :is(body, button, input, select, textarea) { line-height: 1.3; }
+/* User-written text keeps its own direction but lines up with the page, not with its own language. */
+[dir='rtl'] [dir='auto'] { text-align: right; }
+[dir='ltr'] [dir='auto'] { text-align: left; }
 button { cursor: pointer; }
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--accent-text); text-decoration: none; }
 a:hover { color: var(--text); }
 a.plain, a.plain:hover { color: var(--text); }
 input::placeholder, textarea::placeholder { color: var(--text-3); }
-input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent) !important; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--focus-border) !important; }
 
 /* Type */
 .display { font-family: var(--font-display); font-weight: 400; letter-spacing: 1px; }
 .title { font-family: var(--font-display); font-weight: 400; font-size: 48px; letter-spacing: 1px; line-height: 1; }
 .h2 { font-family: var(--font-display); font-weight: 400; font-size: 24px; letter-spacing: 1px; }
 .h3 { font-family: var(--font-display); font-weight: 400; font-size: 22px; letter-spacing: 1px; }
-.eyebrow { color: var(--accent); font-size: 14px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 18px; }
+/* Tight leading for big display headings; Arabic needs room for dots and descenders. */
+.lh-88 { line-height: 0.88; }
+/* Home headline on one line: the English text is ~9.1em wide in Bebas and the Arabic ~10.1em in Cairo,
+   plus 1px letter-spacing per character, so each size fits 1136px on desktop and down to 320px phones. */
+.hero-title { font-size: min(120px, 9.2vw); }
+:lang(ar) .hero-title { font-size: min(108px, 8.8vw); }
+.lh-90 { line-height: 0.9; }
+.lh-95 { line-height: 0.95; }
+.lh-100 { line-height: 1; }
+/* Arabic: Cairo carries the glyphs. Letter-spacing breaks joined letters, and Bebas'
+   tight leading clips Arabic dots, so loosen both and add weight to match Bebas' punch. */
+:lang(ar) :is(.display, .title, .h2, .h3, .stat-value, .scard-cat, .auth-title, .logo-text) { letter-spacing: 0; font-weight: 800; font-synthesis: none; line-height: 1.2; }
+:lang(ar) :is(.lh-88, .lh-90, .lh-95, .lh-100) { line-height: 1.25; }
+:lang(ar) :is(.eyebrow, .side-role) { letter-spacing: 0; }
+.eyebrow { color: var(--accent-text); font-size: 14px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 18px; }
 .muted { color: var(--text-2); }
+/* Small caps-style label; spacing would break Arabic letter joins. */
+.overline { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+:lang(ar) .overline { letter-spacing: 0; }
 .dim { color: var(--text-3); }
 .sub { color: var(--text-2); font-size: 15px; margin: 8px 0 28px; }
 
@@ -49,7 +113,7 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--a
 /* Surfaces */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; color: var(--text); }
-a.row:hover, a.hover:hover { border-color: var(--accent); color: var(--text); }
+a.row:hover, a.hover:hover { border-color: var(--hover-border); color: var(--text); }
 .hero { border-radius: 18px; padding: clamp(22px, 5vw, 36px); background: var(--stripes-hero); border: 1px solid var(--border); }
 .empty { text-align: center; padding: 60px 0; color: var(--text-2); }
 
@@ -64,18 +128,18 @@ a.row:hover, a.hover:hover { border-color: var(--accent); color: var(--text); }
 
 /* Session card */
 .scard { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; color: var(--text); }
-.scard:hover { border-color: var(--accent); color: var(--text); }
+.scard:hover { border-color: var(--hover-border); color: var(--text); }
 .scard-head { height: 96px; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; background: var(--stripes); }
-.scard-cat { font-family: var(--font-display); font-size: 40px; letter-spacing: 1px; color: var(--accent); }
+.scard-cat { font-family: var(--font-display); font-size: 40px; letter-spacing: 1px; color: var(--accent-text); }
 .scard-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .scard-foot { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-2); margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
 
 /* Tags */
 .tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 100px; white-space: nowrap; }
-.tag-accent { color: var(--accent); background: rgba(215, 255, 61, 0.14); }
-.tag-warn { color: var(--warn); background: rgba(255, 90, 54, 0.14); }
-.tag-pending { color: var(--pending); background: rgba(255, 197, 61, 0.14); }
-.tag-past { color: var(--text-2); background: rgba(147, 149, 159, 0.14); }
+.tag-accent { color: var(--accent-text); background: var(--accent-tag); }
+.tag-warn { color: var(--warn); background: var(--warn-tint); }
+.tag-pending { color: var(--pending); background: var(--pending-tint); }
+.tag-past { color: var(--text-2); background: var(--past-tint); }
 .tag-solid { color: var(--on-accent); background: var(--accent); }
 
 /* Segmented control and chips */
@@ -85,7 +149,13 @@ a.row:hover, a.hover:hover { border-color: var(--accent); color: var(--text); }
 .seg button.on { background: var(--accent); color: var(--on-accent); }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip { padding: 8px 16px; border-radius: 100px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); background: transparent; color: var(--text-2); }
-.chip.on { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.chip.on { border-color: var(--hover-border); background: var(--accent); color: var(--on-accent); }
+.theme-btn { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 40px; height: 40px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
+.theme-btn:hover { border-color: var(--hover-border); }
+.side-toggles { display: flex; gap: 8px; margin-inline-start: 8px; }
+.locale-btn { font-weight: 700; font-size: 14px; }
+.locale-btn:disabled { opacity: 0.6; }
+@media (max-width: 759px) { .theme-btn { width: 44px; height: 44px; } }
 .pill { border: 1px solid var(--border); padding: 8px 14px; border-radius: 100px; font-size: 13px; color: var(--text-2); }
 
 /* Buttons */
@@ -118,26 +188,26 @@ a.tr:hover { background: var(--surface-2); color: var(--text); }
 /* Logo */
 .logo { display: flex; align-items: center; gap: 10px; color: var(--text); }
 .logo:hover { color: var(--text); }
-.logo-mark { width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 16px solid var(--accent); }
+.logo-mark { width: 28px; height: 28px; flex-shrink: 0; }
 .logo-text { font-family: var(--font-display); font-size: 24px; letter-spacing: 2px; }
 
 /* App shell (role areas) */
 .shell { display: flex; min-height: 100vh; }
 .shell main { flex: 1; min-width: 0; }
-.sidebar { position: sticky; top: 0; height: 100vh; width: 240px; flex: 0 0 240px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; gap: 24px; }
+.sidebar { position: sticky; top: 0; height: 100vh; width: 240px; flex: 0 0 240px; background: var(--surface); border-inline-end: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; gap: 24px; }
 .sidebar .logo { padding: 0 8px; }
 .sidebar .logo-text { font-size: 22px; }
 .side-role { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-3); padding: 0 12px; margin-bottom: -14px; }
 .side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--border); }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav a { display: block; padding: 11px 12px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-2); }
-.nav a.on { color: var(--accent); background: rgba(215, 255, 61, 0.12); }
-.linkbtn { background: none; border: none; color: var(--text-2); font-size: 13px; text-align: left; }
+.nav a.on { color: var(--accent-text); background: var(--accent-tint); }
+.linkbtn { background: none; border: none; color: var(--text-2); font-size: 13px; text-align: start; }
 .linkbtn:hover { color: var(--text); }
 .mobilebar { display: none; position: sticky; top: 0; z-index: 30; background: var(--surface); border-bottom: 1px solid var(--border); }
 .mobilebar-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; }
 .mobilebar .logo { gap: 8px; }
-.mobilebar .logo-mark { border-left-width: 8px; border-right-width: 8px; border-bottom-width: 14px; }
+.mobilebar .logo-mark { width: 24px; height: 24px; }
 .mobilebar .logo-text { font-size: 20px; }
 .menu-btn { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; padding: 10px 16px; border-radius: 8px; min-height: 44px; }
 .menu { display: flex; flex-direction: column; gap: 2px; padding: 4px 12px 16px; }
@@ -151,15 +221,33 @@ a.tr:hover { background: var(--surface-2); color: var(--text); }
 /* Public site */
 .site { min-height: 100vh; display: flex; flex-direction: column; }
 .site main { flex: 1; }
-.site-header { position: sticky; top: 0; z-index: 10; background: rgba(19, 20, 23, 0.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
-.site-wrap { max-width: 1200px; margin: 0 auto; padding-left: clamp(16px, 4vw, 32px); padding-right: clamp(16px, 4vw, 32px); }
-.site-nav a { padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-2); }
-.site-nav a.on { color: var(--accent); background: rgba(215, 255, 61, 0.1); }
+.site-header { position: sticky; top: 0; z-index: 10; background: var(--header-bg); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.site-wrap { max-width: 1200px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 32px); }
+.site-actions { display: flex; gap: 10px; align-items: center; }
+.site-link { font-size: 14px; font-weight: 600; padding: 10px 14px; }
+.site-cta { padding: 10px 18px; border-radius: 8px; }
+.site-bar { padding-top: 14px; padding-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; }
+/* Phones: shrink the logo, links and theme button so everything stays on one row. */
+@media (max-width: 759px) {
+  .site-bar { gap: 8px; }
+  .site-bar .logo { gap: 8px; }
+  .site-bar .logo-mark { width: 24px; height: 24px; }
+  .site-bar .logo-text { font-size: 20px; }
+  .site-actions { gap: 4px; }
+  .site-link { padding: 10px 4px; }
+  .site-cta { height: 34px; line-height: 34px; padding: 0 10px; }
+  .site-actions .theme-btn { width: 34px; height: 34px; }
+  .site-actions .theme-btn svg { width: 16px; height: 16px; }
+}
+/* Narrow phones (e.g. 360px Android): signed out, the header has four actions, so keep only the logo mark. */
+@media (max-width: 379px) {
+  .site-bar:has(.locale-btn) .logo-text { display: none; }
+}
 .site-section { max-width: 1200px; margin: 0 auto; padding: 88px 32px; }
 
 /* Auth split layout */
 .auth { min-height: 100vh; display: flex; flex-wrap: wrap; }
-.auth-brand { flex: 1 1 440px; min-height: 320px; background: var(--stripes-hero); border-right: 1px solid var(--border); padding: 40px; display: flex; flex-direction: column; justify-content: space-between; gap: 40px; }
+.auth-brand { flex: 1 1 440px; min-height: 320px; background: var(--stripes-hero); border-inline-end: 1px solid var(--border); padding: 40px; display: flex; flex-direction: column; justify-content: space-between; gap: 40px; }
 .auth-form { flex: 1 1 440px; display: flex; align-items: center; justify-content: center; padding: 56px 24px; }
 .auth-form > * { width: 100%; max-width: 400px; }
 .auth-title { font-family: var(--font-display); font-size: 48px; letter-spacing: 1px; line-height: 1; }

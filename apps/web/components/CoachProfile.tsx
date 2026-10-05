@@ -1,10 +1,16 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Avatar, Back, TypeTag } from '@/components/ui';
-import { coach, sessionsOfCoach, spotsLabel, when } from '@/lib/mock';
+import { isolate } from '@/i18n/locale';
+import { coach, sessionsOfCoach } from '@/lib/mock';
+import { useSessionText } from '@/lib/session-text';
 
 /** Coach profile; `area` prefixes links ('' for guests, '/user' for members). Only active coaches are shown. */
 export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/user' }>) {
+  const t = useTranslations('coachProfile');
+  const tu = useTranslations('ui');
+  const x = useSessionText();
   const c = coach(id);
   if (c?.status !== 'active') notFound();
   const upcoming = sessionsOfCoach(c.id).filter((s) => s.status === 'upcoming');
@@ -13,18 +19,23 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
   return (
     <div className='page detail stack' style={{ maxWidth: 1000, gap: 32 }}>
       {area ? (
-        <Back href='/user/coaches'>All coaches</Back>
+        <Back href='/user/coaches'>{t('allCoaches')}</Back>
       ) : (
-        <Back href='/sessions'>All sessions</Back>
+        <Back href='/sessions'>{t('allSessions')}</Back>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-        <Avatar initials={c.initials} size={96} fontSize={32} accent />
+        <Avatar initials={x.initials(c)} size={96} fontSize={32} accent />
         <div style={{ flex: 1, minWidth: 240 }}>
-          <div className='display' style={{ fontSize: 56, lineHeight: 1 }}>
-            {c.name}
+          <div className='display' dir='auto' style={{ fontSize: 56, lineHeight: 1 }}>
+            {x.name(c)}
           </div>
           <div className='muted' style={{ fontSize: 15, marginTop: 6 }}>
-            {c.specialty} coach · {c.location} · {c.rating} ★ ({c.reviews} reviews)
+            {t('line', {
+              specialty: x.category(c.specialty),
+              location: isolate(c.location),
+              rating: c.rating,
+              reviews: tu('reviews', { count: c.reviews }),
+            })}
           </div>
         </div>
         {privateSession && (
@@ -33,16 +44,16 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
             className='btn'
             style={{ fontSize: 15, padding: '14px 22px' }}
           >
-            Book 1:1 · ${c.rate}
+            {t('bookPrivate', { price: x.price(c.rate) })}
           </Link>
         )}
       </div>
-      <div className='muted' style={{ fontSize: 16, lineHeight: 1.7, maxWidth: 680 }}>
+      <div className='muted' dir='auto' style={{ fontSize: 16, lineHeight: 1.7, maxWidth: 680 }}>
         {c.bio}
       </div>
       <div>
         <div className='h2' style={{ marginBottom: 14 }}>
-          UPCOMING SESSIONS
+          {t('upcoming')}
         </div>
         <div className='stack' style={{ gap: 10 }}>
           {upcoming.map((s) => (
@@ -50,25 +61,27 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                 <TypeTag s={s} />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>{s.title}</div>
+                  <div dir='auto' style={{ fontWeight: 700, fontSize: 15 }}>
+                    {s.title}
+                  </div>
                   <div className='muted' style={{ fontSize: 13 }}>
-                    {when(s)}
+                    {x.when(s)}
                   </div>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <span className='muted' style={{ fontSize: 14 }}>
-                  {spotsLabel(s)}
+                  {x.spots(s)}
                 </span>
                 <span className='display' style={{ fontSize: 22, letterSpacing: 0 }}>
-                  ${s.price}
+                  {x.price(s.price)}
                 </span>
               </div>
             </Link>
           ))}
           {upcoming.length === 0 && (
             <div className='muted' style={{ fontSize: 14 }}>
-              No upcoming sessions.
+              {t('none')}
             </div>
           )}
         </div>

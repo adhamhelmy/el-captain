@@ -1,11 +1,16 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { notFound, useParams } from 'next/navigation';
 import { Avatar, Back, Stats, Tag } from '@/components/ui';
-import { cap, coachName, sessionsOfUser, user, userSpent, when } from '@/lib/mock';
+import { sessionsOfUser, user, userSpent } from '@/lib/mock';
+import { useSessionText } from '@/lib/session-text';
 
 export default function AdminUserPage() {
+  const t = useTranslations('admin');
+  const tst = useTranslations('status');
+  const x = useSessionText();
   const u = user(useParams<{ id: string }>().id);
   const [status, setStatus] = useState(u?.status); // Mock until wired up: PUT /api/admin/users/[id]
   if (!u || !status) notFound();
@@ -14,18 +19,18 @@ export default function AdminUserPage() {
 
   return (
     <div className='page detail stack' style={{ maxWidth: 960, gap: 28 }}>
-      <Back href='/admin/users'>Users</Back>
+      <Back href='/admin/users'>{t('backUsers')}</Back>
       <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
         <Avatar initials={u.initials} size={80} fontSize={26} />
         <div style={{ flex: 1, minWidth: 220 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <div className='display' style={{ fontSize: 52, lineHeight: 1 }}>
+            <div className='display' dir='auto' style={{ fontSize: 52, lineHeight: 1 }}>
               {u.name}
             </div>
-            <Tag kind={status}>{cap(status)}</Tag>
+            <Tag kind={status}>{tst(status)}</Tag>
           </div>
           <div className='muted' style={{ fontSize: 15, marginTop: 4 }}>
-            {u.email} · {u.phone}
+            <bdi>{u.email}</bdi> · <bdi>{u.phone}</bdi>
           </div>
         </div>
         <button
@@ -33,21 +38,21 @@ export default function AdminUserPage() {
           className={active ? 'btn-ghost danger' : 'btn-ghost'}
           onClick={() => setStatus(active ? 'suspended' : 'active')}
         >
-          {active ? 'Suspend user' : 'Reactivate'}
+          {active ? t('suspendUser') : t('reactivate')}
         </button>
       </div>
       <Stats
         small
         items={[
-          [history.length, 'Bookings'],
-          [`$${userSpent(u.id)}`, 'Total spent'],
-          [u.joined, 'Joined'],
-          [u.lastActive, 'Last active'],
+          [history.length, t('stats.bookings')],
+          [x.price(userSpent(u.id)), t('stats.totalSpent')],
+          [x.monthYear(u.joined), t('stats.joined')],
+          [x.ago(u.lastActive), t('stats.lastActive')],
         ]}
       />
       <div>
         <div className='h3' style={{ marginBottom: 12 }}>
-          BOOKING HISTORY
+          {t('history')}
         </div>
         <div className='stack' style={{ gap: 8 }}>
           {history.map((s) => (
@@ -58,20 +63,22 @@ export default function AdminUserPage() {
               style={{ gap: 12, padding: '14px 18px' }}
             >
               <div>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{s.title}</div>
+                <div dir='auto' style={{ fontWeight: 700, fontSize: 14 }}>
+                  {s.title}
+                </div>
                 <div className='muted' style={{ fontSize: 12 }}>
-                  {coachName(s)} · {when(s)}
+                  <bdi>{x.coachName(s)}</bdi> · {x.when(s)}
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <Tag kind={s.status}>{cap(s.status)}</Tag>
-                <span style={{ fontWeight: 700 }}>${s.price}</span>
+                <Tag kind={s.status}>{tst(s.status)}</Tag>
+                <span style={{ fontWeight: 700 }}>{x.price(s.price)}</span>
               </div>
             </Link>
           ))}
           {history.length === 0 && (
             <div className='muted' style={{ fontSize: 14 }}>
-              No bookings yet.
+              {t('noBookings')}
             </div>
           )}
         </div>

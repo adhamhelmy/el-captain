@@ -1,7 +1,11 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { LocaleToggle } from '@/components/LocaleToggle';
 import { SiteHeader } from '@/components/SiteHeader';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function PublicLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const t = useTranslations('footer');
   return (
     <div className='site'>
       <SiteHeader />
@@ -20,17 +24,19 @@ export default function PublicLayout({ children }: Readonly<{ children: React.Re
             fontSize: 13,
           }}
         >
-          <div className='dim'>© 2026 El Captain</div>
-          <div style={{ display: 'flex', gap: 20 }}>
+          <div className='dim'>{t('copyright')}</div>
+          <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
             <Link href='/about' className='muted'>
-              About
+              {t('about')}
             </Link>
             <Link href='/faq' className='muted'>
-              FAQ
+              {t('faq')}
             </Link>
             <Link href='/contact' className='muted'>
-              Contact
+              {t('contact')}
             </Link>
+            <LocaleToggle />
+            <ThemeToggle />
           </div>
         </div>
       </footer>

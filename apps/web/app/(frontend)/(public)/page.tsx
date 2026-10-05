@@ -1,23 +1,14 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { SessionCard } from '@/components/ui';
-import { categories, sessions } from '@/lib/mock';
+import { CATEGORIES, sessions } from '@/lib/mock';
+import { useSessionText } from '@/lib/session-text';
 
-const STEPS = [
-  [
-    'Find your session',
-    'Browse by discipline, coach, or time. Group classes and 1:1 sessions in one place.',
-  ],
-  [
-    'Book in seconds',
-    'See live availability, reserve your spot, and get a confirmation straight away.',
-  ],
-  [
-    'Show up and train',
-    'Track your sessions, rebook favourite coaches, and keep the streak going.',
-  ],
-];
+const STEPS = ['find', 'book', 'train'] as const;
 
 export default function HomePage() {
+  const t = useTranslations('home');
+  const x = useSessionText();
   const featured = sessions.filter((s) => s.status === 'upcoming').slice(0, 4);
   return (
     <>
@@ -25,15 +16,12 @@ export default function HomePage() {
         className='site-wrap'
         style={{ paddingTop: 'clamp(48px, 9vw, 88px)', paddingBottom: 72 }}
       >
-        <div className='eyebrow'>Group sessions &amp; private coaching</div>
-        <h1
-          className='display'
-          style={{ fontSize: 'clamp(64px, 10vw, 136px)', lineHeight: 0.88, maxWidth: 900 }}
+        <div className='eyebrow'>{t('eyebrow')}</div>
+        <h2
+          className='display lh-88 hero-title'
         >
-          TRAIN HARDER.
-          <br />
-          BOOK FASTER.
-        </h1>
+          {t('heroTitle')}
+        </h2>
         <p
           className='muted'
           style={{
@@ -44,8 +32,7 @@ export default function HomePage() {
             textWrap: 'pretty',
           }}
         >
-          Find yoga, HIIT, spin, strength and 1:1 coaching near you, and lock in your spot in
-          seconds.
+          {t('heroText')}
         </p>
         <form
           action='/sessions'
@@ -54,22 +41,22 @@ export default function HomePage() {
           <input
             name='q'
             className='search'
-            placeholder='Try “vinyasa” or “Rae Solano”'
+            placeholder={t('searchPlaceholder')}
             style={{ padding: '16px 18px' }}
           />
           <button type='submit' className='btn' style={{ fontSize: 15, padding: '16px 24px' }}>
-            Find sessions
+            {t('findSessions')}
           </button>
         </form>
         <div className='chips' style={{ marginTop: 20 }}>
-          {categories.slice(1).map((c) => (
+          {CATEGORIES.map((c) => (
             <Link
               key={c}
               href={`/sessions?cat=${c}`}
               className='chip'
               style={{ padding: '8px 14px' }}
             >
-              {c}
+              {x.category(c)}
             </Link>
           ))}
         </div>
@@ -78,10 +65,10 @@ export default function HomePage() {
       <section className='site-section' style={{ paddingTop: 0 }}>
         <div className='between' style={{ marginBottom: 20 }}>
           <div className='display' style={{ fontSize: 36 }}>
-            ON THIS WEEK
+            {t('onThisWeek')}
           </div>
           <Link href='/sessions' style={{ fontSize: 14, fontWeight: 600 }}>
-            See all sessions →
+            {t('seeAll')}
           </Link>
         </div>
         <div className='grid-cards'>
@@ -103,17 +90,22 @@ export default function HomePage() {
             gap: 40,
           }}
         >
-          {STEPS.map(([title, text], i) => (
-            <div key={title}>
+          {STEPS.map((step, i) => (
+            <div key={step}>
               <div
                 className='display'
-                style={{ fontSize: 64, color: 'var(--accent)', lineHeight: 1, letterSpacing: 0 }}
+                style={{
+                  fontSize: 64,
+                  color: 'var(--accent-text)',
+                  lineHeight: 1,
+                  letterSpacing: 0,
+                }}
               >
                 0{i + 1}
               </div>
-              <div style={{ fontSize: 19, fontWeight: 700, margin: '10px 0 8px' }}>{title}</div>
+              <div style={{ fontSize: 19, fontWeight: 700, margin: '10px 0 8px' }}>{t(`steps.${step}.title`)}</div>
               <div className='muted' style={{ fontSize: 15, lineHeight: 1.6 }}>
-                {text}
+                {t(`steps.${step}.text`)}
               </div>
             </div>
           ))}
@@ -135,11 +127,11 @@ export default function HomePage() {
           }}
         >
           <div>
-            <div className='display' style={{ fontSize: 56, lineHeight: 0.95, letterSpacing: 0 }}>
-              COACH ON EL CAPTAIN
+            <div className='display lh-95' style={{ fontSize: 56, letterSpacing: 0 }}>
+              {t('coachTitle')}
             </div>
             <div style={{ fontSize: 16, marginTop: 12, maxWidth: 480, lineHeight: 1.5 }}>
-              Publish sessions, manage your schedule, and get paid. Group classes or 1:1, your call.
+              {t('coachText')}
             </div>
           </div>
           <Link
@@ -153,7 +145,7 @@ export default function HomePage() {
               borderRadius: 10,
             }}
           >
-            Apply as a coach
+            {t('applyCoach')}
           </Link>
         </div>
       </section>

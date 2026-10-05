@@ -1,11 +1,15 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { coachName, spotsLabel, typeLabel, when, type Coach, type Session } from '@/lib/mock';
+import { useTranslations } from 'next-intl';
+import { type Coach, type Session } from '@/lib/mock';
+import { useSessionText } from '@/lib/session-text';
 
 export function Logo({ href = '/' }: Readonly<{ href?: string }>) {
+  const t = useTranslations('brand');
   return (
     <Link href={href} className='logo'>
-      <div className='logo-mark' />
-      <div className='logo-text'>EL CAPTAIN</div>
+      <Image src='/logo.png' alt='' width={28} height={28} className='logo-mark' priority />
+      <div className='logo-text'>{t('name')}</div>
     </Link>
   );
 }
@@ -29,7 +33,8 @@ export function Tag({ kind, children }: Readonly<{ kind: string; children: React
 }
 
 export function TypeTag({ s }: Readonly<{ s: Session }>) {
-  return <Tag kind={s.type}>{typeLabel(s)}</Tag>;
+  const x = useSessionText();
+  return <Tag kind={s.type}>{x.type(s.type)}</Tag>;
 }
 
 export function Avatar({
@@ -54,20 +59,24 @@ export function SessionCard({
   spots,
   badge,
 }: Readonly<{ s: Session; href: string; spots?: boolean; badge?: React.ReactNode }>) {
+  const x = useSessionText();
   return (
     <Link href={href} className='scard'>
       <div className='scard-head'>
-        <span className='scard-cat'>{s.category}</span>
+        <span className='scard-cat'>{x.category(s.category)}</span>
         {badge ?? <TypeTag s={s} />}
       </div>
       <div className='scard-body'>
-        <div style={{ fontSize: 18, fontWeight: 700 }}>{s.title}</div>
+        <div dir='auto' style={{ fontSize: 18, fontWeight: 700 }}>
+          {s.title}
+        </div>
         <div className='muted' style={{ fontSize: 14 }}>
-          {coachName(s)} · {s.duration} min{spots && ` · ${spotsLabel(s)}`}
+          <bdi>{x.coachName(s)}</bdi> · {x.minutes(s.duration)}
+          {spots && ` · ${x.spots(s)}`}
         </div>
         <div className='scard-foot'>
-          <span>{when(s)}</span>
-          <span style={{ color: 'var(--text)', fontWeight: 700 }}>${s.price}</span>
+          <span>{x.when(s)}</span>
+          <span style={{ color: 'var(--text)', fontWeight: 700 }}>{x.price(s.price)}</span>
         </div>
       </div>
     </Link>
@@ -75,6 +84,8 @@ export function SessionCard({
 }
 
 export function CoachCard({ c, meta }: Readonly<{ c: Coach; meta: string }>) {
+  const t = useTranslations('ui');
+  const x = useSessionText();
   return (
     <Link
       href={`/user/coaches/${c.id}`}
@@ -82,17 +93,19 @@ export function CoachCard({ c, meta }: Readonly<{ c: Coach; meta: string }>) {
       style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <Avatar initials={c.initials} size={52} fontSize={16} />
+        <Avatar initials={x.initials(c)} size={52} fontSize={16} />
         <div>
-          <div style={{ fontWeight: 700, fontSize: 17 }}>{c.name}</div>
+          <div dir='auto' style={{ fontWeight: 700, fontSize: 17 }}>
+            {x.name(c)}
+          </div>
           <div className='muted' style={{ fontSize: 13 }}>
-            {c.specialty} · {c.location}
+            {x.category(c.specialty)} · <bdi>{c.location}</bdi>
           </div>
         </div>
       </div>
       <div className='scard-foot' style={{ marginTop: 0 }}>
         <span>
-          {c.rating} ★ · {c.reviews} reviews
+          {c.rating} ★ · {t('reviews', { count: c.reviews })}
         </span>
         <span style={{ color: 'var(--text)', fontWeight: 600 }}>{meta}</span>
       </div>
@@ -139,21 +152,22 @@ export function Segmented<T extends string>({
   );
 }
 
-export function Chips({
+/** Filter chips. `options` are [label, value] pairs. */
+export function Chips<T extends string>({
   options,
   value,
   onChange,
-}: Readonly<{ options: string[]; value: string; onChange: (v: string) => void }>) {
+}: Readonly<{ options: [string, T][]; value: T; onChange: (v: T) => void }>) {
   return (
     <div className='chips'>
-      {options.map((c) => (
+      {options.map(([label, v]) => (
         <button
-          key={c}
+          key={v}
           type='button'
-          className={c === value ? 'chip on' : 'chip'}
-          onClick={() => onChange(c)}
+          className={v === value ? 'chip on' : 'chip'}
+          onClick={() => onChange(v)}
         >
-          {c}
+          {label}
         </button>
       ))}
     </div>
@@ -201,7 +215,7 @@ export function Person({
     <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
       <Avatar initials={initials} fontSize={12} />
       <span>
-        <span style={{ display: 'block', fontWeight: 700 }}>{name}</span>
+        <bdi style={{ display: 'block', fontWeight: 700 }}>{name}</bdi>
         <span className='cell-sub'>{sub}</span>
       </span>
     </span>
@@ -209,9 +223,10 @@ export function Person({
 }
 
 export function Back({ href, children }: Readonly<{ href: string; children: React.ReactNode }>) {
+  const t = useTranslations('ui');
   return (
     <Link href={href} className='muted' style={{ fontSize: 14 }}>
-      ← {children}
+      <span aria-hidden>{t('backArrow')}</span> {children}
     </Link>
   );
 }
@@ -245,9 +260,10 @@ export function Toggle({
   on,
   onChange,
 }: Readonly<{ on: boolean; onChange: (v: boolean) => void }>) {
+  const t = useTranslations('common');
   return (
     <button type='button' className={on ? 'chip on' : 'chip'} onClick={() => onChange(!on)}>
-      {on ? 'On' : 'Off'}
+      {on ? t('on') : t('off')}
     </button>
   );
 }

@@ -1,13 +1,20 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { LocaleSetting } from '@/components/LocaleToggle';
+import { ThemeSetting } from '@/components/ThemeToggle';
 import { Avatar, Field, Toggle } from '@/components/ui';
-import { categories, ME, user } from '@/lib/mock';
+import { CATEGORIES, ME, user, type Category } from '@/lib/mock';
+import { useSessionText } from '@/lib/session-text';
 
 export default function UserProfilePage() {
+  const t = useTranslations('profile');
+  const tc = useTranslations('common');
+  const x = useSessionText();
   const me = user(ME.user)!;
   const [form, setForm] = useState({ name: me.name, email: me.email, phone: me.phone });
-  const [favs, setFavs] = useState(['Yoga', 'Spin']);
+  const [favs, setFavs] = useState<Category[]>(['yoga', 'spin']);
   const [reminders, setReminders] = useState(true);
   const [saved, setSaved] = useState(false);
 
@@ -15,42 +22,46 @@ export default function UserProfilePage() {
     setForm({ ...form, ...patch });
     setSaved(false);
   };
-  const toggleFav = (c: string) => {
+  const toggleFav = (c: Category) => {
     setFavs(favs.includes(c) ? favs.filter((f) => f !== c) : [...favs, c]);
     setSaved(false);
   };
 
   return (
     <div className='page stack' style={{ maxWidth: 720, gap: 24 }}>
-      <div className='title'>PROFILE</div>
+      <div className='title'>{t('title')}</div>
       <div className='card stack' style={{ gap: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Avatar initials={me.initials} size={64} fontSize={22} accent />
           <div>
-            <div style={{ fontWeight: 700, fontSize: 19 }}>{form.name}</div>
+            <div dir='auto' style={{ fontWeight: 700, fontSize: 19 }}>
+              {form.name}
+            </div>
             <div className='muted' style={{ fontSize: 14 }}>
-              Member since {me.joined}
+              {t('memberSince', { date: x.monthYear(me.joined) })}
             </div>
           </div>
         </div>
         <div className='fields' style={{ paddingTop: 18, borderTop: '1px solid var(--border)' }}>
-          <Field label='Full name'>
+          <Field label={tc('fullName')}>
             <input
               className='input'
               value={form.name}
               onChange={(e) => edit({ name: e.target.value })}
             />
           </Field>
-          <Field label='Email'>
+          <Field label={tc('email')}>
             <input
               className='input'
+              dir='ltr'
               value={form.email}
               onChange={(e) => edit({ email: e.target.value })}
             />
           </Field>
-          <Field label='Phone'>
+          <Field label={t('phone')}>
             <input
               className='input'
+              dir='ltr'
               value={form.phone}
               onChange={(e) => edit({ phone: e.target.value })}
             />
@@ -58,29 +69,31 @@ export default function UserProfilePage() {
         </div>
         <div>
           <div className='label' style={{ marginBottom: 10 }}>
-            Favourite disciplines
+            {t('favourites')}
           </div>
           <div className='chips'>
-            {categories.slice(1).map((c) => (
+            {CATEGORIES.map((c) => (
               <button
                 key={c}
                 type='button'
                 className={favs.includes(c) ? 'chip on' : 'chip'}
                 onClick={() => toggleFav(c)}
               >
-                {c}
+                {x.category(c)}
               </button>
             ))}
           </div>
         </div>
       </div>
       <div className='card stack' style={{ gap: 18 }}>
-        <div className='h3'>SETTINGS</div>
+        <div className='h3'>{t('settings')}</div>
+        <ThemeSetting />
+        <LocaleSetting />
         <div className='setting'>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Email reminders</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{t('reminders')}</div>
             <div className='muted' style={{ fontSize: 13 }}>
-              A reminder 2 hours before each session
+              {t('remindersHint')}
             </div>
           </div>
           <Toggle
@@ -93,9 +106,9 @@ export default function UserProfilePage() {
         </div>
         <div className='setting'>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Password</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{tc('password')}</div>
             <div className='muted' style={{ fontSize: 13 }}>
-              Last changed 3 months ago
+              {t('passwordHint')}
             </div>
           </div>
           <Link
@@ -103,7 +116,7 @@ export default function UserProfilePage() {
             className='btn-ghost sm plain'
             style={{ padding: '9px 14px' }}
           >
-            Change
+            {tc('change')}
           </Link>
         </div>
       </div>
@@ -114,9 +127,9 @@ export default function UserProfilePage() {
           style={{ fontSize: 15, padding: '13px 24px' }}
           onClick={() => setSaved(true)}
         >
-          Save changes
+          {tc('save')}
         </button>
-        {saved && <span style={{ color: 'var(--accent)', fontSize: 14 }}>Saved</span>}
+        {saved && <span style={{ color: 'var(--accent-text)', fontSize: 14 }}>{tc('saved')}</span>}
       </div>
     </div>
   );
