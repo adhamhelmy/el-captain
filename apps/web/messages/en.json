@@ -1,0 +1,474 @@
+{
+  "meta": {
+    "title": "El Captain",
+    "template": "%s | El Captain",
+    "description": "Find and book group sessions and one to one coaching — yoga, circuit, spin, strength and more."
+  },
+  "locale": {
+    "switchTo": "العربية",
+    "short": "ع",
+    "setting": "Language",
+    "settingHint": "Show El Captain in Arabic or English"
+  },
+  "data": {
+    "all": "All",
+    "category": {
+      "yoga": "Yoga",
+      "circuit": "Circuit",
+      "spin": "Spin",
+      "climbing": "Climbing",
+      "strength": "Strength"
+    },
+    "level": {
+      "allLevels": "All levels",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "private": "Private"
+    },
+    "type": {
+      "group": "Group",
+      "private": "Private"
+    },
+    "oneOnOne": "One to one session",
+    "spotsLeft": "{count, plural, =0 {Full} one {# spot left} other {# spots left}}",
+    "attended": "{count, plural, one {# attended} other {# attended}}",
+    "minutes": "{count} min",
+    "when": "{day} · {date} · {time}",
+    "oneOnOneShort": "One to one"
+  },
+  "common": {
+    "logIn": "Log in",
+    "logOut": "Log out",
+    "getStarted": "Get started",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "save": "Save changes",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "close": "Close",
+    "menu": "Menu",
+    "on": "On",
+    "off": "Off",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "change": "Change"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "browseSessions": "Browse sessions",
+    "mySessions": "My sessions",
+    "coaches": "Coaches",
+    "myCoaches": "My coaches",
+    "profile": "Profile",
+    "allSessions": "All sessions",
+    "myClients": "My clients",
+    "users": "Users",
+    "sessions": "Sessions",
+    "role": {
+      "coach": "Coach",
+      "admin": "Admin"
+    },
+    "sub": {
+      "user": "Member",
+      "coach": "Coach",
+      "admin": "Platform admin"
+    }
+  },
+  "footer": {
+    "copyright": "© 2026 El Captain",
+    "about": "About",
+    "faq": "FAQ",
+    "contact": "Contact"
+  },
+  "theme": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "setting": "Appearance",
+    "settingHint": "Switch between light and dark mode"
+  },
+  "authBrand": {
+    "title": "EVERY SESSION<br></br><accent>COUNTS.</accent>",
+    "tagline": "Group classes and private coaching, booked in seconds."
+  },
+  "ui": {
+    "backArrow": "←",
+    "reviews": "{count, plural, one {# review} other {# reviews}}"
+  },
+  "home": {
+    "eyebrow": "Group sessions & private coaching",
+    "heroTitle": "TRAIN HARDER. BOOK FASTER.",
+    "heroText": "Find yoga, circuit, spin, strength and one to one coaching near you, and lock in your spot in seconds.",
+    "searchPlaceholder": "Try “yoga” or “Nour Hassan”",
+    "findSessions": "Find sessions",
+    "onThisWeek": "ON THIS WEEK",
+    "seeAll": "See all sessions →",
+    "steps": {
+      "find": {
+        "title": "Find your session",
+        "text": "Browse by discipline, coach, or time. Group classes and one to one sessions in one place."
+      },
+      "book": {
+        "title": "Book in seconds",
+        "text": "See live availability, reserve your spot, and get a confirmation straight away."
+      },
+      "train": {
+        "title": "Show up and train",
+        "text": "Track your sessions, rebook favourite coaches, and keep the streak going."
+      }
+    },
+    "coachTitle": "COACH ON EL CAPTAIN",
+    "coachText": "Publish sessions, manage your schedule, and get paid. Group classes or one to one, your call.",
+    "applyCoach": "Apply as a coach"
+  },
+  "about": {
+    "metaTitle": "About",
+    "eyebrow": "About",
+    "title": "BUILT FOR PEOPLE<br></br>WHO SHOW UP",
+    "intro": "El Captain connects people who want to train with independent coaches who run group sessions and private coaching. One place to find a session, book it, and keep track of your training.",
+    "cards": {
+      "members": {
+        "title": "FOR MEMBERS",
+        "l1": "Browse group sessions and one to one coaching by discipline and time.",
+        "l2": "Book and cancel without phone calls or DMs.",
+        "l3": "Keep a history of every session and coach you’ve trained with."
+      },
+      "coaches": {
+        "title": "FOR COACHES",
+        "l1": "Publish sessions with capacity, pricing, and a schedule view.",
+        "l2": "See who’s booked and who keeps coming back.",
+        "l3": "Get paid out without chasing invoices."
+      }
+    }
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "QUESTIONS",
+    "items": {
+      "book": {
+        "q": "How do I book a session?",
+        "a": "Create a free account, pick a session, and tap Reserve. You’ll get a confirmation by email and the session shows up under My sessions."
+      },
+      "cancel": {
+        "q": "Can I cancel a booking?",
+        "a": "Yes. Cancel from My sessions up to 12 hours before the start for a full refund. Later cancellations follow the coach’s policy."
+      },
+      "types": {
+        "q": "What’s the difference between group and private sessions?",
+        "a": "Group sessions have a fixed time and capacity. Private sessions are one to one with a coach and reserve the full slot for you."
+      },
+      "becomeCoach": {
+        "q": "How do I become a coach?",
+        "a": "Register as a coach and complete your profile. Our team reviews applications, usually within two business days."
+      },
+      "payouts": {
+        "q": "How do coaches get paid?",
+        "a": "Payouts go out weekly to the account in your coach profile, minus the platform fee."
+      },
+      "fee": {
+        "q": "Is there a membership fee?",
+        "a": "No. Members pay per session; coaches pay a percentage only on completed bookings."
+      }
+    }
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "GET IN TOUCH",
+    "intro": "Questions about a booking, coaching on the platform, or partnerships. We reply within one business day.",
+    "emailLabel": "Email",
+    "coachesLabel": "Coaches",
+    "sentTitle": "MESSAGE SENT",
+    "sentText": "Thanks — we’ll be in touch soon.",
+    "sendAnother": "Send another",
+    "name": "Name",
+    "topic": "Topic",
+    "message": "Message",
+    "send": "Send message",
+    "topics": {
+      "booking": "A booking",
+      "coaching": "Coaching on El Captain",
+      "partnerships": "Partnerships",
+      "other": "Something else"
+    }
+  },
+  "browse": {
+    "title": "BROWSE SESSIONS",
+    "sub": "Group classes and one to one coaching this week.",
+    "search": "Search sessions or coaches…",
+    "empty": "No sessions match. Try another search or category."
+  },
+  "session": {
+    "allSessions": "All sessions",
+    "whatToExpect": "WHAT TO EXPECT",
+    "coachLine": "{specialty} coach · {rating} ★ ({reviews})",
+    "profileLink": "Profile →",
+    "ended": "This session has ended.",
+    "booked": "YOU’RE BOOKED",
+    "confirmation": "Confirmation sent to {email}",
+    "viewMine": "View my sessions",
+    "cancel": "Cancel booking",
+    "logInToBook": "Log in to book",
+    "reserve": "Reserve spot",
+    "book": "Book session",
+    "freeCancel": "Free cancellation up to 12 hours before"
+  },
+  "coachProfile": {
+    "allCoaches": "All coaches",
+    "allSessions": "All sessions",
+    "line": "{specialty} coach · {location} · {rating} ★ ({reviews})",
+    "bookPrivate": "Book one to one · {price}",
+    "upcoming": "UPCOMING SESSIONS",
+    "none": "No upcoming sessions."
+  },
+  "errors": {
+    "missing_fields": "Missing required fields",
+    "invalid_role": "Invalid role",
+    "email_taken": "Email already in use",
+    "generic": "Something went wrong.",
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "passwordsDontMatch": "Passwords don’t match.",
+    "signInAfterRegister": "Account created, but signing in failed. Try logging in.",
+    "invalidLogin": "Invalid email or password."
+  },
+  "login": {
+    "title": "WELCOME BACK",
+    "sub": "Log in to book and manage your sessions.",
+    "forgot": "Forgot password?",
+    "newHere": "New here? <link>Create an account</link>"
+  },
+  "register": {
+    "title": "CREATE ACCOUNT",
+    "sub": "Takes less than a minute.",
+    "roleUser": {
+      "title": "I want to train",
+      "sub": "Book sessions"
+    },
+    "roleCoach": {
+      "title": "I’m a coach",
+      "sub": "Run sessions"
+    },
+    "namePlaceholder": "Jordan Lee",
+    "passwordPlaceholder": "At least 8 characters",
+    "coachNotice": "Coach accounts are reviewed before your sessions go live, usually within two business days.",
+    "submit": "Create account",
+    "haveAccount": "Already have an account? <link>Log in</link>"
+  },
+  "forgot": {
+    "back": "← Back to log in",
+    "sentTitle": "CHECK YOUR INBOX",
+    "sentText": "If an account exists for that email, a reset link is on its way. It expires in 30 minutes.",
+    "title": "FORGOT PASSWORD",
+    "sub": "Enter your email and we’ll send you a reset link.",
+    "submit": "Send reset link"
+  },
+  "reset": {
+    "doneTitle": "PASSWORD UPDATED",
+    "doneText": "You can log in with your new password.",
+    "goLogin": "Go to log in",
+    "title": "SET NEW PASSWORD",
+    "sub": "Choose something at least 8 characters long.",
+    "newPassword": "New password",
+    "confirm": "Confirm password",
+    "submit": "Update password"
+  },
+  "userDashboard": {
+    "welcome": "Welcome back",
+    "title": "LET’S GO, {name}",
+    "nextSession": "Your next session",
+    "viewDetails": "View details →",
+    "stats": {
+      "upcoming": "Upcoming sessions",
+      "completed": "Sessions completed",
+      "coaches": "Coaches trained with"
+    },
+    "picked": "PICKED FOR YOU",
+    "browseAll": "Browse all →"
+  },
+  "userSessions": {
+    "title": "MY SESSIONS",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "details": "Details",
+    "bookAgain": "Book again",
+    "empty": "Nothing here yet. <link>Browse sessions</link>"
+  },
+  "userCoaches": {
+    "title": "COACHES",
+    "sub": "Find a coach that fits how you train.",
+    "from_": "From {price}",
+    "mineTitle": "MY COACHES",
+    "mineSub": "Coaches you’ve trained with before.",
+    "together": "{count, plural, one {# session together} other {# sessions together}}"
+  },
+  "profile": {
+    "title": "PROFILE",
+    "memberSince": "Member since {date}",
+    "phone": "Phone",
+    "favourites": "Favourite disciplines",
+    "settings": "SETTINGS",
+    "reminders": "Email reminders",
+    "remindersHint": "A reminder 2 hours before each session",
+    "passwordHint": "Last changed 3 months ago"
+  },
+  "status": {
+    "active": "Active",
+    "pending": "Pending",
+    "suspended": "Suspended",
+    "rejected": "Rejected",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "cancelled": "Cancelled",
+    "mine": "Yours"
+  },
+  "coachDashboard": {
+    "welcome": "Welcome back",
+    "title": "{name}’S DASHBOARD",
+    "stats": {
+      "bookings": "Bookings this week",
+      "revenue": "Revenue this week",
+      "rating": "Average rating",
+      "fill": "Fill rate"
+    },
+    "comingUp": "COMING UP",
+    "schedule": "Schedule →",
+    "recentClients": "RECENT CLIENTS",
+    "allClients": "All clients →",
+    "withYou": "{count, plural, one {# session with you} other {# sessions with you}}"
+  },
+  "coachSessions": {
+    "title": "ALL SESSIONS",
+    "sub": "What’s on across El Captain this week."
+  },
+  "coachSession": {
+    "back": "Back",
+    "cancelSession": "Cancel session",
+    "booked": "Booked",
+    "price": "Price",
+    "duration": "Duration",
+    "earnings": "Earnings",
+    "level": "Level",
+    "description": "DESCRIPTION",
+    "roster": "ROSTER",
+    "noBookings": "No bookings yet.",
+    "notYours": "This session belongs to another coach. Roster and earnings are only visible to them."
+  },
+  "clients": {
+    "title": "MY CLIENTS",
+    "sub": "Everyone who has booked a session with you.",
+    "client": "Client",
+    "sessions": "Sessions",
+    "lastVisit": "Last visit",
+    "back": "My clients",
+    "withYou": "Sessions with you",
+    "memberSince": "Member since",
+    "history": "SESSIONS WITH YOU",
+    "notes": "PRIVATE NOTES",
+    "notesPlaceholder": "Injuries, goals, preferences… only you can see this."
+  },
+  "schedule": {
+    "title": "MY SESSIONS",
+    "add": "+ Add session",
+    "newSession": "NEW SESSION",
+    "privateOneOnOne": "One to one",
+    "fieldTitle": "Title",
+    "titlePlaceholder": "e.g. Saturday Power Flow",
+    "day": "Day",
+    "start": "Start time",
+    "duration": "Duration (min)",
+    "price": "Price (EGP)",
+    "capacity": "Capacity",
+    "publish": "Publish session",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "table": "Table",
+    "calendar": "Calendar",
+    "head": {
+      "session": "Session",
+      "when": "When",
+      "type": "Type",
+      "booked": "Booked",
+      "price": "Price"
+    },
+    "empty": "No sessions here."
+  },
+  "coachEdit": {
+    "line": "{specialty} coach · {location}",
+    "displayName": "Display name",
+    "specialty": "Specialty",
+    "location": "Location",
+    "rate": "One to one rate (EGP / hour)",
+    "bio": "Bio",
+    "account": "ACCOUNT & PAYOUTS",
+    "payout": "Payout account",
+    "notifications": "Booking notifications",
+    "notificationsHint": "Email me for new bookings and cancellations"
+  },
+  "admin": {
+    "overview": "Platform overview",
+    "dashboard": "DASHBOARD",
+    "users": "USERS",
+    "coaches": "COACHES",
+    "sessions": "SESSIONS",
+    "backUsers": "Users",
+    "backCoaches": "Coaches",
+    "backSessions": "Sessions",
+    "stats": {
+      "totalUsers": "Total users",
+      "activeCoaches": "Active coaches",
+      "sessionsWeek": "Sessions this week",
+      "gross30": "Gross bookings (30d)",
+      "bookings": "Bookings",
+      "totalSpent": "Total spent",
+      "joined": "Joined",
+      "lastActive": "Last active",
+      "listed": "Sessions listed",
+      "clients": "Clients",
+      "revenue30": "Revenue (30d)",
+      "booked": "Booked",
+      "price": "Price",
+      "gross": "Gross"
+    },
+    "pendingCoaches": "PENDING COACHES",
+    "allCoaches": "All coaches →",
+    "applied": "{specialty} · applied {date}",
+    "approve": "Approve",
+    "reject": "Reject",
+    "suspend": "Suspend",
+    "reinstate": "Reinstate",
+    "noneWaiting": "No applications waiting.",
+    "recentBookings": "RECENT BOOKINGS",
+    "search": "Search by name or email…",
+    "noUsers": "No users match.",
+    "suspendUser": "Suspend user",
+    "reactivate": "Reactivate",
+    "history": "BOOKING HISTORY",
+    "noBookings": "No bookings yet.",
+    "bio": "BIO",
+    "description": "DESCRIPTION",
+    "attendees": "ATTENDEES",
+    "cancelRefund": "Cancel & refund",
+    "head": {
+      "user": "User",
+      "joined": "Joined",
+      "bookings": "Bookings",
+      "spent": "Spent",
+      "status": "Status",
+      "coach": "Coach",
+      "rating": "Rating",
+      "clients": "Clients",
+      "revenue": "Revenue",
+      "session": "Session",
+      "when": "When",
+      "booked": "Booked",
+      "price": "Price"
+    },
+    "booked": "booked"
+  },
+  "notFound": {
+    "text": "This page took a rest day.",
+    "home": "Back home"
+  },
+  "brand": {
+    "name": "EL CAPTAIN"
+  }
+}

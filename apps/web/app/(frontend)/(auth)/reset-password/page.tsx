@@ -1,31 +1,35 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Field } from '@/components/ui';
+import type { Messages } from '@/i18n/messages';
 
 // Mock until wired up: call POST /api/auth/reset-password with the token from the URL once it exists.
 export default function ResetPasswordPage() {
+  const t = useTranslations('reset');
+  const te = useTranslations('errors');
   const [pw, setPw] = useState('');
   const [pw2, setPw2] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<keyof Messages['errors'] | ''>('');
   const [done, setDone] = useState(false);
 
   function submit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (pw.length < 8) return setError('Password must be at least 8 characters.');
-    if (pw !== pw2) return setError('Passwords don’t match.');
+    if (pw.length < 8) return setError('passwordTooShort');
+    if (pw !== pw2) return setError('passwordsDontMatch');
     setDone(true);
   }
 
   if (done) {
     return (
       <div className='stack' style={{ gap: 14 }}>
-        <div className='auth-title'>PASSWORD UPDATED</div>
+        <div className='auth-title'>{t('doneTitle')}</div>
         <div className='muted' style={{ fontSize: 15 }}>
-          You can log in with your new password.
+          {t('doneText')}
         </div>
         <Link href='/login' className='btn block'>
-          Go to log in
+          {t('goLogin')}
         </Link>
       </div>
     );
@@ -34,12 +38,12 @@ export default function ResetPasswordPage() {
   return (
     <form onSubmit={submit} className='stack' style={{ gap: 18 }}>
       <div>
-        <div className='auth-title'>SET NEW PASSWORD</div>
+        <div className='auth-title'>{t('title')}</div>
         <div className='muted' style={{ fontSize: 15, marginTop: 6 }}>
-          Choose something at least 8 characters long.
+          {t('sub')}
         </div>
       </div>
-      <Field label='New password'>
+      <Field label={t('newPassword')}>
         <input
           type='password'
           value={pw}
@@ -50,7 +54,7 @@ export default function ResetPasswordPage() {
           className='input on-page'
         />
       </Field>
-      <Field label='Confirm password'>
+      <Field label={t('confirm')}>
         <input
           type='password'
           value={pw2}
@@ -61,9 +65,9 @@ export default function ResetPasswordPage() {
           className='input on-page'
         />
       </Field>
-      {error && <div style={{ color: 'var(--warn)', fontSize: 13 }}>{error}</div>}
+      {error && <div style={{ color: 'var(--warn)', fontSize: 13 }}>{te(error)}</div>}
       <button type='submit' className='btn block'>
-        Update password
+        {t('submit')}
       </button>
     </form>
   );

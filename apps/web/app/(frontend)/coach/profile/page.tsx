@@ -1,12 +1,21 @@
 'use client';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { LocaleSetting } from '@/components/LocaleToggle';
+import { ThemeSetting } from '@/components/ThemeToggle';
 import { Avatar, Field, Toggle } from '@/components/ui';
-import { categories, coach, ME } from '@/lib/mock';
+import { isolate } from '@/i18n/locale';
+import { CATEGORIES, coach, ME } from '@/lib/mock';
+import { useSessionText } from '@/lib/session-text';
 
 export default function CoachProfilePage() {
+  const t = useTranslations('coachEdit');
+  const tp = useTranslations('profile');
+  const tc = useTranslations('common');
+  const x = useSessionText();
   const me = coach(ME.coach)!;
   const [form, setForm] = useState({
-    name: me.name,
+    name: x.name(me),
     specialty: me.specialty,
     location: me.location,
     rate: String(me.rate),
@@ -30,54 +39,58 @@ export default function CoachProfilePage() {
 
   return (
     <div className='page stack' style={{ maxWidth: 760, gap: 24 }}>
-      <div className='title'>PROFILE</div>
+      <div className='title'>{tp('title')}</div>
       <div className='card stack' style={{ gap: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <Avatar initials={me.initials} size={64} fontSize={22} accent />
+          <Avatar initials={x.initials(me)} size={64} fontSize={22} accent />
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 19 }}>{form.name}</div>
+            <div dir='auto' style={{ fontWeight: 700, fontSize: 19 }}>
+              {form.name}
+            </div>
             <div className='muted' style={{ fontSize: 14 }}>
-              {form.specialty} coach · {form.location}
+              {t('line', { specialty: x.category(form.specialty), location: isolate(form.location) })}
             </div>
           </div>
         </div>
         <div className='fields' style={{ paddingTop: 18, borderTop: '1px solid var(--border)' }}>
-          <Field label='Display name'>
+          <Field label={t('displayName')}>
             <input {...input('name')} />
           </Field>
-          <Field label='Specialty'>
+          <Field label={t('specialty')}>
             <select {...input('specialty')}>
-              {categories.slice(1).map((c) => (
-                <option key={c}>{c}</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {x.category(c)}
+                </option>
               ))}
             </select>
           </Field>
-          <Field label='Location'>
+          <Field label={t('location')}>
             <input {...input('location')} />
           </Field>
-          <Field label='1:1 rate ($ / hour)'>
+          <Field label={t('rate')}>
             <input {...input('rate')} />
           </Field>
         </div>
-        <Field label='Bio'>
+        <Field label={t('bio')}>
           <textarea rows={4} {...input('bio')} style={{ lineHeight: 1.6, resize: 'vertical' }} />
         </Field>
       </div>
       <div className='card stack' style={{ gap: 18 }}>
-        <div className='h3'>ACCOUNT &amp; PAYOUTS</div>
+        <div className='h3'>{t('account')}</div>
         <div className='fields'>
-          <Field label='Email'>
-            <input {...input('email')} />
+          <Field label={tc('email')}>
+            <input {...input('email')} dir='ltr' />
           </Field>
-          <Field label='Payout account'>
-            <input {...input('payout')} />
+          <Field label={t('payout')}>
+            <input {...input('payout')} dir='ltr' />
           </Field>
         </div>
         <div className='setting'>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Booking notifications</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{t('notifications')}</div>
             <div className='muted' style={{ fontSize: 13 }}>
-              Email me for new bookings and cancellations
+              {t('notificationsHint')}
             </div>
           </div>
           <Toggle
@@ -88,6 +101,8 @@ export default function CoachProfilePage() {
             }}
           />
         </div>
+        <ThemeSetting />
+        <LocaleSetting />
       </div>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
         <button
@@ -96,9 +111,9 @@ export default function CoachProfilePage() {
           style={{ fontSize: 15, padding: '13px 24px' }}
           onClick={() => setSaved(true)}
         >
-          Save changes
+          {tc('save')}
         </button>
-        {saved && <span style={{ color: 'var(--accent)', fontSize: 14 }}>Saved</span>}
+        {saved && <span style={{ color: 'var(--accent-text)', fontSize: 14 }}>{tc('saved')}</span>}
       </div>
     </div>
   );

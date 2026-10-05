@@ -1,34 +1,32 @@
-const CARDS = [
-  ['FOR MEMBERS', [
-    'Browse group sessions and 1:1 coaching by discipline and time.',
-    'Book and cancel without phone calls or DMs.',
-    'Keep a history of every session and coach you’ve trained with.',
-  ]],
-  ['FOR COACHES', [
-    'Publish sessions with capacity, pricing, and a schedule view.',
-    'See who’s booked and who keeps coming back.',
-    'Get paid out without chasing invoices.',
-  ]],
-] as const
+import { useTranslations } from 'next-intl'
+import { getTranslations } from 'next-intl/server'
+import { br } from '@/components/rich'
 
-export const metadata = { title: 'About' }
+const CARDS = ['members', 'coaches'] as const
+const LINES = ['l1', 'l2', 'l3'] as const
+
+export async function generateMetadata() {
+  const t = await getTranslations('about')
+  return { title: t('metaTitle') }
+}
 
 export default function AboutPage() {
+  const t = useTranslations('about')
   return (
     <section className='site-section' style={{ maxWidth: 960 }}>
-      <div className='eyebrow'>About</div>
-      <h1 className='display' style={{ fontSize: 'clamp(56px, 8vw, 96px)', lineHeight: 0.9, letterSpacing: 0 }}>
-        BUILT FOR PEOPLE<br />WHO SHOW UP
+      <div className='eyebrow'>{t('eyebrow')}</div>
+      <h1 className='display lh-90' style={{ fontSize: 'clamp(56px, 8vw, 96px)', letterSpacing: 0 }}>
+        {t.rich('title', { br })}
       </h1>
       <p className='muted' style={{ fontSize: 18, lineHeight: 1.7, margin: '28px 0 56px', maxWidth: 640, textWrap: 'pretty' }}>
-        El Captain connects people who want to train with independent coaches who run group sessions and private coaching. One place to find a session, book it, and keep track of your training.
+        {t('intro')}
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-        {CARDS.map(([title, lines]) => (
-          <div key={title} className='card'>
-            <div className='display' style={{ fontSize: 28, marginBottom: 16 }}>{title}</div>
+        {CARDS.map(card => (
+          <div key={card} className='card'>
+            <div className='display' style={{ fontSize: 28, marginBottom: 16 }}>{t(`cards.${card}.title`)}</div>
             <div className='stack muted' style={{ gap: 12, fontSize: 15, lineHeight: 1.5 }}>
-              {lines.map(l => <div key={l}>{l}</div>)}
+              {LINES.map(l => <div key={l}>{t(`cards.${card}.${l}`)}</div>)}
             </div>
           </div>
         ))}

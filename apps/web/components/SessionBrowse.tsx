@@ -1,47 +1,59 @@
 'use client';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Chips, Segmented, SessionCard } from '@/components/ui';
-import { categories, coachName, sessions } from '@/lib/mock';
+import { CATEGORIES, sessions, type Category } from '@/lib/mock';
+import { useSessionText } from '@/lib/session-text';
 
 function Browse({ base }: Readonly<{ base: string }>) {
   const params = useSearchParams();
   const [q, setQ] = useState(params.get('q') ?? '');
-  const [cat, setCat] = useState(params.get('cat') ?? 'All');
+  const t = useTranslations('browse');
+  const x = useSessionText();
+  const raw = params.get('cat');
+  // Unknown or old capitalised values (?cat=Yoga) fall back to all instead of an empty list.
+  const [cat, setCat] = useState<Category | 'all'>(
+    CATEGORIES.includes(raw as Category) ? (raw as Category) : 'all',
+  );
   const [type, setType] = useState<'all' | 'group' | 'private'>('all');
 
   const needle = q.trim().toLowerCase();
   const list = sessions.filter(
     (s) =>
       s.status === 'upcoming' &&
-      (cat === 'All' || s.category === cat) &&
+      (cat === 'all' || s.category === cat) &&
       (type === 'all' || s.type === type) &&
-      (!needle || `${s.title} ${coachName(s)}`.toLowerCase().includes(needle)),
+      (!needle || x.searchText(s).toLowerCase().includes(needle)),
   );
 
   return (
     <div className='page'>
-      <div className='title'>BROWSE SESSIONS</div>
-      <div className='sub'>Group classes and 1:1 coaching this week.</div>
+      <div className='title'>{t('title')}</div>
+      <div className='sub'>{t('sub')}</div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder='Search sessions or coaches…'
+          placeholder={t('search')}
           className='search'
         />
         <Segmented
           options={[
-            ['All', 'all'],
-            ['Group', 'group'],
-            ['Private', 'private'],
+            [x.category('all'), 'all'],
+            [x.type('group'), 'group'],
+            [x.type('private'), 'private'],
           ]}
           value={type}
           onChange={setType}
         />
       </div>
       <div style={{ marginBottom: 28 }}>
-        <Chips options={categories} value={cat} onChange={setCat} />
+        <Chips
+          options={(['all', ...CATEGORIES] as const).map((c) => [x.category(c), c])}
+          value={cat}
+          onChange={setCat}
+        />
       </div>
       <div className='grid-cards'>
         {list.map((s) => (
@@ -50,7 +62,7 @@ function Browse({ base }: Readonly<{ base: string }>) {
       </div>
       {list.length === 0 && (
         <div className='empty' style={{ padding: '72px 0' }}>
-          No sessions match. Try another search or category.
+          {t('empty')}
         </div>
       )}
     </div>

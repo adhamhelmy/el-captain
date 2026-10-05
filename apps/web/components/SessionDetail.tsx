@@ -2,11 +2,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Avatar, Back, TypeTag } from '@/components/ui';
-import { bookings, coach, ME, session, spotsLabel, user, when } from '@/lib/mock';
+import { isolate } from '@/i18n/locale';
+import { bookings, coach, ME, session, user } from '@/lib/mock';
+import { useSessionText } from '@/lib/session-text';
 
 /** Session detail. Guests see the coach and price, and are sent to log in to book. */
 export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
+  const t = useTranslations('session');
+  const x = useSessionText();
   const s = session(useParams<{ id: string }>().id);
   const [booked, setBooked] = useState(
     () => !guest && bookings.some((b) => b.userId === ME.user && b.sessionId === s?.id),
@@ -16,33 +21,34 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
 
   return (
     <div className='page detail' style={{ maxWidth: 1080 }}>
-      <Back href={guest ? '/sessions' : '/user/sessions'}>All sessions</Back>
+      <Back href={guest ? '/sessions' : '/user/sessions'}>{t('allSessions')}</Back>
       <div className='hero' style={{ marginTop: 20 }}>
         <TypeTag s={s} />
         <div
           className='display'
+          dir='auto'
           style={{ fontSize: 'clamp(44px, 6vw, 68px)', lineHeight: 1, marginTop: 14 }}
         >
           {s.title}
         </div>
         <div className='muted' style={{ fontSize: 16, marginTop: 8 }}>
-          {when(s)}
+          {x.when(s)}
         </div>
       </div>
       <div className='grid-2' style={{ gap: 32, marginTop: 32 }}>
         <div className='stack' style={{ gap: 28 }}>
           <div className='chips'>
-            {[s.level, `${s.duration} min`, s.category].map((x) => (
-              <span key={x} className='pill'>
-                {x}
+            {[x.level(s.level), x.minutes(s.duration), x.category(s.category)].map((label) => (
+              <span key={label} className='pill'>
+                {label}
               </span>
             ))}
           </div>
           <div>
             <div className='h3' style={{ marginBottom: 10 }}>
-              WHAT TO EXPECT
+              {t('whatToExpect')}
             </div>
-            <div className='muted' style={{ fontSize: 15, lineHeight: 1.7 }}>
+            <div className='muted' dir='auto' style={{ fontSize: 15, lineHeight: 1.7 }}>
               {s.description}
             </div>
           </div>
@@ -57,20 +63,28 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
               flexWrap: 'nowrap',
             }}
           >
-            <Avatar initials={c.initials} size={48} fontSize={16} />
+            <Avatar initials={x.initials(c)} size={48} fontSize={16} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700 }}>{c.name}</div>
+              <div dir='auto' style={{ fontWeight: 700 }}>
+                {x.name(c)}
+              </div>
               <div className='muted' style={{ fontSize: 13 }}>
-                {c.specialty} coach · {c.rating} ★ ({c.reviews})
+                {t('coachLine', {
+                  specialty: x.category(c.specialty),
+                  rating: c.rating,
+                  reviews: c.reviews,
+                })}
               </div>
             </div>
-            <span style={{ color: 'var(--accent)', fontSize: 14, fontWeight: 600 }}>Profile →</span>
+            <span style={{ color: 'var(--accent-text)', fontSize: 14, fontWeight: 600 }}>
+              {t('profileLink')}
+            </span>
           </Link>
         </div>
         <div className='card stack' style={{ padding: 24, position: 'sticky', top: 24, gap: 16 }}>
           {s.status === 'past' && (
             <div className='muted' style={{ fontSize: 14 }}>
-              This session has ended.
+              {t('ended')}
             </div>
           )}
           {s.status !== 'past' && (booked ? (
@@ -101,13 +115,13 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
                 </div>
                 <div>
                   <div
-                    className='display'
-                    style={{ fontSize: 28, lineHeight: 1, letterSpacing: 0 }}
+                    className='display lh-100'
+                    style={{ fontSize: 28, letterSpacing: 0 }}
                   >
-                    YOU&apos;RE BOOKED
+                    {t('booked')}
                   </div>
                   <div className='muted' style={{ fontSize: 13 }}>
-                    Confirmation sent to {user(ME.user)!.email}
+                    {t('confirmation', { email: isolate(user(ME.user)!.email) })}
                   </div>
                 </div>
               </div>
@@ -121,7 +135,7 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
                   fontSize: 14,
                 }}
               >
-                View my sessions
+                {t('viewMine')}
               </Link>
               <button
                 type='button'
@@ -129,7 +143,7 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
                 style={{ color: 'var(--warn)', textAlign: 'center' }}
                 onClick={() => setBooked(false)}
               >
-                Cancel booking
+                {t('cancel')}
               </button>
             </>
           ) : (
@@ -138,10 +152,10 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}
               >
                 <span className='muted' style={{ fontSize: 14 }}>
-                  {spotsLabel(s)}
+                  {x.spots(s)}
                 </span>
                 <span className='display' style={{ fontSize: 36, letterSpacing: 0 }}>
-                  ${s.price}
+                  {x.price(s.price)}
                 </span>
               </div>
               {guest ? (
@@ -150,7 +164,7 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
                   className='btn block'
                   style={{ padding: 16 }}
                 >
-                  Log in to book
+                  {t('logInToBook')}
                 </Link>
               ) : (
                 <button
@@ -159,11 +173,11 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
                   style={{ padding: 16 }}
                   onClick={() => setBooked(true)}
                 >
-                  {s.type === 'group' ? 'Reserve spot' : 'Book session'}
+                  {s.type === 'group' ? t('reserve') : t('book')}
                 </button>
               )}
               <div className='dim' style={{ fontSize: 12, textAlign: 'center' }}>
-                Free cancellation up to 12 hours before
+                {t('freeCancel')}
               </div>
             </>
           ))}

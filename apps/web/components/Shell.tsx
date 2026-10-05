@@ -3,44 +3,59 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
+import { LocaleToggle } from './LocaleToggle';
+import { ThemeToggle } from './ThemeToggle';
 import { Avatar, Logo } from './ui';
 
 type Role = 'admin' | 'coach' | 'user';
 
-/** Nav per role: [label, path, extra paths that also mark it active]. */
-const NAV: Record<Role, [string, string, ((p: string) => boolean)?][]> = {
+type NavKey =
+  | 'dashboard'
+  | 'browseSessions'
+  | 'mySessions'
+  | 'coaches'
+  | 'myCoaches'
+  | 'profile'
+  | 'allSessions'
+  | 'myClients'
+  | 'users'
+  | 'sessions';
+
+/** Nav per role: [message key, path, extra paths that also mark it active]. */
+const NAV: Record<Role, [NavKey, string, ((p: string) => boolean)?][]> = {
   user: [
-    ['Dashboard', '/user/dashboard'],
+    ['dashboard', '/user/dashboard'],
     [
-      'Browse sessions',
+      'browseSessions',
       '/user/sessions',
       (p) => p.startsWith('/user/sessions/') && p !== '/user/sessions/me',
     ],
-    ['My sessions', '/user/sessions/me'],
-    ['Coaches', '/user/coaches', (p) => p.startsWith('/user/coaches/') && p !== '/user/coaches/me'],
-    ['My coaches', '/user/coaches/me'],
-    ['Profile', '/user/profile'],
+    ['mySessions', '/user/sessions/me'],
+    ['coaches', '/user/coaches', (p) => p.startsWith('/user/coaches/') && p !== '/user/coaches/me'],
+    ['myCoaches', '/user/coaches/me'],
+    ['profile', '/user/profile'],
   ],
   coach: [
-    ['Dashboard', '/coach/dashboard'],
-    ['My sessions', '/coach/sessions/me'],
+    ['dashboard', '/coach/dashboard'],
+    ['mySessions', '/coach/sessions/me'],
     [
-      'All sessions',
+      'allSessions',
       '/coach/sessions',
       (p) => p.startsWith('/coach/sessions/') && p !== '/coach/sessions/me',
     ],
-    ['My clients', '/coach/users/me', (p) => p.startsWith('/coach/users/')],
-    ['Profile', '/coach/profile'],
+    ['myClients', '/coach/users/me', (p) => p.startsWith('/coach/users/')],
+    ['profile', '/coach/profile'],
   ],
   admin: [
-    ['Dashboard', '/admin/dashboard'],
-    ['Users', '/admin/users', (p) => p.startsWith('/admin/users/')],
-    ['Coaches', '/admin/coaches', (p) => p.startsWith('/admin/coaches/')],
-    ['Sessions', '/admin/sessions', (p) => p.startsWith('/admin/sessions/')],
+    ['dashboard', '/admin/dashboard'],
+    ['users', '/admin/users', (p) => p.startsWith('/admin/users/')],
+    ['coaches', '/admin/coaches', (p) => p.startsWith('/admin/coaches/')],
+    ['sessions', '/admin/sessions', (p) => p.startsWith('/admin/sessions/')],
   ],
 };
 
-const ROLE_LABEL: Record<Role, string | null> = { user: null, coach: 'Coach', admin: 'Admin' };
+const ROLE_LABEL: Record<Role, 'coach' | 'admin' | null> = { user: null, coach: 'coach', admin: 'admin' };
 
 const initials = (name: string) =>
   name
@@ -50,12 +65,13 @@ const initials = (name: string) =>
     .slice(0, 2)
     .toUpperCase();
 
-/** App chrome for a role area. The footer shows the signed-in account; `sub` is the line under the name. */
+/** App chrome for a role area. The footer shows the signed-in account with its role under the name. */
 export function Shell({
   role,
-  sub,
   children,
-}: Readonly<{ role: Role; sub: string; children: React.ReactNode }>) {
+}: Readonly<{ role: Role; children: React.ReactNode }>) {
+  const t = useTranslations('nav');
+  const tc = useTranslations('common');
   const path = usePathname();
   const name = useSession().data?.user?.name ?? '';
   const [menu, setMenu] = useState(false);
@@ -63,14 +79,14 @@ export function Shell({
 
   const nav = (
     <nav className='nav'>
-      {NAV[role].map(([label, href, also]) => (
+      {NAV[role].map(([key, href, also]) => (
         <Link
           key={href}
           href={href}
           onClick={() => setMenu(false)}
           className={path === href || also?.(path) ? 'on' : ''}
         >
-          {label}
+          {t(key)}
         </Link>
       ))}
     </nav>
@@ -82,7 +98,7 @@ export function Shell({
       <div>
         <div style={{ fontSize: 14, fontWeight: 600 }}>{name}</div>
         <div className='muted' style={{ fontSize: 12 }}>
-          {sub}
+          {t(`sub.${role}`)}
         </div>
       </div>
     </>
@@ -92,7 +108,7 @@ export function Shell({
     <div className='shell'>
       <aside className='sidebar'>
         <Logo />
-        {ROLE_LABEL[role] && <div className='side-role'>{ROLE_LABEL[role]}</div>}
+        {ROLE_LABEL[role] && <div className='side-role'>{t(`role.${ROLE_LABEL[role]}`)}</div>}
         {nav}
         <div className='side-foot'>
           {profile ? (
@@ -108,8 +124,15 @@ export function Shell({
               {who}
             </div>
           )}
+          {/* Admin has no profile page, so its theme and language switches live here. */}
+          {role === 'admin' && (
+            <div className='side-toggles'>
+              <LocaleToggle />
+              <ThemeToggle />
+            </div>
+          )}
           <button type='button' className='linkbtn' style={{ padding: '0 8px' }} onClick={logout}>
-            Log out
+            {tc('logOut')}
           </button>
         </div>
       </aside>
@@ -119,15 +142,17 @@ export function Shell({
           <div className='mobilebar-top'>
             <Logo />
             <button type='button' className='menu-btn' onClick={() => setMenu(!menu)}>
-              {menu ? 'Close' : 'Menu'}
+              {menu ? tc('close') : tc('menu')}
             </button>
           </div>
           {menu && (
             <div className='menu'>
               {nav}
               <div className='menu-foot'>
+                {role === 'admin' && <LocaleToggle />}
+                {role === 'admin' && <ThemeToggle />}
                 <button type='button' className='linkbtn' onClick={logout}>
-                  Log out
+                  {tc('logOut')}
                 </button>
               </div>
             </div>

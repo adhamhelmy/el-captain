@@ -1,22 +1,31 @@
 'use client'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Chips, SessionCard, Tag } from '@/components/ui'
-import { categories, ME, sessions } from '@/lib/mock'
+import { CATEGORIES, ME, sessions, type Category } from '@/lib/mock'
+import { useSessionText } from '@/lib/session-text'
 
 export default function AllSessionsPage() {
-  const [cat, setCat] = useState('All')
-  const list = sessions.filter(s => s.status === 'upcoming' && (cat === 'All' || s.category === cat))
+  const t = useTranslations('coachSessions')
+  const tst = useTranslations('status')
+  const x = useSessionText()
+  const [cat, setCat] = useState<Category | 'all'>('all')
+  const list = sessions.filter(s => s.status === 'upcoming' && (cat === 'all' || s.category === cat))
 
   return (
     <div className='page'>
-      <div className='title'>ALL SESSIONS</div>
-      <div className='sub' style={{ marginBottom: 24 }}>What’s on across El Captain this week.</div>
+      <div className='title'>{t('title')}</div>
+      <div className='sub' style={{ marginBottom: 24 }}>{t('sub')}</div>
       <div style={{ marginBottom: 24 }}>
-        <Chips options={categories} value={cat} onChange={setCat} />
+        <Chips
+          options={(['all', ...CATEGORIES] as const).map((c) => [x.category(c), c])}
+          value={cat}
+          onChange={setCat}
+        />
       </div>
       <div className='grid-cards'>
         {list.map(s => (
-          <SessionCard key={s.id} s={s} href={`/coach/sessions/${s.id}`} spots badge={s.coachId === ME.coach ? <Tag kind='mine'>Yours</Tag> : undefined} />
+          <SessionCard key={s.id} s={s} href={`/coach/sessions/${s.id}`} spots badge={s.coachId === ME.coach ? <Tag kind='mine'>{tst('mine')}</Tag> : undefined} />
         ))}
       </div>
     </div>

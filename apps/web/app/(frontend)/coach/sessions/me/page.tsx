@@ -2,13 +2,25 @@
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Field, Segmented, Table, TypeTag } from '@/components/ui';
-import { coach, days, fill, ME, sessionsOfCoach, when, type Session } from '@/lib/mock';
+import {
+  coach,
+  DAYS,
+  fill,
+  ME,
+  sessionsOfCoach,
+  startFor,
+  weekdayKey,
+  type DayKey,
+  type Session,
+} from '@/lib/mock';
+import { useSessionText } from '@/lib/session-text';
 
 const EMPTY = {
   title: '',
-  day: 'Sat',
-  time: '',
+  day: 'sat' as DayKey,
+  time: '09:00',
   duration: '60',
   price: '',
   capacity: '12',
@@ -17,6 +29,9 @@ const EMPTY = {
 const COLS = 'minmax(0,2.2fr) minmax(0,1.6fr) minmax(0,0.8fr) minmax(0,0.8fr) minmax(0,0.6fr)';
 
 function MySessions() {
+  const t = useTranslations('schedule');
+  const tc = useTranslations('common');
+  const x = useSessionText();
   const me = coach(ME.coach)!;
   const [adding, setAdding] = useState(useSearchParams().has('add'));
   const [draft, setDraft] = useState(EMPTY);
@@ -40,14 +55,12 @@ function MySessions() {
         category: me.specialty,
         coachId: me.id,
         type: draft.type,
-        level: draft.type === 'private' ? 'Private' : 'All levels',
+        level: draft.type === 'private' ? 'private' : 'allLevels',
         duration: Number.parseInt(draft.duration, 10) || 60,
         price: Number.parseInt(draft.price, 10) || 0,
         capacity,
         booked: 0,
-        day: draft.day,
-        date: 'This week',
-        time: draft.time || '9:00 AM',
+        start: startFor(draft.day, draft.time || '09:00'),
         status: 'upcoming',
         description: 'New session.',
       },
@@ -59,21 +72,21 @@ function MySessions() {
   return (
     <div className='page stack' style={{ gap: 24 }}>
       <div className='between'>
-        <div className='title'>MY SESSIONS</div>
+        <div className='title'>{t('title')}</div>
         <button type='button' className='btn' onClick={() => setAdding(!adding)}>
-          {adding ? 'Close' : '+ Add session'}
+          {adding ? tc('close') : t('add')}
         </button>
       </div>
 
       {adding && (
         <div className='card stack' style={{ gap: 18 }}>
           <div className='between' style={{ alignItems: 'center' }}>
-            <div className='h3'>NEW SESSION</div>
+            <div className='h3'>{t('newSession')}</div>
             <Segmented
               inset
               options={[
-                ['Group', 'group'],
-                ['Private 1:1', 'private'],
+                [x.type('group'), 'group'],
+                [t('privateOneOnOne'), 'private'],
               ]}
               value={draft.type}
               onChange={(type) => edit({ type })}
@@ -86,41 +99,43 @@ function MySessions() {
               gap: 14,
             }}
           >
-            <Field label='Title' style={{ gridColumn: '1 / -1' }}>
+            <Field label={t('fieldTitle')} style={{ gridColumn: '1 / -1' }}>
               <input
                 className='input'
                 value={draft.title}
                 onChange={(e) => edit({ title: e.target.value })}
-                placeholder='e.g. Saturday Power Flow'
+                placeholder={t('titlePlaceholder')}
               />
             </Field>
-            <Field label='Day'>
+            <Field label={t('day')}>
               <select
                 className='input'
                 value={draft.day}
-                onChange={(e) => edit({ day: e.target.value })}
+                onChange={(e) => edit({ day: e.target.value as DayKey })}
               >
-                {days.map((d) => (
-                  <option key={d}>{d}</option>
+                {DAYS.map((d) => (
+                  <option key={d} value={d}>
+                    {x.day(startFor(d, '12:00'))}
+                  </option>
                 ))}
               </select>
             </Field>
-            <Field label='Start time'>
+            <Field label={t('start')}>
               <input
+                type='time'
                 className='input'
                 value={draft.time}
                 onChange={(e) => edit({ time: e.target.value })}
-                placeholder='9:00 AM'
               />
             </Field>
-            <Field label='Duration (min)'>
+            <Field label={t('duration')}>
               <input
                 className='input'
                 value={draft.duration}
                 onChange={(e) => edit({ duration: e.target.value })}
               />
             </Field>
-            <Field label='Price ($)'>
+            <Field label={t('price')}>
               <input
                 className='input'
                 value={draft.price}
@@ -128,7 +143,7 @@ function MySessions() {
               />
             </Field>
             {draft.type === 'group' && (
-              <Field label='Capacity'>
+              <Field label={t('capacity')}>
                 <input
                   className='input'
                   value={draft.capacity}
@@ -144,7 +159,7 @@ function MySessions() {
               style={{ padding: '12px 22px', borderRadius: 8 }}
               onClick={publish}
             >
-              Publish session
+              {t('publish')}
             </button>
             <button
               type='button'
@@ -157,7 +172,7 @@ function MySessions() {
               }}
               onClick={() => setAdding(false)}
             >
-              Cancel
+              {tc('cancel')}
             </button>
           </div>
         </div>
@@ -166,16 +181,16 @@ function MySessions() {
       <div className='between' style={{ alignItems: 'center', gap: 12 }}>
         <Segmented
           options={[
-            ['Upcoming', 'upcoming'],
-            ['Past', 'past'],
+            [t('upcoming'), 'upcoming'],
+            [t('past'), 'past'],
           ]}
           value={tab}
           onChange={setTab}
         />
         <Segmented
           options={[
-            ['Table', 'table'],
-            ['Calendar', 'calendar'],
+            [t('table'), 'table'],
+            [t('calendar'), 'calendar'],
           ]}
           value={view}
           onChange={setView}
@@ -186,12 +201,12 @@ function MySessions() {
         <Table
           cols={COLS}
           head={[
-            'Session',
-            'When',
-            'Type',
-            'Booked',
-            <span key='p' style={{ display: 'block', textAlign: 'right' }}>
-              Price
+            t('head.session'),
+            t('head.when'),
+            t('head.type'),
+            t('head.booked'),
+            <span key='p' style={{ display: 'block', textAlign: 'end' }}>
+              {t('head.price')}
             </span>,
           ]}
         >
@@ -202,18 +217,20 @@ function MySessions() {
               className='tr'
               style={{ padding: '16px 20px' }}
             >
-              <span style={{ fontWeight: 700 }}>{s.title}</span>
-              <span className='muted'>{when(s)}</span>
+              <span dir='auto' style={{ fontWeight: 700 }}>
+                {s.title}
+              </span>
+              <span className='muted'>{x.when(s)}</span>
               <span>
                 <TypeTag s={s} />
               </span>
               <span className='muted'>{fill(s)}</span>
-              <span style={{ textAlign: 'right', fontWeight: 700 }}>${s.price}</span>
+              <span style={{ textAlign: 'end', fontWeight: 700 }}>{x.price(s.price)}</span>
             </Link>
           ))}
           {list.length === 0 && (
             <div className='empty' style={{ padding: 48 }}>
-              No sessions here.
+              {t('empty')}
             </div>
           )}
         </Table>
@@ -227,18 +244,10 @@ function MySessions() {
               minWidth: 860,
             }}
           >
-            {days.map((d) => (
+            {DAYS.map((d) => (
               <div key={d} className='stack' style={{ gap: 8 }}>
-                <div
-                  className='dim'
-                  style={{
-                    fontSize: 12,
-                    textTransform: 'uppercase',
-                    letterSpacing: 1,
-                    textAlign: 'center',
-                  }}
-                >
-                  {d}
+                <div className='dim overline' style={{ textAlign: 'center' }}>
+                  {x.day(startFor(d, '12:00'))}
                 </div>
                 <div
                   className='stack'
@@ -252,7 +261,7 @@ function MySessions() {
                   }}
                 >
                   {list
-                    .filter((s) => s.day === d)
+                    .filter((s) => weekdayKey(s.start) === d)
                     .map((s) => (
                       <Link
                         key={s.id}
@@ -260,12 +269,12 @@ function MySessions() {
                         className={`tag-${s.type === 'group' ? 'accent' : 'warn'}`}
                         style={{ display: 'block', padding: '8px 10px', borderRadius: 8 }}
                       >
-                        <div style={{ fontSize: 11, opacity: 0.8 }}>{s.time}</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}>
+                        <div style={{ fontSize: 11, opacity: 0.8 }}>{x.time(s.start)}</div>
+                        <div dir='auto' style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}>
                           {s.title}
                         </div>
                         <div style={{ fontSize: 11, opacity: 0.8 }}>
-                          {s.type === 'private' ? '1:1' : fill(s)}
+                          {s.type === 'private' ? x.oneToOne() : fill(s)}
                         </div>
                       </Link>
                     ))}

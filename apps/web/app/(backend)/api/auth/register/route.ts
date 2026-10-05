@@ -11,15 +11,15 @@ export async function POST(req: NextRequest) {
   const { email, password, name, role, studioName, city } = body
 
   if (!email || !password || !name || !role) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    return NextResponse.json({ error: 'Missing required fields', code: 'missing_fields' }, { status: 400 })
   }
   if (!SIGNUP_ROLES.has(role)) {
-    return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid role', code: 'invalid_role' }, { status: 400 })
   }
 
   const existing = await prisma.user.findUnique({ where: { email } })
   if (existing) {
-    return NextResponse.json({ error: 'Email already in use' }, { status: 409 })
+    return NextResponse.json({ error: 'Email already in use', code: 'email_taken' }, { status: 409 })
   }
 
   const passwordHash = await bcrypt.hash(password, 10)
