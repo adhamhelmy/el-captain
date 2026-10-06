@@ -7,6 +7,7 @@ import { Avatar, Back, TypeTag } from '@/components/ui';
 import { isolate } from '@/i18n/locale';
 import { bookings, coach, ME, session, user } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import styles from './SessionDetail.module.css';
 
 /** Session detail. Guests see the coach and price, and are sent to log in to book. */
 export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
@@ -20,23 +21,17 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
   const c = coach(s.coachId)!;
 
   return (
-    <div className='page detail' style={{ maxWidth: 1080 }}>
+    <div className={`page detail ${styles.page}`}>
       <Back href={guest ? '/sessions' : '/user/sessions'}>{t('allSessions')}</Back>
-      <div className='hero' style={{ marginTop: 20 }}>
+      <div className={`hero ${styles.hero}`}>
         <TypeTag s={s} />
-        <div
-          className='display'
-          dir='auto'
-          style={{ fontSize: 'clamp(44px, 6vw, 68px)', lineHeight: 1, marginTop: 14 }}
-        >
+        <div className={`display ${styles.title}`} dir='auto'>
           {s.title}
         </div>
-        <div className='muted' style={{ fontSize: 16, marginTop: 8 }}>
-          {x.when(s)}
-        </div>
+        <div className={`muted ${styles.when}`}>{x.when(s)}</div>
       </div>
-      <div className='grid-2' style={{ gap: 32, marginTop: 32 }}>
-        <div className='stack' style={{ gap: 28 }}>
+      <div className={`grid-2 ${styles.columns}`}>
+        <div className={`stack ${styles.main}`}>
           <div className='chips'>
             {[x.level(s.level), x.minutes(s.duration), x.category(s.category)].map((label) => (
               <span key={label} className='pill'>
@@ -45,30 +40,23 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
             ))}
           </div>
           <div>
-            <div className='h3' style={{ marginBottom: 10 }}>
+            <div className={`h3 ${styles.heading}`}>
               {t('whatToExpect')}
             </div>
-            <div className='muted' dir='auto' style={{ fontSize: 15, lineHeight: 1.7 }}>
+            <div className={`muted ${styles.description}`} dir='auto'>
               {s.description}
             </div>
           </div>
           <Link
             href={`${guest ? '' : '/user'}/coaches/${c.id}`}
-            className='row hover'
-            style={{
-              justifyContent: 'flex-start',
-              gap: 14,
-              padding: 18,
-              borderRadius: 14,
-              flexWrap: 'nowrap',
-            }}
+            className={`row hover ${styles.coach}`}
           >
-            <Avatar initials={x.initials(c)} size={48} fontSize={16} />
-            <div style={{ flex: 1 }}>
-              <div dir='auto' style={{ fontWeight: 700 }}>
+            <Avatar initials={x.initials(c)} size={48} />
+            <div className={styles.coachText}>
+              <div dir='auto' className={styles.coachName}>
                 {x.name(c)}
               </div>
-              <div className='muted' style={{ fontSize: 13 }}>
+              <div className={`muted ${styles.small}`}>
                 {t('coachLine', {
                   specialty: x.category(c.specialty),
                   rating: c.rating,
@@ -76,71 +64,35 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
                 })}
               </div>
             </div>
-            <span style={{ color: 'var(--accent-text)', fontSize: 14, fontWeight: 600 }}>
+            <span className={styles.profileLink}>
               {t('profileLink')}
             </span>
           </Link>
         </div>
-        <div className='card stack' style={{ padding: 24, position: 'sticky', top: 24, gap: 16 }}>
+        <div className={`card stack ${styles.panel}`}>
           {s.status === 'past' && (
-            <div className='muted' style={{ fontSize: 14 }}>
-              {t('ended')}
-            </div>
+            <div className={`muted ${styles.note}`}>{t('ended')}</div>
           )}
           {s.status !== 'past' && (booked ? (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    background: 'var(--accent)',
-                    position: 'relative',
-                    flex: '0 0 auto',
-                  }}
-                >
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: 12,
-                      top: 18,
-                      width: 12,
-                      height: 6,
-                      borderLeft: '3px solid var(--on-accent)',
-                      borderBottom: '3px solid var(--on-accent)',
-                      transform: 'rotate(-45deg)',
-                    }}
-                  />
-                </div>
+              <div className={styles.confirmed}>
+                <div className={styles.check} />
                 <div>
-                  <div
-                    className='display lh-100'
-                    style={{ fontSize: 28, letterSpacing: 0 }}
-                  >
-                    {t('booked')}
-                  </div>
-                  <div className='muted' style={{ fontSize: 13 }}>
+                  <div className={`display lh-100 ${styles.booked}`}>{t('booked')}</div>
+                  <div className={`muted ${styles.small}`}>
                     {t('confirmation', { email: isolate(user(ME.user)!.email) })}
                   </div>
                 </div>
               </div>
               <Link
                 href='/user/sessions/me'
-                className='btn-ghost plain'
-                style={{
-                  background: 'var(--surface-2)',
-                  textAlign: 'center',
-                  padding: 13,
-                  fontSize: 14,
-                }}
+                className={`btn-ghost plain ${styles.viewMine}`}
               >
                 {t('viewMine')}
               </Link>
               <button
                 type='button'
-                className='linkbtn'
-                style={{ color: 'var(--warn)', textAlign: 'center' }}
+                className={`linkbtn ${styles.cancel}`}
                 onClick={() => setBooked(false)}
               >
                 {t('cancel')}
@@ -148,35 +100,29 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
             </>
           ) : (
             <>
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}
-              >
-                <span className='muted' style={{ fontSize: 14 }}>
-                  {x.spots(s)}
-                </span>
-                <span className='display' style={{ fontSize: 36, letterSpacing: 0 }}>
+              <div className={styles.priceRow}>
+                <span className={`muted ${styles.note}`}>{x.spots(s)}</span>
+                <span className={`display ${styles.price}`}>
                   {x.price(s.price)}
                 </span>
               </div>
               {guest ? (
                 <Link
                   href={`/login?callbackUrl=/user/sessions/${s.id}`}
-                  className='btn block'
-                  style={{ padding: 16 }}
+                  className={`btn block ${styles.book}`}
                 >
                   {t('logInToBook')}
                 </Link>
               ) : (
                 <button
                   type='button'
-                  className='btn block'
-                  style={{ padding: 16 }}
+                  className={`btn block ${styles.book}`}
                   onClick={() => setBooked(true)}
                 >
                   {s.type === 'group' ? t('reserve') : t('book')}
                 </button>
               )}
-              <div className='dim' style={{ fontSize: 12, textAlign: 'center' }}>
+              <div className={`dim ${styles.fine}`}>
                 {t('freeCancel')}
               </div>
             </>

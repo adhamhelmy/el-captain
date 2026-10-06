@@ -1,0 +1,5 @@
+.page { max-width: 1080px; }
+.hero { margin-top: 20px; }
+.stats { margin-top: 24px; }
+.columns { gap: 32px; margin-top: 32px; }
+.notYours { padding: 20px; border-radius: 14px; font-size: 14px; line-height: 1.6; }

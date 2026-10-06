@@ -4,6 +4,7 @@ import { SectionHead, SessionCard, Stats } from '@/components/ui'
 import { coachesOfUser, ME, sessions, sessionsOfUser, user } from '@/lib/mock'
 import { useSessionText } from '@/lib/session-text'
 import { isolate } from '@/i18n/locale'
+import styles from './page.module.css'
 
 export default function UserDashboard() {
   const t = useTranslations('userDashboard')
@@ -15,19 +16,19 @@ export default function UserDashboard() {
   const picked = sessions.filter(s => s.status === 'upcoming' && !mine.includes(s)).slice(0, 3)
 
   return (
-    <div className='page stack' style={{ gap: 36 }}>
+    <div className={`page stack ${styles.page}`}>
       <div>
-        <div className='muted' style={{ fontSize: 14 }}>{t('welcome')}</div>
+        <div className={`muted ${styles.welcome}`}>{t('welcome')}</div>
         <div className='title'>{t('title', { name: isolate(me.name.split(' ')[0].toUpperCase()) })}</div>
       </div>
       {next && (
-        <Link href={`/user/sessions/${next.id}`} className='btn' style={{ borderRadius: 18, padding: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap', textAlign: 'start', whiteSpace: 'normal' }}>
+        <Link href={`/user/sessions/${next.id}`} className={`btn ${styles.next}`}>
           <div>
-            <div className='overline' style={{ fontSize: 13 }}>{t('nextSession')}</div>
-            <div className='display' dir='auto' style={{ fontSize: 52, lineHeight: 1, marginTop: 10, letterSpacing: 0 }}>{next.title}</div>
-            <div style={{ fontSize: 15, marginTop: 8, fontWeight: 400 }}><bdi>{x.coachName(next)}</bdi> · {x.when(next)}</div>
+            <div className={`overline ${styles.nextLabel}`}>{t('nextSession')}</div>
+            <div className={`display ${styles.nextTitle}`} dir='auto'>{next.title}</div>
+            <div className={styles.nextWhen}><bdi>{x.coachName(next)}</bdi> · {x.when(next)}</div>
           </div>
-          <div style={{ fontSize: 15 }}>{t('viewDetails')}</div>
+          <div className={styles.viewDetails}>{t('viewDetails')}</div>
         </Link>
       )}
       <Stats items={[

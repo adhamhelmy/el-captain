@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { loginLink } from '@/components/rich';
 import { Field } from '@/components/ui';
 import type { Messages } from '@/i18n/messages';
+import styles from '../auth.module.css';
 
 type ErrorKey = keyof Messages['errors'];
 const API_ERRORS = new Set<string>(['missing_fields', 'invalid_role', 'email_taken']);
@@ -20,17 +21,10 @@ function RoleCard({
     <button
       type='button'
       onClick={onClick}
-      style={{
-        textAlign: 'start',
-        padding: 14,
-        borderRadius: 10,
-        border: `1px solid ${on ? 'var(--hover-border)' : 'var(--border)'}`,
-        background: on ? 'var(--accent-tint)' : 'var(--surface)',
-        color: on ? 'var(--accent-text)' : 'var(--text-2)',
-      }}
+      className={on ? `${styles.role} ${styles.on}` : styles.role}
     >
-      <div style={{ fontWeight: 700, fontSize: 15 }}>{title}</div>
-      <div style={{ fontSize: 12, marginTop: 4, opacity: 0.75 }}>{sub}</div>
+      <div className={styles.roleTitle}>{title}</div>
+      <div className={styles.roleSub}>{sub}</div>
     </button>
   );
 }
@@ -66,14 +60,14 @@ export default function RegisterPage() {
   }
 
   return (
-    <form onSubmit={submit} className='stack' style={{ gap: 18 }}>
+    <form onSubmit={submit} className={`stack ${styles.form}`}>
       <div>
         <div className='auth-title'>{t('title')}</div>
-        <div className='muted' style={{ fontSize: 15, marginTop: 6 }}>
+        <div className={`muted ${styles.sub}`}>
           {t('sub')}
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div className={styles.roles}>
         <RoleCard
           on={role === 'user'}
           title={t('roleUser.title')}
@@ -110,25 +104,13 @@ export default function RegisterPage() {
         />
       </Field>
       {role === 'coach' && (
-        <div
-          style={{
-            background: 'var(--pending-tint)',
-            border: '1px solid var(--pending-border)',
-            color: 'var(--pending)',
-            fontSize: 13,
-            lineHeight: 1.5,
-            padding: '12px 14px',
-            borderRadius: 8,
-          }}
-        >
-          {t('coachNotice')}
-        </div>
+        <div className={styles.notice}>{t('coachNotice')}</div>
       )}
-      {error && <div style={{ color: 'var(--warn)', fontSize: 13 }}>{te(error)}</div>}
+      {error && <div className={styles.error}>{te(error)}</div>}
       <button type='submit' className='btn block'>
         {t('submit')}
       </button>
-      <div className='muted' style={{ fontSize: 14, textAlign: 'center' }}>
+      <div className={`muted ${styles.foot}`}>
         {t.rich('haveAccount', { link: loginLink })}
       </div>
     </form>

@@ -3,6 +3,7 @@ import { useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { setLocale } from '@/i18n/actions';
 import { appLocale } from '@/i18n/locale';
+import styles from './settings.module.css';
 
 /** Switches between English and Arabic. Shows the language you'd switch to. */
 export function LocaleToggle() {
@@ -30,8 +31,8 @@ export function LocaleSetting() {
   return (
     <div className='setting'>
       <div>
-        <div style={{ fontSize: 14, fontWeight: 600 }}>{t('setting')}</div>
-        <div className='muted' style={{ fontSize: 13 }}>
+        <div className={styles.label}>{t('setting')}</div>
+        <div className={`muted ${styles.hint}`}>
           {t('settingHint')}
         </div>
       </div>

@@ -1,0 +1,24 @@
+.hero { padding-top: clamp(48px, 9vw, 88px); padding-bottom: 72px; }
+.heroText { font-size: 18px; line-height: 1.6; max-width: 520px; margin: 24px 0 36px; text-wrap: pretty; }
+.search { display: flex; gap: 10px; flex-wrap: wrap; max-width: 640px; }
+.searchInput { padding: 16px 18px; }
+.searchBtn { font-size: 15px; padding: 16px 24px; }
+.categories { margin-top: 20px; }
+.category { padding: 8px 14px; }
+
+.featured { padding-top: 0; }
+.featuredHead { margin-bottom: 20px; }
+.featuredTitle { font-size: 36px; }
+.seeAll { font-size: 14px; font-weight: 600; }
+
+.stepsBand { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.steps { padding: 72px 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 40px; }
+.stepNumber { font-size: 64px; color: var(--accent-text); line-height: 1; letter-spacing: 0; }
+.stepTitle { font-size: 19px; font-weight: 700; margin: 10px 0 8px; }
+.stepText { font-size: 15px; line-height: 1.6; }
+
+.coachBanner { background: var(--accent); color: var(--on-accent); border-radius: 20px; padding: clamp(28px, 5vw, 48px); display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap; }
+.coachTitle { font-size: 56px; letter-spacing: 0; }
+.coachText { font-size: 16px; margin-top: 12px; max-width: 480px; line-height: 1.5; }
+/* Keeps its colours on hover, over the global a:hover. */
+.applyCoach, .applyCoach:hover { background: var(--on-accent); color: var(--accent); font-weight: 700; font-size: 15px; padding: 16px 26px; border-radius: 10px; }

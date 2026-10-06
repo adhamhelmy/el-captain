@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { type Coach, type Session } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import styles from './ui.module.css';
 
 export function Logo({ href = '/' }: Readonly<{ href?: string }>) {
   const t = useTranslations('brand');
@@ -37,20 +38,17 @@ export function TypeTag({ s }: Readonly<{ s: Session }>) {
   return <Tag kind={s.type}>{x.type(s.type)}</Tag>;
 }
 
+type AvatarSize = 32 | 34 | 36 | 48 | 52 | 64 | 80 | 96;
+
+/** Round initials badge; `size` is the diameter in px and also sets the initials size. */
 export function Avatar({
   initials,
   size = 34,
-  fontSize = 13,
   accent,
-}: Readonly<{ initials: string; size?: number; fontSize?: number; accent?: boolean }>) {
-  return (
-    <div
-      className={accent ? 'avatar accent' : 'avatar'}
-      style={{ width: size, height: size, fontSize }}
-    >
-      {initials}
-    </div>
-  );
+  className,
+}: Readonly<{ initials: string; size?: AvatarSize; accent?: boolean; className?: string }>) {
+  const classes = ['avatar', styles[`size${size}`], accent && 'accent', className];
+  return <div className={classes.filter(Boolean).join(' ')}>{initials}</div>;
 }
 
 export function SessionCard({
@@ -67,16 +65,16 @@ export function SessionCard({
         {badge ?? <TypeTag s={s} />}
       </div>
       <div className='scard-body'>
-        <div dir='auto' style={{ fontSize: 18, fontWeight: 700 }}>
+        <div dir='auto' className={styles.cardTitle}>
           {s.title}
         </div>
-        <div className='muted' style={{ fontSize: 14 }}>
+        <div className={`muted ${styles.cardMeta}`}>
           <bdi>{x.coachName(s)}</bdi> · {x.minutes(s.duration)}
           {spots && ` · ${x.spots(s)}`}
         </div>
         <div className='scard-foot'>
           <span>{x.when(s)}</span>
-          <span style={{ color: 'var(--text)', fontWeight: 700 }}>{x.price(s.price)}</span>
+          <span className={styles.price}>{x.price(s.price)}</span>
         </div>
       </div>
     </Link>
@@ -89,25 +87,24 @@ export function CoachCard({ c, meta }: Readonly<{ c: Coach; meta: string }>) {
   return (
     <Link
       href={`/user/coaches/${c.id}`}
-      className='card hover plain'
-      style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}
+      className={`card hover plain ${styles.coachCard}`}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <Avatar initials={x.initials(c)} size={52} fontSize={16} />
+      <div className={styles.coachHead}>
+        <Avatar initials={x.initials(c)} size={52} />
         <div>
-          <div dir='auto' style={{ fontWeight: 700, fontSize: 17 }}>
+          <div dir='auto' className={styles.coachName}>
             {x.name(c)}
           </div>
-          <div className='muted' style={{ fontSize: 13 }}>
+          <div className={`muted ${styles.coachMeta}`}>
             {x.category(c.specialty)} · <bdi>{c.location}</bdi>
           </div>
         </div>
       </div>
-      <div className='scard-foot' style={{ marginTop: 0 }}>
+      <div className={`scard-foot ${styles.coachFoot}`}>
         <span>
           {c.rating} ★ · {t('reviews', { count: c.reviews })}
         </span>
-        <span style={{ color: 'var(--text)', fontWeight: 600 }}>{meta}</span>
+        <span className={styles.coachFootValue}>{meta}</span>
       </div>
     </Link>
   );
@@ -177,24 +174,28 @@ export function Chips<T extends string>({
 export function Field({
   label,
   children,
-  style,
-}: Readonly<{ label: string; children: React.ReactNode; style?: React.CSSProperties }>) {
+  className,
+}: Readonly<{ label: string; children: React.ReactNode; className?: string }>) {
   return (
-    <label style={{ display: 'block', ...style }}>
+    <label className={className ? `${styles.field} ${className}` : styles.field}>
       <div className='label'>{label}</div>
       {children}
     </label>
   );
 }
 
-/** Card table: header row plus grid rows sharing `cols` (a grid-template-columns value). */
+/** Card table: header row plus grid rows. `className` sets `--cols` (a grid-template-columns value). */
 export function Table({
-  cols,
+  className,
   head,
   children,
-}: Readonly<{ cols: string; head: (string | React.ReactElement)[]; children: React.ReactNode }>) {
+}: Readonly<{
+  className: string;
+  head: (string | React.ReactElement)[];
+  children: React.ReactNode;
+}>) {
   return (
-    <div className='table' style={{ '--cols': cols } as React.CSSProperties}>
+    <div className={`table ${className}`}>
       <div className='tr th'>
         {head.map((h) => (
           <span key={typeof h === 'string' ? h : h.key}>{h}</span>
@@ -212,10 +213,10 @@ export function Person({
   sub,
 }: Readonly<{ initials: string; name: string; sub: string }>) {
   return (
-    <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <Avatar initials={initials} fontSize={12} />
+    <span className={styles.person}>
+      <Avatar initials={initials} className={styles.personAvatar} />
       <span>
-        <bdi style={{ display: 'block', fontWeight: 700 }}>{name}</bdi>
+        <bdi className={styles.personName}>{name}</bdi>
         <span className='cell-sub'>{sub}</span>
       </span>
     </span>
@@ -225,7 +226,7 @@ export function Person({
 export function Back({ href, children }: Readonly<{ href: string; children: React.ReactNode }>) {
   const t = useTranslations('ui');
   return (
-    <Link href={href} className='muted' style={{ fontSize: 14 }}>
+    <Link href={href} className={`muted ${styles.back}`}>
       <span aria-hidden>{t('backArrow')}</span> {children}
     </Link>
   );
@@ -237,17 +238,10 @@ export function SectionHead({
   link,
 }: Readonly<{ title: string; href?: string; link?: string }>) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        marginBottom: 14,
-      }}
-    >
+    <div className={styles.sectionHead}>
       <div className='h2'>{title}</div>
       {href && (
-        <Link href={href} style={{ fontSize: 14, fontWeight: 600 }}>
+        <Link href={href} className={styles.sectionLink}>
           {link}
         </Link>
       )}

@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl';
 import { Avatar, Back, Stats, Tag, TypeTag } from '@/components/ui';
 import { attendees, fill, ME, session } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import detail from '../../../detail.module.css';
+import styles from './page.module.css';
 
 export default function CoachSessionPage() {
   const t = useTranslations('coachSession');
@@ -19,24 +21,23 @@ export default function CoachSessionPage() {
   const roster = own ? attendees(s.id) : [];
 
   return (
-    <div className='page detail' style={{ maxWidth: 1080 }}>
+    <div className={`page detail ${styles.page}`}>
       <Back href={own ? '/coach/sessions/me' : '/coach/sessions'}>
         {t('back')}
       </Back>
-      <div className='hero between' style={{ marginTop: 20, gap: 20 }}>
+      <div className={`hero between ${detail.hero} ${styles.hero}`}>
         <div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className={detail.tags}>
             <TypeTag s={s} />
             <Tag kind={status}>{tst(status)}</Tag>
           </div>
           <div
-            className='display'
+            className={`display ${detail.title}`}
             dir='auto'
-            style={{ fontSize: 'clamp(44px, 6vw, 64px)', lineHeight: 1, marginTop: 14 }}
           >
             {s.title}
           </div>
-          <div className='muted' style={{ fontSize: 16, marginTop: 8 }}>
+          <div className={`muted ${detail.sub}`}>
             <bdi>{x.coachName(s)}</bdi> · {x.when(s)}
           </div>
         </div>
@@ -46,7 +47,7 @@ export default function CoachSessionPage() {
           </button>
         )}
       </div>
-      <div style={{ marginTop: 24 }}>
+      <div className={styles.stats}>
         <Stats
           small
           items={[
@@ -59,54 +60,45 @@ export default function CoachSessionPage() {
           ]}
         />
       </div>
-      <div className='grid-2' style={{ gap: 32, marginTop: 32 }}>
+      <div className={`grid-2 ${styles.columns}`}>
         <div>
-          <div className='h3' style={{ marginBottom: 10 }}>
+          <div className={`h3 ${detail.headingSm}`}>
             {t('description')}
           </div>
-          <div className='muted' dir='auto' style={{ fontSize: 15, lineHeight: 1.7 }}>
+          <div className={`muted ${detail.description}`} dir='auto'>
             {s.description}
           </div>
         </div>
         {own ? (
           <div>
-            <div className='h3' style={{ marginBottom: 10 }}>
+            <div className={`h3 ${detail.headingSm}`}>
               {t('roster')}
             </div>
-            <div className='stack' style={{ gap: 8 }}>
+            <div className={`stack ${detail.list}`}>
               {roster.map((u) => (
                 <Link
                   key={u.id}
                   href={`/coach/users/${u.id}`}
-                  className='row'
-                  style={{
-                    justifyContent: 'flex-start',
-                    gap: 12,
-                    padding: '12px 16px',
-                    flexWrap: 'nowrap',
-                  }}
+                  className={`row ${detail.attendee}`}
                 >
-                  <Avatar initials={u.initials} size={32} fontSize={12} />
-                  <div dir='auto' style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>
+                  <Avatar initials={u.initials} size={32} />
+                  <div dir='auto' className={detail.attendeeName}>
                     {u.name}
                   </div>
-                  <span className='muted' dir='ltr' style={{ fontSize: 13 }}>
+                  <span className={`muted ${detail.email}`} dir='ltr'>
                     {u.email}
                   </span>
                 </Link>
               ))}
               {roster.length === 0 && (
-                <div className='muted' style={{ fontSize: 14 }}>
+                <div className={`muted ${detail.empty}`}>
                   {t('noBookings')}
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <div
-            className='card muted'
-            style={{ padding: 20, borderRadius: 14, fontSize: 14, lineHeight: 1.6 }}
-          >
+          <div className={`card muted ${styles.notYours}`}>
             {t('notYours')}
           </div>
         )}

@@ -6,6 +6,8 @@ import { notFound, useParams } from 'next/navigation';
 import { Avatar, Back, Stats, Tag, TypeTag } from '@/components/ui';
 import { coach, fill, sessionsOfCoach } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import detail from '../../../detail.module.css';
+import styles from './page.module.css';
 
 // The status button's label (message key) and the status it switches to.
 const TOGGLE: Partial<Record<string, ['suspend' | 'reject' | 'reinstate', string]>> = {
@@ -25,27 +27,26 @@ export default function AdminCoachPage() {
   const toggle = TOGGLE[status] ?? ['reinstate', 'active'];
 
   return (
-    <div className='page detail stack' style={{ maxWidth: 960, gap: 28 }}>
+    <div className={`page detail stack ${detail.page}`}>
       <Back href='/admin/coaches'>{t('backCoaches')}</Back>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-        <Avatar initials={x.initials(c)} size={80} fontSize={26} accent />
-        <div style={{ flex: 1, minWidth: 220 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <div className='display' dir='auto' style={{ fontSize: 52, lineHeight: 1 }}>
+      <div className={detail.profile}>
+        <Avatar initials={x.initials(c)} size={80} accent />
+        <div className={detail.profileText}>
+          <div className={detail.nameRow}>
+            <div className={`display ${detail.name}`} dir='auto'>
               {x.name(c)}
             </div>
             <Tag kind={status}>{tst(status)}</Tag>
           </div>
-          <div className='muted' style={{ fontSize: 15, marginTop: 4 }}>
+          <div className={`muted ${detail.line}`}>
             {x.category(c.specialty)} · <bdi>{c.location}</bdi> · <bdi>{c.email}</bdi>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className={detail.actions}>
           {status === 'pending' && (
             <button
               type='button'
-              className='btn'
-              style={{ padding: '12px 18px' }}
+              className={`btn ${styles.approve}`}
               onClick={() => setStatus('active')}
             >
               {t('approve')}
@@ -70,38 +71,37 @@ export default function AdminCoachPage() {
         ]}
       />
       <div>
-        <div className='h3' style={{ marginBottom: 10 }}>
+        <div className={`h3 ${detail.headingSm}`}>
           {t('bio')}
         </div>
-        <div className='muted' dir='auto' style={{ fontSize: 15, lineHeight: 1.7, maxWidth: 680 }}>
+        <div className={`muted ${detail.description} ${styles.bio}`} dir='auto'>
           {c.bio}
         </div>
       </div>
       <div>
-        <div className='h3' style={{ marginBottom: 12 }}>
+        <div className={`h3 ${detail.heading}`}>
           {t('sessions')}
         </div>
-        <div className='stack' style={{ gap: 8 }}>
+        <div className={`stack ${detail.list}`}>
           {list.map((s) => (
             <Link
               key={s.id}
               href={`/admin/sessions/${s.id}`}
-              className='row'
-              style={{ gap: 12, padding: '14px 18px' }}
+              className={`row ${detail.row}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div className={detail.rowGroup}>
                 <TypeTag s={s} />
                 <div>
-                  <div dir='auto' style={{ fontWeight: 700, fontSize: 14 }}>
+                  <div dir='auto' className={detail.rowTitle}>
                     {s.title}
                   </div>
-                  <div className='muted' style={{ fontSize: 12 }}>
+                  <div className={`muted ${detail.rowSub}`}>
                     {x.when(s)}
                   </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <span className='muted' style={{ fontSize: 13 }}>
+              <div className={detail.rowMeta}>
+                <span className={`muted ${detail.count}`}>
                   {fill(s)}
                 </span>
                 <Tag kind={s.status}>{tst(s.status)}</Tag>

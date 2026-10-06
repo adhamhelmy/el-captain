@@ -2,6 +2,29 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
+const ASSERTIONS = 'Use an assertion from @/lib/api (assertValid, assertAllowed, assertFound, assertNoConflict)'
+
+// Banned syntax, shared because a later no-restricted-syntax entry replaces an earlier one instead of adding to it.
+const restricted = {
+  styleTag: {
+    selector: "JSXOpeningElement[name.name='style']",
+    message: 'Put styles in a CSS file.',
+  },
+  // no-restricted-imports only sees static imports; this closes import() and require().
+  prismaDynamicImport: {
+    selector: String.raw`:matches(ImportExpression > Literal.source, CallExpression[callee.name='require'] > Literal.arguments:first-child)[value=/(^@prisma\/client|prisma\/client$)/]`,
+    message: 'Import a function from prisma/models/* instead of using Prisma directly.',
+  },
+  throwInRoute: {
+    selector: 'ThrowStatement',
+    message: `${ASSERTIONS} instead of throwing.`,
+  },
+  errorResponseInRoute: {
+    selector: ":matches(CallExpression[callee.property.name='json'] > ObjectExpression > Property[key.name='error'], Property[key.name='status'][value.value>=400])",
+    message: `${ASSERTIONS} instead of building an error response.`,
+  },
+}
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -18,6 +41,34 @@ const eslintConfig = defineConfig([
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // Styling lives in CSS files: no inline style on DOM elements…
+      'react/forbid-dom-props': ['error', { forbid: [
+        { propName: 'style', message: 'Use a class from a CSS file instead of inline styles.' },
+      ] }],
+      // …or on components (Link, Image, our own).
+      'react/forbid-component-props': ['error', { forbid: [
+        { propName: 'style', message: 'Use a class from a CSS file instead of inline styles.' },
+      ] }],
+      'no-restricted-syntax': ['error', restricted.styleTag, restricted.prismaDynamicImport],
+    },
+  },
+  {
+    // Only the data layer talks to Prisma; everything else calls the functions in prisma/models/*.
+    ignores: ['prisma/**'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [{
+        group: ['@prisma/client', '@prisma/client/*', '@/prisma/client', '**/prisma/client'],
+        message: 'Import a function from prisma/models/* instead of using Prisma directly.',
+      }] }],
+    },
+  },
+  {
+    // Route handlers report errors only through the assertions; protect() and publicRoute() turn them into responses.
+    files: ['app/**/route.ts'],
+    rules: {
+      'no-restricted-syntax': ['error',
+        restricted.prismaDynamicImport, restricted.throwInRoute, restricted.errorResponseInRoute,
+      ],
     },
   },
 ]);

@@ -1,0 +1,3 @@
+.footer { border-top: 1px solid var(--border); }
+.bar { padding-top: 32px; padding-bottom: 32px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; font-size: 13px; }
+.links { display: flex; gap: 20px; align-items: center; }

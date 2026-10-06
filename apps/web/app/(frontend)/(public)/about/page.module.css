@@ -1,0 +1,6 @@
+.page { max-width: 960px; }
+.title { font-size: clamp(56px, 8vw, 96px); letter-spacing: 0; }
+.intro { font-size: 18px; line-height: 1.7; margin: 28px 0 56px; max-width: 640px; text-wrap: pretty; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.cardTitle { font-size: 28px; margin-bottom: 16px; }
+.lines { gap: 12px; font-size: 15px; line-height: 1.5; }

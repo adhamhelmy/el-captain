@@ -1,0 +1,30 @@
+.page { gap: 24px; }
+
+/* New session form */
+.form { gap: 18px; }
+.formHead { align-items: center; }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.wide { grid-column: 1 / -1; }
+.actions { display: flex; gap: 10px; }
+.publish { padding: 12px 22px; border-radius: 8px; }
+.cancel { padding: 12px 22px; border-radius: 8px; color: var(--text-2); font-weight: 400; }
+
+.toolbar { align-items: center; gap: 12px; }
+
+/* Table view */
+.cols { --cols: minmax(0, 2.2fr) minmax(0, 1.6fr) minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 0.6fr); }
+.priceHead { display: block; text-align: end; }
+.row { padding: 16px 20px; }
+.title { font-weight: 700; }
+.price { text-align: end; font-weight: 700; }
+.empty { padding: 48px; }
+
+/* Calendar view: one column per weekday, scrolls sideways on small screens. */
+.calendarScroll { overflow-x: auto; }
+.calendar { display: grid; grid-template-columns: repeat(7, minmax(120px, 1fr)); gap: 10px; min-width: 860px; }
+.day { gap: 8px; }
+.dayName { text-align: center; }
+.dayBody { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; min-height: 280px; padding: 8px; gap: 6px; }
+.event { display: block; padding: 8px 10px; border-radius: 8px; }
+.eventMeta { font-size: 11px; opacity: 0.8; }
+.eventTitle { font-size: 13px; font-weight: 700; line-height: 1.3; }

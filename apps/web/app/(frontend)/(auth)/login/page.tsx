@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { registerLink } from '@/components/rich';
 import { Field } from '@/components/ui';
 import { canAccess, homeForRole } from '@/lib/routes';
+import styles from '../auth.module.css';
 
 export default function LoginPage() {
   const t = useTranslations('login');
@@ -33,10 +34,10 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={submit} className='stack' style={{ gap: 18 }}>
+    <form onSubmit={submit} className={`stack ${styles.form}`}>
       <div>
         <div className='auth-title'>{t('title')}</div>
-        <div className='muted' style={{ fontSize: 15, marginTop: 6 }}>
+        <div className={`muted ${styles.sub}`}>
           {t('sub')}
         </div>
       </div>
@@ -51,14 +52,7 @@ export default function LoginPage() {
         />
       </Field>
       <div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: 13,
-            marginBottom: 6,
-          }}
-        >
+        <div className={styles.passwordHead}>
           <span className='muted'>{tc('password')}</span>
           <Link href='/forgot-password'>{t('forgot')}</Link>
         </div>
@@ -71,11 +65,11 @@ export default function LoginPage() {
           className='input on-page'
         />
       </div>
-      {error && <div style={{ color: 'var(--warn)', fontSize: 13 }}>{te('invalidLogin')}</div>}
+      {error && <div className={styles.error}>{te('invalidLogin')}</div>}
       <button type='submit' className='btn block'>
         {tc('logIn')}
       </button>
-      <div className='muted' style={{ fontSize: 14, textAlign: 'center' }}>
+      <div className={`muted ${styles.foot}`}>
         {t.rich('newHere', { link: registerLink })}
       </div>
     </form>

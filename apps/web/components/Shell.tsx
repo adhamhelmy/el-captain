@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { LocaleToggle } from './LocaleToggle';
 import { ThemeToggle } from './ThemeToggle';
 import { Avatar, Logo } from './ui';
+import styles from './Shell.module.css';
 
 type Role = 'admin' | 'coach' | 'user';
 
@@ -96,8 +97,8 @@ export function Shell({
     <>
       <Avatar initials={initials(name)} accent={role !== 'admin'} />
       <div>
-        <div style={{ fontSize: 14, fontWeight: 600 }}>{name}</div>
-        <div className='muted' style={{ fontSize: 12 }}>
+        <div className={styles.name}>{name}</div>
+        <div className={`muted ${styles.role}`}>
           {t(`sub.${role}`)}
         </div>
       </div>
@@ -112,17 +113,11 @@ export function Shell({
         {nav}
         <div className='side-foot'>
           {profile ? (
-            <Link
-              href={profile}
-              className='plain'
-              style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '0 8px' }}
-            >
+            <Link href={profile} className={`plain ${styles.who}`}>
               {who}
             </Link>
           ) : (
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '0 8px' }}>
-              {who}
-            </div>
+            <div className={styles.who}>{who}</div>
           )}
           {/* Admin has no profile page, so its theme and language switches live here. */}
           {role === 'admin' && (
@@ -131,7 +126,7 @@ export function Shell({
               <ThemeToggle />
             </div>
           )}
-          <button type='button' className='linkbtn' style={{ padding: '0 8px' }} onClick={logout}>
+          <button type='button' className={`linkbtn ${styles.logout}`} onClick={logout}>
             {tc('logOut')}
           </button>
         </div>

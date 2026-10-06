@@ -1,0 +1,8 @@
+.page { gap: 36px; }
+.welcome { font-size: 14px; }
+/* The next session as one big lime card. */
+.next { border-radius: 18px; padding: 32px; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; text-align: start; white-space: normal; }
+.nextLabel { font-size: 13px; }
+.nextTitle { font-size: 52px; line-height: 1; margin-top: 10px; letter-spacing: 0; }
+.nextWhen { font-size: 15px; margin-top: 8px; font-weight: 400; }
+.viewDetails { font-size: 15px; }

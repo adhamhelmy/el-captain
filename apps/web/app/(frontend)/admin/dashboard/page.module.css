@@ -1,0 +1,16 @@
+.page { gap: 36px; }
+.overline { font-size: 14px; }
+.columns { grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); }
+.list { gap: 10px; }
+.pending { gap: 12px; padding: 14px 18px; }
+.name { font-weight: 700; font-size: 15px; }
+.applied { font-size: 13px; }
+.actions { display: flex; gap: 8px; }
+.approve { padding: 8px 14px; border-radius: 8px; font-size: 13px; }
+.reject { color: var(--text-2); font-weight: 400; }
+.none { font-size: 14px; padding: 16px 0; }
+.heading { margin-bottom: 14px; }
+.feed { padding: 0; border-radius: 14px; }
+.booking { display: flex; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.link { font-weight: 600; }
+.ago { font-size: 13px; white-space: nowrap; }

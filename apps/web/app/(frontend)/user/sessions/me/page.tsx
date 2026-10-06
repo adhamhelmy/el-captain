@@ -6,6 +6,7 @@ import { browseLink } from '@/components/rich'
 import { Segmented, TypeTag } from '@/components/ui'
 import { ME, sessionsOfUser } from '@/lib/mock'
 import { useSessionText } from '@/lib/session-text'
+import styles from './page.module.css'
 
 export default function MySessionsPage() {
   const t = useTranslations('userSessions')
@@ -14,23 +15,23 @@ export default function MySessionsPage() {
   const list = sessionsOfUser(ME.user).filter(s => s.status === tab)
 
   return (
-    <div className='page' style={{ maxWidth: 960 }}>
-      <div className='title' style={{ marginBottom: 24 }}>{t('title')}</div>
-      <div style={{ marginBottom: 24 }}>
+    <div className={`page ${styles.page}`}>
+      <div className={`title ${styles.title}`}>{t('title')}</div>
+      <div className={styles.tabs}>
         <Segmented options={[[t('upcoming'), 'upcoming'], [t('past'), 'past']]} value={tab} onChange={setTab} />
       </div>
-      <div className='stack' style={{ gap: 10 }}>
+      <div className={`stack ${styles.list}`}>
         {list.map(s => (
           <div key={s.id} className='row'>
-            <Link href={`/user/sessions/${s.id}`} className='plain' style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <Link href={`/user/sessions/${s.id}`} className={`plain ${styles.session}`}>
               <TypeTag s={s} />
               <div>
-                <div dir='auto' style={{ fontWeight: 700, fontSize: 15 }}>{s.title}</div>
-                <div className='muted' style={{ fontSize: 13 }}><bdi>{x.coachName(s)}</bdi> · {x.when(s)}</div>
+                <div dir='auto' className={styles.sessionTitle}>{s.title}</div>
+                <div className={`muted ${styles.when}`}><bdi>{x.coachName(s)}</bdi> · {x.when(s)}</div>
               </div>
             </Link>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <span className='display' style={{ fontSize: 22, letterSpacing: 0 }}>{x.price(s.price)}</span>
+            <div className={styles.meta}>
+              <span className={`display ${styles.price}`}>{x.price(s.price)}</span>
               {tab === 'upcoming'
                 ? <Link href={`/user/sessions/${s.id}`} className='btn-ghost sm plain'>{t('details')}</Link>
                 : <Link href={`/user/coaches/${s.coachId}`} className='btn-ghost sm plain'>{t('bookAgain')}</Link>}

@@ -1,74 +1,46 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server'
+import { assertAllowed, assertFound, protect, publicRoute, type AuthContext, type AuthUser, type RequestContext } from '@/lib/api'
+import { toClassDTO } from '@/lib/dto'
+import { deleteClass, findClass, findClassWithHost, updateClass } from '@/prisma/models/class'
 
-function toDTO(c: any) {
-  return {
-    id: c.id, title: c.title, type: c.type, description: c.description,
-    date: c.date.toISOString(), durationMinutes: c.durationMinutes,
-    city: c.city, address: c.address, capacity: c.capacity, spotsLeft: c.spotsLeft,
-    imageUrl: c.imageUrl, clientId: c.clientId,
-    clientName: c.client.name,
-    studioName: c.client.clientProfile?.studioName ?? null,
-    isCoach: !!c.client.coachProfile,
-    createdAt: c.createdAt.toISOString(),
-  }
+async function getClass({ params: { id } }: RequestContext<{ id: string }>) {
+  const cls = await findClassWithHost(id)
+  assertFound(cls)
+  return NextResponse.json(toClassDTO(cls))
 }
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const cls = await prisma.class.findUnique({
-    where: { id },
-    include: { client: { include: { clientProfile: true, coachProfile: true } } },
-  })
-  if (!cls) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json(toDTO(cls))
+/** The class exists and the user hosts it or is an admin. */
+async function assertCanManage(id: string, user: AuthUser) {
+  const cls = await findClass(id)
+  assertFound(cls)
+  assertAllowed(cls.clientId === user.id || user.role === 'ADMIN')
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const cls = await prisma.class.findUnique({ where: { id } })
-  if (!cls) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-
-  const isOwner = cls.clientId === session.user.id
-  const isAdmin = session.user.role === 'ADMIN'
-  if (!isOwner && !isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+async function update({ req, user, params: { id } }: AuthContext<{ id: string }>) {
+  await assertCanManage(id, user)
 
   const body = await req.json()
-  const updated = await prisma.class.update({
-    where: { id },
-    data: {
-      ...(body.title && { title: body.title }),
-      ...(body.type && { type: body.type }),
-      ...(body.description !== undefined && { description: body.description }),
-      ...(body.date && { date: new Date(body.date) }),
-      ...(body.durationMinutes && { durationMinutes: Number(body.durationMinutes) }),
-      ...(body.city && { city: body.city }),
-      ...(body.address && { address: body.address }),
-      ...(body.imageUrl !== undefined && { imageUrl: body.imageUrl }),
-    },
-    include: { client: { include: { clientProfile: true, coachProfile: true } } },
+  const updated = await updateClass(id, {
+    ...(body.title && { title: body.title }),
+    ...(body.type && { type: body.type }),
+    ...(body.description !== undefined && { description: body.description }),
+    ...(body.date && { date: new Date(body.date) }),
+    ...(body.durationMinutes && { durationMinutes: Number(body.durationMinutes) }),
+    ...(body.city && { city: body.city }),
+    ...(body.address && { address: body.address }),
+    ...(body.imageUrl !== undefined && { imageUrl: body.imageUrl }),
   })
 
-  return NextResponse.json(toDTO(updated))
+  return NextResponse.json(toClassDTO(updated))
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+async function remove({ user, params: { id } }: AuthContext<{ id: string }>) {
+  await assertCanManage(id, user)
 
-  const cls = await prisma.class.findUnique({ where: { id } })
-  if (!cls) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-
-  const isOwner = cls.clientId === session.user.id
-  const isAdmin = session.user.role === 'ADMIN'
-  if (!isOwner && !isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-
-  await prisma.class.delete({ where: { id } })
+  await deleteClass(id)
   return NextResponse.json({ success: true })
 }
+
+export const GET = publicRoute(getClass)
+export const PATCH = protect(update, ['STUDIO', 'COACH', 'ADMIN'])
+export const DELETE = protect(remove, ['STUDIO', 'COACH', 'ADMIN'])

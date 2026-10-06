@@ -2,31 +2,23 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Field } from '@/components/ui';
+import styles from './page.module.css';
 
 export default function ContactPage() {
   const t = useTranslations('contact');
   const tc = useTranslations('common');
   const [sent, setSent] = useState(false);
   return (
-    <section
-      className='site-section'
-      style={{
-        maxWidth: 1000,
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: 48,
-        alignItems: 'start',
-      }}
-    >
+    <section className={`site-section ${styles.page}`}>
       <div>
         <div className='eyebrow'>{t('eyebrow')}</div>
-        <h1 className='display lh-90' style={{ fontSize: 72, letterSpacing: 0 }}>
+        <h1 className={`display lh-90 ${styles.title}`}>
           {t('title')}
         </h1>
-        <p className='muted' style={{ fontSize: 16, lineHeight: 1.7, margin: '20px 0 32px' }}>
+        <p className={`muted ${styles.intro}`}>
           {t('intro')}
         </p>
-        <div className='stack' style={{ gap: 14, fontSize: 15 }}>
+        <div className={`stack ${styles.emails}`}>
           {[
             [t('emailLabel'), 'support@elcaptain.app'],
             [t('coachesLabel'), 'coaches@elcaptain.app'],
@@ -44,17 +36,16 @@ export default function ContactPage() {
       </div>
       <div className='card'>
         {sent ? (
-          <div style={{ padding: '40px 0', textAlign: 'center' }}>
-            <div className='display' style={{ fontSize: 36 }}>
+          <div className={styles.sent}>
+            <div className={`display ${styles.sentTitle}`}>
               {t('sentTitle')}
             </div>
-            <div className='muted' style={{ fontSize: 15, marginTop: 8 }}>
+            <div className={`muted ${styles.sentText}`}>
               {t('sentText')}
             </div>
             <button
               type='button'
-              className='btn-ghost'
-              style={{ marginTop: 24, borderRadius: 8, fontWeight: 400 }}
+              className={`btn-ghost ${styles.again}`}
               onClick={() => setSent(false)}
             >
               {t('sendAnother')}
@@ -62,8 +53,7 @@ export default function ContactPage() {
           </div>
         ) : (
           <form
-            className='stack'
-            style={{ gap: 16 }}
+            className={`stack ${styles.form}`}
             onSubmit={(e) => {
               e.preventDefault();
               setSent(true);
@@ -85,7 +75,7 @@ export default function ContactPage() {
               </select>
             </Field>
             <Field label={t('message')}>
-              <textarea className='input' rows={5} style={{ resize: 'vertical' }} required />
+              <textarea className={`input ${styles.message}`} rows={5} required />
             </Field>
             <button type='submit' className='btn block'>
               {t('send')}

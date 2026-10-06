@@ -3,15 +3,16 @@ import { useTranslations } from 'next-intl'
 import { Person, Table } from '@/components/ui'
 import { clientsOfCoach, ME } from '@/lib/mock'
 import { useSessionText } from '@/lib/session-text'
+import styles from './page.module.css'
 
 export default function MyClientsPage() {
   const t = useTranslations('clients')
   const x = useSessionText()
   return (
-    <div className='page' style={{ maxWidth: 1000 }}>
+    <div className={`page ${styles.page}`}>
       <div className='title'>{t('title')}</div>
-      <div className='sub' style={{ marginBottom: 24 }}>{t('sub')}</div>
-      <Table cols='minmax(0,2fr) minmax(0,1fr) minmax(0,1fr)' head={[t('client'), t('sessions'), t('lastVisit')]}>
+      <div className={`sub ${styles.sub}`}>{t('sub')}</div>
+      <Table className={styles.cols} head={[t('client'), t('sessions'), t('lastVisit')]}>
         {clientsOfCoach(ME.coach).map(c => (
           <Link key={c.id} href={`/coach/users/${c.id}`} className='tr'>
             <Person initials={c.initials} name={c.name} sub={c.email} />

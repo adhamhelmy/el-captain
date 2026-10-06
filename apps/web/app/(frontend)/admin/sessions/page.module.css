@@ -1,0 +1,4 @@
+.head { margin-bottom: 24px; }
+.cols { --cols: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1.5fr) minmax(0, 0.7fr) minmax(0, 0.6fr) minmax(0, 0.9fr); }
+.title { display: block; font-weight: 700; }
+.price { font-weight: 700; }

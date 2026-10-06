@@ -1,0 +1,12 @@
+.page { gap: 36px; }
+.welcome { font-size: 14px; }
+.columns { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.list { gap: 10px; }
+.session { flex-wrap: nowrap; }
+.sessionTitle { font-weight: 700; font-size: 15px; }
+.when { font-size: 13px; }
+.fill { font-size: 14px; white-space: nowrap; }
+.client { justify-content: flex-start; gap: 12px; padding: 14px 18px; }
+.clientText { flex: 1; }
+.clientName { font-weight: 600; font-size: 14px; }
+.clientSub { font-size: 12px; }

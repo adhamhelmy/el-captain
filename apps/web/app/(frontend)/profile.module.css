@@ -1,0 +1,11 @@
+/* Layout shared by the coach and user profile pages. */
+.page { gap: 24px; }
+.card { gap: 18px; }
+.head { display: flex; align-items: center; gap: 16px; }
+.name { font-weight: 700; font-size: 19px; }
+.meta { font-size: 14px; }
+.fields { padding-top: 18px; border-top: 1px solid var(--border); }
+.multiline { line-height: 1.6; resize: vertical; }
+.actions { display: flex; gap: 12px; align-items: center; }
+.save { font-size: 15px; padding: 13px 24px; }
+.saved { color: var(--accent-text); font-size: 14px; }

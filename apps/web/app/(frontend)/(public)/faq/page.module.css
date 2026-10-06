@@ -1,0 +1,7 @@
+.page { max-width: 800px; }
+.title { font-size: 72px; letter-spacing: 0; margin-bottom: 40px; }
+.list { gap: 10px; }
+.item { padding: 0; border-radius: 12px; }
+.question { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; background: none; border: none; color: var(--text); padding: 20px 22px; font-size: 16px; font-weight: 600; text-align: start; }
+.sign { color: var(--accent-text); font-size: 20px; }
+.answer { padding: 0 22px 20px; font-size: 15px; line-height: 1.7; }

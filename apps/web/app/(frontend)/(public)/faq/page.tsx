@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import styles from './page.module.css';
 
 const FAQS = ['book', 'cancel', 'types', 'becomeCoach', 'payouts', 'fee'] as const;
 
@@ -8,43 +9,22 @@ export default function FaqPage() {
   const t = useTranslations('faq');
   const [open, setOpen] = useState(0);
   return (
-    <section className='site-section' style={{ maxWidth: 800 }}>
+    <section className={`site-section ${styles.page}`}>
       <div className='eyebrow'>{t('eyebrow')}</div>
-      <h1
-        className='display lh-90'
-        style={{ fontSize: 72, letterSpacing: 0, marginBottom: 40 }}
-      >
-        {t('title')}
-      </h1>
-      <div className='stack' style={{ gap: 10 }}>
+      <h1 className={`display lh-90 ${styles.title}`}>{t('title')}</h1>
+      <div className={`stack ${styles.list}`}>
         {FAQS.map((item, i) => (
-          <div key={item} className='card' style={{ padding: 0, borderRadius: 12 }}>
+          <div key={item} className={`card ${styles.item}`}>
             <button
               type='button'
+              className={styles.question}
               onClick={() => setOpen(open === i ? -1 : i)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: 16,
-                background: 'none',
-                border: 'none',
-                color: 'var(--text)',
-                padding: '20px 22px',
-                fontSize: 16,
-                fontWeight: 600,
-                textAlign: 'start',
-              }}
             >
               <span>{t(`items.${item}.q`)}</span>
-              <span style={{ color: 'var(--accent-text)', fontSize: 20 }}>{open === i ? '–' : '+'}</span>
+              <span className={styles.sign}>{open === i ? '–' : '+'}</span>
             </button>
             {open === i && (
-              <div
-                className='muted'
-                style={{ padding: '0 22px 20px', fontSize: 15, lineHeight: 1.7 }}
-              >
+              <div className={`muted ${styles.answer}`}>
                 {t(`items.${item}.a`)}
               </div>
             )}

@@ -7,6 +7,9 @@ import { Avatar, Field, Toggle } from '@/components/ui';
 import { isolate } from '@/i18n/locale';
 import { CATEGORIES, coach, ME } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import profile from '../../profile.module.css';
+import settings from '@/components/settings.module.css';
+import styles from './page.module.css';
 
 export default function CoachProfilePage() {
   const t = useTranslations('coachEdit');
@@ -38,21 +41,21 @@ export default function CoachProfilePage() {
   });
 
   return (
-    <div className='page stack' style={{ maxWidth: 760, gap: 24 }}>
+    <div className={`page stack ${profile.page} ${styles.page}`}>
       <div className='title'>{tp('title')}</div>
-      <div className='card stack' style={{ gap: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <Avatar initials={x.initials(me)} size={64} fontSize={22} accent />
-          <div style={{ flex: 1 }}>
-            <div dir='auto' style={{ fontWeight: 700, fontSize: 19 }}>
+      <div className={`card stack ${profile.card}`}>
+        <div className={`${profile.head} ${styles.head}`}>
+          <Avatar initials={x.initials(me)} size={64} accent />
+          <div className={styles.headText}>
+            <div dir='auto' className={profile.name}>
               {form.name}
             </div>
-            <div className='muted' style={{ fontSize: 14 }}>
+            <div className={`muted ${profile.meta}`}>
               {t('line', { specialty: x.category(form.specialty), location: isolate(form.location) })}
             </div>
           </div>
         </div>
-        <div className='fields' style={{ paddingTop: 18, borderTop: '1px solid var(--border)' }}>
+        <div className={`fields ${profile.fields}`}>
           <Field label={t('displayName')}>
             <input {...input('name')} />
           </Field>
@@ -73,10 +76,10 @@ export default function CoachProfilePage() {
           </Field>
         </div>
         <Field label={t('bio')}>
-          <textarea rows={4} {...input('bio')} style={{ lineHeight: 1.6, resize: 'vertical' }} />
+          <textarea rows={4} {...input('bio')} className={`input ${profile.multiline}`} />
         </Field>
       </div>
-      <div className='card stack' style={{ gap: 18 }}>
+      <div className={`card stack ${profile.card}`}>
         <div className='h3'>{t('account')}</div>
         <div className='fields'>
           <Field label={tc('email')}>
@@ -88,8 +91,8 @@ export default function CoachProfilePage() {
         </div>
         <div className='setting'>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>{t('notifications')}</div>
-            <div className='muted' style={{ fontSize: 13 }}>
+            <div className={settings.label}>{t('notifications')}</div>
+            <div className={`muted ${settings.hint}`}>
               {t('notificationsHint')}
             </div>
           </div>
@@ -104,16 +107,15 @@ export default function CoachProfilePage() {
         <ThemeSetting />
         <LocaleSetting />
       </div>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <div className={profile.actions}>
         <button
           type='button'
-          className='btn'
-          style={{ fontSize: 15, padding: '13px 24px' }}
+          className={`btn ${profile.save}`}
           onClick={() => setSaved(true)}
         >
           {tc('save')}
         </button>
-        {saved && <span style={{ color: 'var(--accent-text)', fontSize: 14 }}>{tc('saved')}</span>}
+        {saved && <span className={profile.saved}>{tc('saved')}</span>}
       </div>
     </div>
   );

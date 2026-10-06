@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl';
 import { LocaleToggle } from '@/components/LocaleToggle';
 import { SiteHeader } from '@/components/SiteHeader';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import styles from './layout.module.css';
 
 export default function PublicLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const t = useTranslations('footer');
@@ -10,22 +11,10 @@ export default function PublicLayout({ children }: Readonly<{ children: React.Re
     <div className='site'>
       <SiteHeader />
       <main>{children}</main>
-      <footer style={{ borderTop: '1px solid var(--border)' }}>
-        <div
-          className='site-wrap'
-          style={{
-            paddingTop: 32,
-            paddingBottom: 32,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 16,
-            flexWrap: 'wrap',
-            fontSize: 13,
-          }}
-        >
+      <footer className={styles.footer}>
+        <div className={`site-wrap ${styles.bar}`}>
           <div className='dim'>{t('copyright')}</div>
-          <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+          <div className={styles.links}>
             <Link href='/about' className='muted'>
               {t('about')}
             </Link>

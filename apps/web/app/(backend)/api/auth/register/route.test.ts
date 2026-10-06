@@ -1,16 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/lib/prisma', () => ({
-  prisma: {
-    user: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-    },
-  },
-}))
+vi.mock('@/prisma/models/user', () => ({ findUserByEmail: vi.fn(), createUser: vi.fn() }))
 
 import { POST } from './route'
-import { prisma } from '@/lib/prisma'
+import { createUser, findUserByEmail } from '@/prisma/models/user'
 
 describe('POST /api/auth/register', () => {
   beforeEach(() => vi.clearAllMocks())
@@ -20,7 +13,7 @@ describe('POST /api/auth/register', () => {
       method: 'POST',
       body: JSON.stringify({ email: 'a@b.com' }),
     })
-    const res = await POST(req as any)
+    const res = await POST(req as any, { params: Promise.resolve({}) })
     expect(res.status).toBe(400)
     expect((await res.json()).code).toBe('missing_fields')
   })
@@ -30,33 +23,33 @@ describe('POST /api/auth/register', () => {
       method: 'POST',
       body: JSON.stringify({ email: 'a@b.com', password: 'pass', name: 'X', role: 'ADMIN' }),
     })
-    const res = await POST(req as any)
+    const res = await POST(req as any, { params: Promise.resolve({}) })
     expect(res.status).toBe(400)
     expect((await res.json()).code).toBe('invalid_role')
-    expect(prisma.user.create).not.toHaveBeenCalled()
+    expect(createUser).not.toHaveBeenCalled()
   })
 
   it('returns 409 when email is taken', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: '1' } as any)
+    vi.mocked(findUserByEmail).mockResolvedValue({ id: '1' } as any)
     const req = new Request('http://localhost/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email: 'a@b.com', password: 'pass', name: 'X', role: 'USER' }),
     })
-    const res = await POST(req as any)
+    const res = await POST(req as any, { params: Promise.resolve({}) })
     expect(res.status).toBe(409)
     expect((await res.json()).code).toBe('email_taken')
   })
 
   it('creates user and returns 201', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
-    vi.mocked(prisma.user.create).mockResolvedValue({
+    vi.mocked(findUserByEmail).mockResolvedValue(null)
+    vi.mocked(createUser).mockResolvedValue({
       id: 'cuid1', email: 'a@b.com', role: 'USER',
     } as any)
     const req = new Request('http://localhost/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email: 'a@b.com', password: 'pass123', name: 'Ahmed', role: 'USER' }),
     })
-    const res = await POST(req as any)
+    const res = await POST(req as any, { params: Promise.resolve({}) })
     expect(res.status).toBe(201)
     const data = await res.json()
     expect(data.role).toBe('USER')

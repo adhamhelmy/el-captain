@@ -1,0 +1,3 @@
+.top { align-items: center; }
+.title { font-size: clamp(56px, 7vw, 96px); }
+.tagline { font-size: 16px; margin-top: 16px; max-width: 380px; line-height: 1.6; }

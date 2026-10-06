@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Chips, Segmented, SessionCard } from '@/components/ui';
 import { CATEGORIES, sessions, type Category } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import styles from './SessionBrowse.module.css';
 
 function Browse({ base }: Readonly<{ base: string }>) {
   const params = useSearchParams();
@@ -31,7 +32,7 @@ function Browse({ base }: Readonly<{ base: string }>) {
     <div className='page'>
       <div className='title'>{t('title')}</div>
       <div className='sub'>{t('sub')}</div>
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+      <div className={styles.filters}>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -48,7 +49,7 @@ function Browse({ base }: Readonly<{ base: string }>) {
           onChange={setType}
         />
       </div>
-      <div style={{ marginBottom: 28 }}>
+      <div className={styles.chips}>
         <Chips
           options={(['all', ...CATEGORIES] as const).map((c) => [x.category(c), c])}
           value={cat}
@@ -61,9 +62,7 @@ function Browse({ base }: Readonly<{ base: string }>) {
         ))}
       </div>
       {list.length === 0 && (
-        <div className='empty' style={{ padding: '72px 0' }}>
-          {t('empty')}
-        </div>
+        <div className={`empty ${styles.empty}`}>{t('empty')}</div>
       )}
     </div>
   );

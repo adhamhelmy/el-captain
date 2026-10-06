@@ -16,6 +16,7 @@ import {
   type Session,
 } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import styles from './page.module.css';
 
 const EMPTY = {
   title: '',
@@ -26,8 +27,6 @@ const EMPTY = {
   capacity: '12',
   type: 'group' as Session['type'],
 };
-const COLS = 'minmax(0,2.2fr) minmax(0,1.6fr) minmax(0,0.8fr) minmax(0,0.8fr) minmax(0,0.6fr)';
-
 function MySessions() {
   const t = useTranslations('schedule');
   const tc = useTranslations('common');
@@ -70,7 +69,7 @@ function MySessions() {
   }
 
   return (
-    <div className='page stack' style={{ gap: 24 }}>
+    <div className={`page stack ${styles.page}`}>
       <div className='between'>
         <div className='title'>{t('title')}</div>
         <button type='button' className='btn' onClick={() => setAdding(!adding)}>
@@ -79,8 +78,8 @@ function MySessions() {
       </div>
 
       {adding && (
-        <div className='card stack' style={{ gap: 18 }}>
-          <div className='between' style={{ alignItems: 'center' }}>
+        <div className={`card stack ${styles.form}`}>
+          <div className={`between ${styles.formHead}`}>
             <div className='h3'>{t('newSession')}</div>
             <Segmented
               inset
@@ -92,14 +91,8 @@ function MySessions() {
               onChange={(type) => edit({ type })}
             />
           </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: 14,
-            }}
-          >
-            <Field label={t('fieldTitle')} style={{ gridColumn: '1 / -1' }}>
+          <div className={styles.fields}>
+            <Field label={t('fieldTitle')} className={styles.wide}>
               <input
                 className='input'
                 value={draft.title}
@@ -152,24 +145,17 @@ function MySessions() {
               </Field>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div className={styles.actions}>
             <button
               type='button'
-              className='btn'
-              style={{ padding: '12px 22px', borderRadius: 8 }}
+              className={`btn ${styles.publish}`}
               onClick={publish}
             >
               {t('publish')}
             </button>
             <button
               type='button'
-              className='btn-ghost'
-              style={{
-                padding: '12px 22px',
-                borderRadius: 8,
-                color: 'var(--text-2)',
-                fontWeight: 400,
-              }}
+              className={`btn-ghost ${styles.cancel}`}
               onClick={() => setAdding(false)}
             >
               {tc('cancel')}
@@ -178,7 +164,7 @@ function MySessions() {
         </div>
       )}
 
-      <div className='between' style={{ alignItems: 'center', gap: 12 }}>
+      <div className={`between ${styles.toolbar}`}>
         <Segmented
           options={[
             [t('upcoming'), 'upcoming'],
@@ -199,13 +185,13 @@ function MySessions() {
 
       {view === 'table' ? (
         <Table
-          cols={COLS}
+          className={styles.cols}
           head={[
             t('head.session'),
             t('head.when'),
             t('head.type'),
             t('head.booked'),
-            <span key='p' style={{ display: 'block', textAlign: 'end' }}>
+            <span key='p' className={styles.priceHead}>
               {t('head.price')}
             </span>,
           ]}
@@ -214,10 +200,9 @@ function MySessions() {
             <Link
               key={s.id}
               href={`/coach/sessions/${s.id}`}
-              className='tr'
-              style={{ padding: '16px 20px' }}
+              className={`tr ${styles.row}`}
             >
-              <span dir='auto' style={{ fontWeight: 700 }}>
+              <span dir='auto' className={styles.title}>
                 {s.title}
               </span>
               <span className='muted'>{x.when(s)}</span>
@@ -225,55 +210,37 @@ function MySessions() {
                 <TypeTag s={s} />
               </span>
               <span className='muted'>{fill(s)}</span>
-              <span style={{ textAlign: 'end', fontWeight: 700 }}>{x.price(s.price)}</span>
+              <span className={styles.price}>{x.price(s.price)}</span>
             </Link>
           ))}
           {list.length === 0 && (
-            <div className='empty' style={{ padding: 48 }}>
+            <div className={`empty ${styles.empty}`}>
               {t('empty')}
             </div>
           )}
         </Table>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(7, minmax(120px, 1fr))',
-              gap: 10,
-              minWidth: 860,
-            }}
-          >
+        <div className={styles.calendarScroll}>
+          <div className={styles.calendar}>
             {DAYS.map((d) => (
-              <div key={d} className='stack' style={{ gap: 8 }}>
-                <div className='dim overline' style={{ textAlign: 'center' }}>
+              <div key={d} className={`stack ${styles.day}`}>
+                <div className={`dim overline ${styles.dayName}`}>
                   {x.day(startFor(d, '12:00'))}
                 </div>
-                <div
-                  className='stack'
-                  style={{
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 12,
-                    minHeight: 280,
-                    padding: 8,
-                    gap: 6,
-                  }}
-                >
+                <div className={`stack ${styles.dayBody}`}>
                   {list
                     .filter((s) => weekdayKey(s.start) === d)
                     .map((s) => (
                       <Link
                         key={s.id}
                         href={`/coach/sessions/${s.id}`}
-                        className={`tag-${s.type === 'group' ? 'accent' : 'warn'}`}
-                        style={{ display: 'block', padding: '8px 10px', borderRadius: 8 }}
+                        className={`tag-${s.type === 'group' ? 'accent' : 'warn'} ${styles.event}`}
                       >
-                        <div style={{ fontSize: 11, opacity: 0.8 }}>{x.time(s.start)}</div>
-                        <div dir='auto' style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}>
+                        <div className={styles.eventMeta}>{x.time(s.start)}</div>
+                        <div dir='auto' className={styles.eventTitle}>
                           {s.title}
                         </div>
-                        <div style={{ fontSize: 11, opacity: 0.8 }}>
+                        <div className={styles.eventMeta}>
                           {s.type === 'private' ? x.oneToOne() : fill(s)}
                         </div>
                       </Link>

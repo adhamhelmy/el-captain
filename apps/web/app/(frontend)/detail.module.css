@@ -1,0 +1,37 @@
+/* Layout shared by the detail pages in the admin, coach and user areas. */
+.page { max-width: 960px; gap: 28px; }
+
+/* Person header: big avatar, name, status tag and contact line. */
+.profile { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.profileText { flex: 1; min-width: 220px; }
+.nameRow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.name { font-size: 52px; line-height: 1; }
+.line { font-size: 15px; margin-top: 4px; }
+.actions { display: flex; gap: 8px; }
+
+/* Session hero. */
+.hero { gap: 20px; }
+.tags { display: flex; gap: 8px; }
+.title { font-size: clamp(44px, 6vw, 64px); line-height: 1; margin-top: 14px; }
+.sub { font-size: 16px; margin-top: 8px; }
+.link { font-weight: 600; }
+
+.headingSm { margin-bottom: 10px; }
+.heading { margin-bottom: 12px; }
+.description { font-size: 15px; line-height: 1.7; }
+.list { gap: 8px; }
+.empty { font-size: 14px; }
+
+/* Compact list rows. */
+.row { gap: 12px; padding: 14px 18px; }
+.rowGroup { display: flex; align-items: center; gap: 12px; }
+.rowTitle { font-weight: 700; font-size: 14px; }
+.rowSub { font-size: 12px; }
+.rowMeta { display: flex; align-items: center; gap: 14px; }
+.count { font-size: 13px; }
+.price { font-weight: 700; }
+
+/* Attendee rows: avatar, name, email. */
+.attendee { justify-content: flex-start; gap: 12px; padding: 12px 16px; flex-wrap: nowrap; }
+.attendeeName { flex: 1; font-size: 14px; font-weight: 600; }
+.email { font-size: 13px; }

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Person, Table, Tag } from '@/components/ui'
 import { sessionsOfUser, userSpent, users } from '@/lib/mock'
 import { useSessionText } from '@/lib/session-text'
+import styles from './page.module.css'
 
 export default function AdminUsersPage() {
   const t = useTranslations('admin')
@@ -16,11 +17,11 @@ export default function AdminUsersPage() {
 
   return (
     <div className='page'>
-      <div className='between' style={{ marginBottom: 24 }}>
+      <div className={`between ${styles.head}`}>
         <div className='title'>{t('users')}</div>
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('search')} className='search' style={{ flex: 'none', width: 300, maxWidth: '100%', minWidth: 0, fontSize: 14, padding: '12px 16px' }} />
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('search')} className={`search ${styles.search}`} />
       </div>
-      <Table cols='minmax(0,2.2fr) minmax(0,1fr) minmax(0,0.8fr) minmax(0,0.8fr) minmax(0,1fr)' head={[t('head.user'), t('head.joined'), t('head.bookings'), t('head.spent'), t('head.status')]}>
+      <Table className={styles.cols} head={[t('head.user'), t('head.joined'), t('head.bookings'), t('head.spent'), t('head.status')]}>
         {list.map(u => (
           <Link key={u.id} href={`/admin/users/${u.id}`} className='tr'>
             <Person initials={u.initials} name={u.name} sub={u.email} />
@@ -30,7 +31,7 @@ export default function AdminUsersPage() {
             <span><Tag kind={u.status}>{tst(u.status)}</Tag></span>
           </Link>
         ))}
-        {list.length === 0 && <div className='empty' style={{ padding: 48 }}>{t('noUsers')}</div>}
+        {list.length === 0 && <div className={`empty ${styles.empty}`}>{t('noUsers')}</div>}
       </Table>
     </div>
   )

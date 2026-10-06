@@ -6,6 +6,8 @@ import { notFound, useParams } from 'next/navigation';
 import { Avatar, Back, Stats, Tag, TypeTag } from '@/components/ui';
 import { attendees, fill, session } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import detail from '../../../detail.module.css';
+import styles from './page.module.css';
 
 export default function AdminSessionPage() {
   const t = useTranslations('admin');
@@ -18,27 +20,22 @@ export default function AdminSessionPage() {
   const roster = attendees(s.id);
 
   return (
-    <div className='page detail stack' style={{ maxWidth: 1000, gap: 28 }}>
+    <div className={`page detail stack ${detail.page} ${styles.page}`}>
       <Back href='/admin/sessions'>{t('backSessions')}</Back>
-      <div className='hero between' style={{ gap: 20 }}>
+      <div className={`hero between ${detail.hero}`}>
         <div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className={detail.tags}>
             <TypeTag s={s} />
             <Tag kind={status}>{tst(status)}</Tag>
           </div>
           <div
-            className='display'
+            className={`display ${detail.title}`}
             dir='auto'
-            style={{ fontSize: 'clamp(44px, 6vw, 64px)', lineHeight: 1, marginTop: 14 }}
           >
             {s.title}
           </div>
-          <div className='muted' style={{ fontSize: 16, marginTop: 8 }}>
-            <Link
-              href={`/admin/coaches/${s.coachId}`}
-              className='plain'
-              style={{ fontWeight: 600 }}
-            >
+          <div className={`muted ${detail.sub}`}>
+            <Link href={`/admin/coaches/${s.coachId}`} className={`plain ${detail.link}`}>
               <bdi>{x.coachName(s)}</bdi>
             </Link>{' '}
             · {x.when(s)}
@@ -61,41 +58,35 @@ export default function AdminSessionPage() {
       />
       <div className='grid-2'>
         <div>
-          <div className='h3' style={{ marginBottom: 10 }}>
+          <div className={`h3 ${detail.headingSm}`}>
             {t('description')}
           </div>
-          <div className='muted' dir='auto' style={{ fontSize: 15, lineHeight: 1.7 }}>
+          <div className={`muted ${detail.description}`} dir='auto'>
             {s.description}
           </div>
         </div>
         <div>
-          <div className='h3' style={{ marginBottom: 10 }}>
+          <div className={`h3 ${detail.headingSm}`}>
             {t('attendees')}
           </div>
-          <div className='stack' style={{ gap: 8 }}>
+          <div className={`stack ${detail.list}`}>
             {roster.map((u) => (
               <Link
                 key={u.id}
                 href={`/admin/users/${u.id}`}
-                className='row'
-                style={{
-                  justifyContent: 'flex-start',
-                  gap: 12,
-                  padding: '12px 16px',
-                  flexWrap: 'nowrap',
-                }}
+                className={`row ${detail.attendee}`}
               >
-                <Avatar initials={u.initials} size={32} fontSize={12} />
-                <div dir='auto' style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>
+                <Avatar initials={u.initials} size={32} />
+                <div dir='auto' className={detail.attendeeName}>
                   {u.name}
                 </div>
-                <span className='muted' dir='ltr' style={{ fontSize: 13 }}>
+                <span className={`muted ${detail.email}`} dir='ltr'>
                   {u.email}
                 </span>
               </Link>
             ))}
             {roster.length === 0 && (
-              <div className='muted' style={{ fontSize: 14 }}>
+              <div className={`muted ${detail.empty}`}>
                 {t('noBookings')}
               </div>
             )}

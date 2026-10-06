@@ -35,6 +35,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       lang={lang}
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
       className={`${bebas.variable} ${space.variable} ${cairo.variable}`}
+      // The only inline style: these values are font family names next/font generates at build time.
+      // eslint-disable-next-line react/forbid-dom-props
       style={lang === 'ar' ? ARABIC_FONTS : undefined}
       suppressHydrationWarning
     >

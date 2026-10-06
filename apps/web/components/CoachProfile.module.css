@@ -1,0 +1,15 @@
+.page { max-width: 1000px; gap: 32px; }
+.head { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.headText { flex: 1; min-width: 240px; }
+.name { font-size: 56px; line-height: 1; }
+.line { font-size: 15px; margin-top: 6px; }
+.bookPrivate { font-size: 15px; padding: 14px 22px; }
+.bio { font-size: 16px; line-height: 1.7; max-width: 680px; }
+.heading { margin-bottom: 14px; }
+.list { gap: 10px; }
+.group { display: flex; align-items: center; gap: 14px; }
+.sessionTitle { font-weight: 700; font-size: 15px; }
+.when { font-size: 13px; }
+.meta { display: flex; align-items: center; gap: 16px; }
+.note { font-size: 14px; }
+.price { font-size: 22px; letter-spacing: 0; }

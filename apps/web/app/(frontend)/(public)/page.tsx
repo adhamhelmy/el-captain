@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl';
 import { SessionCard } from '@/components/ui';
 import { CATEGORIES, sessions } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import styles from './page.module.css';
 
 const STEPS = ['find', 'book', 'train'] as const;
 
@@ -12,49 +13,30 @@ export default function HomePage() {
   const featured = sessions.filter((s) => s.status === 'upcoming').slice(0, 4);
   return (
     <>
-      <section
-        className='site-wrap'
-        style={{ paddingTop: 'clamp(48px, 9vw, 88px)', paddingBottom: 72 }}
-      >
+      <section className={`site-wrap ${styles.hero}`}>
         <div className='eyebrow'>{t('eyebrow')}</div>
-        <h2
-          className='display lh-88 hero-title'
-        >
+        <h2 className='display lh-88 hero-title'>
           {t('heroTitle')}
         </h2>
-        <p
-          className='muted'
-          style={{
-            fontSize: 18,
-            lineHeight: 1.6,
-            maxWidth: 520,
-            margin: '24px 0 36px',
-            textWrap: 'pretty',
-          }}
-        >
+        <p className={`muted ${styles.heroText}`}>
           {t('heroText')}
         </p>
-        <form
-          action='/sessions'
-          style={{ display: 'flex', gap: 10, flexWrap: 'wrap', maxWidth: 640 }}
-        >
+        <form action='/sessions' className={styles.search}>
           <input
             name='q'
-            className='search'
+            className={`search ${styles.searchInput}`}
             placeholder={t('searchPlaceholder')}
-            style={{ padding: '16px 18px' }}
           />
-          <button type='submit' className='btn' style={{ fontSize: 15, padding: '16px 24px' }}>
+          <button type='submit' className={`btn ${styles.searchBtn}`}>
             {t('findSessions')}
           </button>
         </form>
-        <div className='chips' style={{ marginTop: 20 }}>
+        <div className={`chips ${styles.categories}`}>
           {CATEGORIES.map((c) => (
             <Link
               key={c}
               href={`/sessions?cat=${c}`}
-              className='chip'
-              style={{ padding: '8px 14px' }}
+              className={`chip ${styles.category}`}
             >
               {x.category(c)}
             </Link>
@@ -62,12 +44,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className='site-section' style={{ paddingTop: 0 }}>
-        <div className='between' style={{ marginBottom: 20 }}>
-          <div className='display' style={{ fontSize: 36 }}>
+      <section className={`site-section ${styles.featured}`}>
+        <div className={`between ${styles.featuredHead}`}>
+          <div className={`display ${styles.featuredTitle}`}>
             {t('onThisWeek')}
           </div>
-          <Link href='/sessions' style={{ fontSize: 14, fontWeight: 600 }}>
+          <Link href='/sessions' className={styles.seeAll}>
             {t('seeAll')}
           </Link>
         </div>
@@ -78,33 +60,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section
-        style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}
-      >
-        <div
-          className='site-section'
-          style={{
-            padding: '72px 32px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: 40,
-          }}
-        >
+      <section className={styles.stepsBand}>
+        <div className={`site-section ${styles.steps}`}>
           {STEPS.map((step, i) => (
             <div key={step}>
-              <div
-                className='display'
-                style={{
-                  fontSize: 64,
-                  color: 'var(--accent-text)',
-                  lineHeight: 1,
-                  letterSpacing: 0,
-                }}
-              >
+              <div className={`display ${styles.stepNumber}`}>
                 0{i + 1}
               </div>
-              <div style={{ fontSize: 19, fontWeight: 700, margin: '10px 0 8px' }}>{t(`steps.${step}.title`)}</div>
-              <div className='muted' style={{ fontSize: 15, lineHeight: 1.6 }}>
+              <div className={styles.stepTitle}>{t(`steps.${step}.title`)}</div>
+              <div className={`muted ${styles.stepText}`}>
                 {t(`steps.${step}.text`)}
               </div>
             </div>
@@ -113,38 +77,16 @@ export default function HomePage() {
       </section>
 
       <section className='site-section'>
-        <div
-          style={{
-            background: 'var(--accent)',
-            color: 'var(--on-accent)',
-            borderRadius: 20,
-            padding: 'clamp(28px, 5vw, 48px)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 32,
-            flexWrap: 'wrap',
-          }}
-        >
+        <div className={styles.coachBanner}>
           <div>
-            <div className='display lh-95' style={{ fontSize: 56, letterSpacing: 0 }}>
+            <div className={`display lh-95 ${styles.coachTitle}`}>
               {t('coachTitle')}
             </div>
-            <div style={{ fontSize: 16, marginTop: 12, maxWidth: 480, lineHeight: 1.5 }}>
+            <div className={styles.coachText}>
               {t('coachText')}
             </div>
           </div>
-          <Link
-            href='/register?role=coach'
-            style={{
-              background: 'var(--on-accent)',
-              color: 'var(--accent)',
-              fontWeight: 700,
-              fontSize: 15,
-              padding: '16px 26px',
-              borderRadius: 10,
-            }}
-          >
+          <Link href='/register?role=coach' className={styles.applyCoach}>
             {t('applyCoach')}
           </Link>
         </div>

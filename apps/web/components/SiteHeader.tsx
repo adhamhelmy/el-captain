@@ -6,6 +6,7 @@ import { homeForRole } from '@/lib/routes';
 import { LocaleToggle } from './LocaleToggle';
 import { ThemeToggle } from './ThemeToggle';
 import { Logo } from './ui';
+import styles from './SiteHeader.module.css';
 
 export function SiteHeader() {
   const t = useTranslations('common');
@@ -14,11 +15,7 @@ export function SiteHeader() {
     <header className='site-header'>
       <div className='site-wrap site-bar'>
         <Logo />
-        {/* Hidden while the session loads, so nobody sees a flash of the wrong buttons. */}
-        <div
-          className='site-actions'
-          style={{ visibility: status === 'loading' ? 'hidden' : undefined }}
-        >
+        <div className={status === 'loading' ? `site-actions ${styles.loading}` : 'site-actions'}>
           {data?.user ? (
             <>
               <button

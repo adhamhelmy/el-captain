@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { Chips, SessionCard, Tag } from '@/components/ui'
 import { CATEGORIES, ME, sessions, type Category } from '@/lib/mock'
 import { useSessionText } from '@/lib/session-text'
+import styles from './page.module.css'
 
 export default function AllSessionsPage() {
   const t = useTranslations('coachSessions')
@@ -15,8 +16,8 @@ export default function AllSessionsPage() {
   return (
     <div className='page'>
       <div className='title'>{t('title')}</div>
-      <div className='sub' style={{ marginBottom: 24 }}>{t('sub')}</div>
-      <div style={{ marginBottom: 24 }}>
+      <div className={`sub ${styles.sub}`}>{t('sub')}</div>
+      <div className={styles.chips}>
         <Chips
           options={(['all', ...CATEGORIES] as const).map((c) => [x.category(c), c])}
           value={cat}

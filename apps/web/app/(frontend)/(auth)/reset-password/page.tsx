@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Field } from '@/components/ui';
 import type { Messages } from '@/i18n/messages';
+import styles from '../auth.module.css';
 
 // Mock until wired up: call POST /api/auth/reset-password with the token from the URL once it exists.
 export default function ResetPasswordPage() {
@@ -23,9 +24,9 @@ export default function ResetPasswordPage() {
 
   if (done) {
     return (
-      <div className='stack' style={{ gap: 14 }}>
+      <div className={`stack ${styles.done}`}>
         <div className='auth-title'>{t('doneTitle')}</div>
-        <div className='muted' style={{ fontSize: 15 }}>
+        <div className={`muted ${styles.doneText}`}>
           {t('doneText')}
         </div>
         <Link href='/login' className='btn block'>
@@ -36,10 +37,10 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <form onSubmit={submit} className='stack' style={{ gap: 18 }}>
+    <form onSubmit={submit} className={`stack ${styles.form}`}>
       <div>
         <div className='auth-title'>{t('title')}</div>
-        <div className='muted' style={{ fontSize: 15, marginTop: 6 }}>
+        <div className={`muted ${styles.sub}`}>
           {t('sub')}
         </div>
       </div>
@@ -65,7 +66,7 @@ export default function ResetPasswordPage() {
           className='input on-page'
         />
       </Field>
-      {error && <div style={{ color: 'var(--warn)', fontSize: 13 }}>{te(error)}</div>}
+      {error && <div className={styles.error}>{te(error)}</div>}
       <button type='submit' className='btn block'>
         {t('submit')}
       </button>

@@ -1,43 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { prisma } from '@/lib/prisma'
-import type { Role } from '@el-captain/types'
+import { assertNoConflict, assertValid, publicRoute, type RequestContext } from '@/lib/api'
+import { createUser, findUserByEmail } from '@/prisma/models/user'
 
 /** Roles anyone can sign up as. ADMIN is never self-service. */
 const SIGNUP_ROLES = new Set(['USER', 'COACH', 'STUDIO'])
 
-export async function POST(req: NextRequest) {
-  const body = await req.json()
-  const { email, password, name, role, studioName, city } = body
+async function register({ req }: RequestContext) {
+  const { email, password, name, role, studioName, city } = await req.json()
 
-  if (!email || !password || !name || !role) {
-    return NextResponse.json({ error: 'Missing required fields', code: 'missing_fields' }, { status: 400 })
-  }
-  if (!SIGNUP_ROLES.has(role)) {
-    return NextResponse.json({ error: 'Invalid role', code: 'invalid_role' }, { status: 400 })
-  }
+  assertValid(email && password && name && role, 'Missing required fields', 'missing_fields')
+  assertValid(SIGNUP_ROLES.has(role), 'Invalid role', 'invalid_role')
+  assertNoConflict(!(await findUserByEmail(email)), 'Email already in use', 'email_taken')
 
-  const existing = await prisma.user.findUnique({ where: { email } })
-  if (existing) {
-    return NextResponse.json({ error: 'Email already in use', code: 'email_taken' }, { status: 409 })
-  }
-
+  const studio = studioName && city ? { studioName, city } : undefined
   const passwordHash = await bcrypt.hash(password, 10)
-
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash,
-      name,
-      role: role as Role,
-      ...(role === 'STUDIO' && studioName && city
-        ? { clientProfile: { create: { studioName, city } } }
-        : {}),
-      ...(role === 'COACH'
-        ? { coachProfile: { create: {} } }
-        : {}),
-    },
-  })
+  const user = await createUser({ email, name, role, studio, passwordHash })
 
   return NextResponse.json({ id: user.id, email: user.email, role: user.role }, { status: 201 })
 }
+
+export const POST = publicRoute(register)

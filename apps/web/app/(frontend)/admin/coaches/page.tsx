@@ -6,6 +6,7 @@ import { Person, Segmented, Table, Tag } from '@/components/ui'
 import { coaches, type CoachStatus } from '@/lib/mock'
 import { useSessionText } from '@/lib/session-text'
 import { isolate } from '@/i18n/locale'
+import styles from './page.module.css'
 
 export default function AdminCoachesPage() {
   const t = useTranslations('admin')
@@ -16,11 +17,11 @@ export default function AdminCoachesPage() {
 
   return (
     <div className='page'>
-      <div className='between' style={{ marginBottom: 24 }}>
+      <div className={`between ${styles.head}`}>
         <div className='title'>{t('coaches')}</div>
         <Segmented options={[[x.category('all'), 'all'], [tst('active'), 'active'], [tst('pending'), 'pending'], [tst('suspended'), 'suspended']]} value={filter} onChange={setFilter} />
       </div>
-      <Table cols='minmax(0,2.2fr) minmax(0,0.8fr) minmax(0,0.8fr) minmax(0,0.8fr) minmax(0,1fr)' head={[t('head.coach'), t('head.rating'), t('head.clients'), t('head.revenue'), t('head.status')]}>
+      <Table className={styles.cols} head={[t('head.coach'), t('head.rating'), t('head.clients'), t('head.revenue'), t('head.status')]}>
         {list.map(c => (
           <Link key={c.id} href={`/admin/coaches/${c.id}`} className='tr'>
             <Person initials={x.initials(c)} name={x.name(c)} sub={`${x.category(c.specialty)} · ${isolate(c.location)}`} />

@@ -1,51 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server'
+import { assertAllowed, assertFound, protect, publicRoute, type AuthContext, type RequestContext } from '@/lib/api'
+import { toCoachDTO } from '@/lib/dto'
+import { findCoach, updateCoach } from '@/prisma/models/coach-profile'
 
-function toDTO(user: any) {
-  return {
-    id: user.id,
-    userId: user.id,
-    coachName: user.name,
-    bio: user.coachProfile?.bio ?? null,
-    specialties: user.coachProfile?.specialties ?? null,
-    city: user.coachProfile?.city ?? null,
-    photoUrl: user.coachProfile?.photoUrl ?? null,
-    website: user.coachProfile?.website ?? null,
-    instagram: user.coachProfile?.instagram ?? null,
-    phone: user.coachProfile?.phone ?? null,
-  }
+async function getCoach({ params: { id } }: RequestContext<{ id: string }>) {
+  const user = await findCoach(id)
+  
+  assertFound(user)
+  return NextResponse.json(toCoachDTO(user))
 }
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const user = await prisma.user.findUnique({
-    where: { id, role: 'COACH' },
-    include: { coachProfile: true },
-  })
-  if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json(toDTO(user))
-}
-
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const session = await getServerSession(authOptions)
-  if (!session || (session.user.id !== id && session.user.role !== 'ADMIN')) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+async function updateCoachProfile({ req, user, params: { id } }: AuthContext<{ id: string }>) {
+  assertAllowed(user.id === id || user.role === 'ADMIN')
 
   const { name, bio, specialties, city, photoUrl, website, instagram, phone } = await req.json()
+  const updated = await updateCoach(id, { name, bio, specialties, city, photoUrl, website, instagram, phone })
 
-  await prisma.$transaction(async (tx: any) => {
-    if (name) await tx.user.update({ where: { id }, data: { name } })
-    await tx.coachProfile.upsert({
-      where: { userId: id },
-      create: { userId: id, bio, specialties, city, photoUrl, website, instagram, phone },
-      update: { bio, specialties, city, photoUrl, website, instagram, phone },
-    })
-  })
-
-  const updated = await prisma.user.findUnique({ where: { id }, include: { coachProfile: true } })
-  return NextResponse.json(toDTO(updated))
+  return NextResponse.json(toCoachDTO(updated))
 }
+
+export const GET = publicRoute(getCoach)
+export const PATCH = protect(updateCoachProfile, ['COACH', 'ADMIN'])

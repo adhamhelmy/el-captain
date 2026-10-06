@@ -5,6 +5,7 @@ import { Avatar, Back, TypeTag } from '@/components/ui';
 import { isolate } from '@/i18n/locale';
 import { coach, sessionsOfCoach } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import styles from './CoachProfile.module.css';
 
 /** Coach profile; `area` prefixes links ('' for guests, '/user' for members). Only active coaches are shown. */
 export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/user' }>) {
@@ -17,19 +18,19 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
   const privateSession = upcoming.find((s) => s.type === 'private');
 
   return (
-    <div className='page detail stack' style={{ maxWidth: 1000, gap: 32 }}>
+    <div className={`page detail stack ${styles.page}`}>
       {area ? (
         <Back href='/user/coaches'>{t('allCoaches')}</Back>
       ) : (
         <Back href='/sessions'>{t('allSessions')}</Back>
       )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-        <Avatar initials={x.initials(c)} size={96} fontSize={32} accent />
-        <div style={{ flex: 1, minWidth: 240 }}>
-          <div className='display' dir='auto' style={{ fontSize: 56, lineHeight: 1 }}>
+      <div className={styles.head}>
+        <Avatar initials={x.initials(c)} size={96} accent />
+        <div className={styles.headText}>
+          <div className={`display ${styles.name}`} dir='auto'>
             {x.name(c)}
           </div>
-          <div className='muted' style={{ fontSize: 15, marginTop: 6 }}>
+          <div className={`muted ${styles.line}`}>
             {t('line', {
               specialty: x.category(c.specialty),
               location: isolate(c.location),
@@ -41,48 +42,41 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
         {privateSession && (
           <Link
             href={`${area}/sessions/${privateSession.id}`}
-            className='btn'
-            style={{ fontSize: 15, padding: '14px 22px' }}
+            className={`btn ${styles.bookPrivate}`}
           >
             {t('bookPrivate', { price: x.price(c.rate) })}
           </Link>
         )}
       </div>
-      <div className='muted' dir='auto' style={{ fontSize: 16, lineHeight: 1.7, maxWidth: 680 }}>
+      <div className={`muted ${styles.bio}`} dir='auto'>
         {c.bio}
       </div>
       <div>
-        <div className='h2' style={{ marginBottom: 14 }}>
+        <div className={`h2 ${styles.heading}`}>
           {t('upcoming')}
         </div>
-        <div className='stack' style={{ gap: 10 }}>
+        <div className={`stack ${styles.list}`}>
           {upcoming.map((s) => (
             <Link key={s.id} href={`${area}/sessions/${s.id}`} className='row'>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div className={styles.group}>
                 <TypeTag s={s} />
                 <div>
-                  <div dir='auto' style={{ fontWeight: 700, fontSize: 15 }}>
+                  <div dir='auto' className={styles.sessionTitle}>
                     {s.title}
                   </div>
-                  <div className='muted' style={{ fontSize: 13 }}>
-                    {x.when(s)}
-                  </div>
+                  <div className={`muted ${styles.when}`}>{x.when(s)}</div>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <span className='muted' style={{ fontSize: 14 }}>
-                  {x.spots(s)}
-                </span>
-                <span className='display' style={{ fontSize: 22, letterSpacing: 0 }}>
+              <div className={styles.meta}>
+                <span className={`muted ${styles.note}`}>{x.spots(s)}</span>
+                <span className={`display ${styles.price}`}>
                   {x.price(s.price)}
                 </span>
               </div>
             </Link>
           ))}
           {upcoming.length === 0 && (
-            <div className='muted' style={{ fontSize: 14 }}>
-              {t('none')}
-            </div>
+            <div className={`muted ${styles.note}`}>{t('none')}</div>
           )}
         </div>
       </div>

@@ -1,0 +1,34 @@
+/* Avatar sizes; each size has its matching initials size. */
+.size32 { width: 32px; height: 32px; font-size: 12px; }
+.size34 { width: 34px; height: 34px; font-size: 13px; }
+.size36 { width: 36px; height: 36px; font-size: 13px; }
+.size48 { width: 48px; height: 48px; font-size: 16px; }
+.size52 { width: 52px; height: 52px; font-size: 16px; }
+.size64 { width: 64px; height: 64px; font-size: 22px; }
+.size80 { width: 80px; height: 80px; font-size: 26px; }
+.size96 { width: 96px; height: 96px; font-size: 32px; }
+
+/* Session card */
+.cardTitle { font-size: 18px; font-weight: 700; }
+.cardMeta { font-size: 14px; }
+.price { color: var(--text); font-weight: 700; }
+
+/* Coach card */
+.coachCard { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.coachHead { display: flex; align-items: center; gap: 14px; }
+.coachName { font-weight: 700; font-size: 17px; }
+.coachMeta { font-size: 13px; }
+.coachFoot { margin-top: 0; }
+.coachFootValue { color: var(--text); font-weight: 600; }
+
+.field { display: block; }
+
+/* Person cell */
+.person { display: flex; align-items: center; gap: 12px; }
+.personAvatar { font-size: 12px; }
+.personName { display: block; font-weight: 700; }
+
+.back { font-size: 14px; }
+
+.sectionHead { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; }
+.sectionLink { font-size: 14px; font-weight: 600; }

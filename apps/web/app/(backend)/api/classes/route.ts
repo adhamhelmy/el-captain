@@ -1,93 +1,53 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server';
+import { assertValid, protect, publicRoute, type AuthContext, type RequestContext } from '@/lib/api';
+import { toClassDTO } from '@/lib/dto';
+import { createClass, listClasses } from '@/prisma/models/class';
 
-function toDTO(c: any) {
-  return {
-    id: c.id,
-    title: c.title,
-    type: c.type,
-    description: c.description,
-    date: c.date.toISOString(),
-    durationMinutes: c.durationMinutes,
-    city: c.city,
-    address: c.address,
-    capacity: c.capacity,
-    spotsLeft: c.spotsLeft,
-    imageUrl: c.imageUrl,
-    clientId: c.clientId,
-    clientName: c.client.name,
-    studioName: c.client.clientProfile?.studioName ?? (c.client.coachProfile ? null : null),
-    isCoach: !!c.client.coachProfile,
-    createdAt: c.createdAt.toISOString(),
-  }
+/** Browsing shows classes from today on; a host's own list also includes past ones. */
+function earliestDate(date: string | undefined, clientId: string | undefined) {
+  if (date) return new Date(date);
+  if (clientId) return undefined;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
 }
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const types = searchParams.getAll('type')
-  const date = searchParams.get('date')
-  const city = searchParams.get('city')
-  const clientId = searchParams.get('clientId')
-  const q = searchParams.get('q')
-  const limit = Math.min(Number(searchParams.get('limit') ?? 12), 50)
-  const offset = Number(searchParams.get('offset') ?? 0)
-
-  const classes = await prisma.class.findMany({
-    where: {
-      // default: show from start of today, or from the chosen date
-      ...(!clientId ? {
-        date: {
-          gte: date ? new Date(date) : (() => { const d = new Date(); d.setHours(0,0,0,0); return d })()
-        }
-      } : {}),
-      ...(date && clientId ? { date: { gte: new Date(date) } } : {}),
-      ...(types.length ? { type: { in: types.map(t => t.toLowerCase()), mode: 'insensitive' } } : {}),
-      ...(city ? { city: { contains: city, mode: 'insensitive' } } : {}),
-      ...(clientId ? { clientId } : {}),
-      ...(q ? {
-        OR: [
-          { title: { contains: q, mode: 'insensitive' } },
-          { type: { contains: q, mode: 'insensitive' } },
-          { description: { contains: q, mode: 'insensitive' } },
-        ],
-      } : {}),
+async function browse({ query, page }: RequestContext) {
+  const clientId = query.get('clientId');
+  const classes = await listClasses(
+    {
+      clientId,
+      types: query.getAll('type'),
+      city: query.get('city'),
+      search: query.get('q'),
+      from: earliestDate(query.get('date'), clientId),
     },
-    include: { client: { include: { clientProfile: true, coachProfile: true } } },
-    orderBy: { date: 'asc' },
-    take: limit,
-    skip: offset,
-  })
+    page,
+  );
 
-  return NextResponse.json(classes.map(toDTO))
+  return NextResponse.json(classes.map(toClassDTO));
 }
 
-export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session || (session.user.role !== 'STUDIO' && session.user.role !== 'COACH' && session.user.role !== 'ADMIN')) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+async function create({ req, user }: AuthContext) {
+  const body = await req.json();
+  const { title, type, description, date, durationMinutes, city, address, capacity, imageUrl } = body;
 
-  const body = await req.json()
-  const { title, type, description, date, durationMinutes, city, address, capacity, imageUrl } = body
+  assertValid(title && type && date && durationMinutes && city && address && capacity, 'Missing required fields');
 
-  if (!title || !type || !date || !durationMinutes || !city || !address || !capacity) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-  }
+  const cls = await createClass(user.id, {
+    title,
+    type,
+    description,
+    city,
+    address,
+    date: new Date(date),
+    capacity: Number(capacity),
+    durationMinutes: Number(durationMinutes),
+    imageUrl: imageUrl ?? null,
+  });
 
-  const cls = await prisma.class.create({
-    data: {
-      title, type, description, date: new Date(date),
-      durationMinutes: Number(durationMinutes),
-      city, address,
-      capacity: Number(capacity),
-      spotsLeft: Number(capacity),
-      imageUrl: imageUrl ?? null,
-      clientId: session.user.id,
-    },
-    include: { client: { include: { clientProfile: true, coachProfile: true } } },
-  })
-
-  return NextResponse.json(toDTO(cls), { status: 201 })
+  return NextResponse.json(toClassDTO(cls), { status: 201 });
 }
+
+export const GET = publicRoute(browse);
+export const POST = protect(create, ['STUDIO', 'COACH', 'ADMIN']);

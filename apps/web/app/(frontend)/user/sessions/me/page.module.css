@@ -1,0 +1,9 @@
+.page { max-width: 960px; }
+.title { margin-bottom: 24px; }
+.tabs { margin-bottom: 24px; }
+.list { gap: 10px; }
+.session { display: flex; align-items: center; gap: 14px; }
+.sessionTitle { font-weight: 700; font-size: 15px; }
+.when { font-size: 13px; }
+.meta { display: flex; align-items: center; gap: 16px; }
+.price { font-size: 22px; letter-spacing: 0; }

@@ -1,0 +1,20 @@
+/* Shared by the auth pages. */
+.form { gap: 18px; }
+.done { gap: 14px; }
+.sub { font-size: 15px; margin-top: 6px; }
+.text { font-size: 15px; line-height: 1.6; }
+.doneText { font-size: 15px; }
+.back { font-size: 14px; }
+.error { color: var(--warn); font-size: 13px; }
+.foot { font-size: 14px; text-align: center; }
+
+/* Login: password label with the forgot link beside it. */
+.passwordHead { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+
+/* Register: account type picker. */
+.roles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.role { text-align: start; padding: 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); }
+.role.on { border-color: var(--hover-border); background: var(--accent-tint); color: var(--accent-text); }
+.roleTitle { font-weight: 700; font-size: 15px; }
+.roleSub { font-size: 12px; margin-top: 4px; opacity: 0.75; }
+.notice { background: var(--pending-tint); border: 1px solid var(--pending-border); color: var(--pending); font-size: 13px; line-height: 1.5; padding: 12px 14px; border-radius: 8px; }

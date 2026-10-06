@@ -6,6 +6,7 @@ import { notFound, useParams } from 'next/navigation';
 import { Avatar, Back, Stats, Tag } from '@/components/ui';
 import { sessionsOfUser, user, userSpent } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
+import detail from '../../../detail.module.css';
 
 export default function AdminUserPage() {
   const t = useTranslations('admin');
@@ -18,18 +19,18 @@ export default function AdminUserPage() {
   const active = status === 'active';
 
   return (
-    <div className='page detail stack' style={{ maxWidth: 960, gap: 28 }}>
+    <div className={`page detail stack ${detail.page}`}>
       <Back href='/admin/users'>{t('backUsers')}</Back>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-        <Avatar initials={u.initials} size={80} fontSize={26} />
-        <div style={{ flex: 1, minWidth: 220 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <div className='display' dir='auto' style={{ fontSize: 52, lineHeight: 1 }}>
+      <div className={detail.profile}>
+        <Avatar initials={u.initials} size={80} />
+        <div className={detail.profileText}>
+          <div className={detail.nameRow}>
+            <div className={`display ${detail.name}`} dir='auto'>
               {u.name}
             </div>
             <Tag kind={status}>{tst(status)}</Tag>
           </div>
-          <div className='muted' style={{ fontSize: 15, marginTop: 4 }}>
+          <div className={`muted ${detail.line}`}>
             <bdi>{u.email}</bdi> · <bdi>{u.phone}</bdi>
           </div>
         </div>
@@ -51,33 +52,32 @@ export default function AdminUserPage() {
         ]}
       />
       <div>
-        <div className='h3' style={{ marginBottom: 12 }}>
+        <div className={`h3 ${detail.heading}`}>
           {t('history')}
         </div>
-        <div className='stack' style={{ gap: 8 }}>
+        <div className={`stack ${detail.list}`}>
           {history.map((s) => (
             <Link
               key={s.id}
               href={`/admin/sessions/${s.id}`}
-              className='row'
-              style={{ gap: 12, padding: '14px 18px' }}
+              className={`row ${detail.row}`}
             >
               <div>
-                <div dir='auto' style={{ fontWeight: 700, fontSize: 14 }}>
+                <div dir='auto' className={detail.rowTitle}>
                   {s.title}
                 </div>
-                <div className='muted' style={{ fontSize: 12 }}>
+                <div className={`muted ${detail.rowSub}`}>
                   <bdi>{x.coachName(s)}</bdi> · {x.when(s)}
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div className={detail.rowMeta}>
                 <Tag kind={s.status}>{tst(s.status)}</Tag>
-                <span style={{ fontWeight: 700 }}>{x.price(s.price)}</span>
+                <span className={detail.price}>{x.price(s.price)}</span>
               </div>
             </Link>
           ))}
           {history.length === 0 && (
-            <div className='muted' style={{ fontSize: 14 }}>
+            <div className={`muted ${detail.empty}`}>
               {t('noBookings')}
             </div>
           )}

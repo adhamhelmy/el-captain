@@ -1,0 +1,2 @@
+.visit { padding: 14px 16px; flex-wrap: nowrap; }
+.notes { background: var(--surface); padding: 14px 16px; border-radius: 12px; line-height: 1.6; resize: vertical; }

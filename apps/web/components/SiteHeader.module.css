@@ -1,0 +1,2 @@
+/* Hidden while the session loads, so nobody sees a flash of the wrong buttons. */
+.loading { visibility: hidden; }
