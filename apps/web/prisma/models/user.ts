@@ -10,8 +10,13 @@ export type NewUser = {
   studio?: { studioName: string; city: string }
 }
 
+/** Case-insensitive, so accounts made before emails were lowercased still match. */
 export function findUserByEmail(email: string) {
-  return prisma.user.findUnique({ where: { email } })
+  return prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } })
+}
+
+export function findUserById(id: string) {
+  return prisma.user.findUnique({ where: { id } })
 }
 
 /** Creates the user. A coach always starts with an empty coach profile. */
@@ -35,4 +40,13 @@ export function listUsers() {
 
 export function updateUserRole(id: string, role: Role) {
   return prisma.user.update({ where: { id }, data: { role } })
+}
+
+/** Marks the email as verified, keeping the first verification date if it already was. */
+export function markEmailVerified(id: string) {
+  return prisma.user.updateMany({ where: { id, emailVerified: null }, data: { emailVerified: new Date() } })
+}
+
+export function updatePasswordHash(id: string, passwordHash: string) {
+  return prisma.user.update({ where: { id }, data: { passwordHash } })
 }

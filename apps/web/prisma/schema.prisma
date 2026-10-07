@@ -12,8 +12,11 @@ model User {
   id              String          @id @default(cuid())
   email           String          @unique
   passwordHash    String
+  /// Set once the user follows the link in their verification email. Sign-in needs it.
+  emailVerified   DateTime?
   name            String
   role            Role            @default(USER)
+  authTokens      AuthToken[]
   clientProfile   ClientProfile?
   coachProfile    CoachProfile?
   bookings        Booking[]
@@ -29,6 +32,24 @@ enum Role {
   STUDIO
   COACH
   USER
+}
+
+/// A single-use link sent by email. Only the SHA-256 of the token is stored.
+model AuthToken {
+  id        String        @id @default(cuid())
+  tokenHash String        @unique
+  type      AuthTokenType
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime      @default(now())
+
+  @@index([userId, type])
+}
+
+enum AuthTokenType {
+  VERIFY_EMAIL
+  RESET_PASSWORD
 }
 
 model ClientProfile {

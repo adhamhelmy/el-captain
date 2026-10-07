@@ -18,3 +18,6 @@
 .roleTitle { font-weight: 700; font-size: 15px; }
 .roleSub { font-size: 12px; margin-top: 4px; opacity: 0.75; }
 .notice { background: var(--pending-tint); border: 1px solid var(--pending-border); color: var(--pending); font-size: 13px; line-height: 1.5; padding: 12px 14px; border-radius: 8px; }
+
+/* Resend confirmation email link-button. */
+.resend { align-self: center; }

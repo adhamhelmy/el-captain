@@ -1,24 +1,32 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Field } from '@/components/ui';
 import type { Messages } from '@/i18n/messages';
+import { resetPassword } from '@/lib/auth-api';
+import { isStrongPassword } from '@/lib/auth-rules';
+import { ERROR_CODES, pickError, RESET_PASSWORD_ERRORS } from '@/lib/error-codes';
 import styles from '../auth.module.css';
 
-// Mock until wired up: call POST /api/auth/reset-password with the token from the URL once it exists.
+/** Opened from the reset email: /reset-password?token=… */
 export default function ResetPasswordPage() {
   const t = useTranslations('reset');
   const te = useTranslations('errors');
+  const token = useSearchParams().get('token');
   const [pw, setPw] = useState('');
   const [pw2, setPw2] = useState('');
-  const [error, setError] = useState<keyof Messages['errors'] | ''>('');
+  const [error, setError] = useState<keyof Messages['errors'] | ''>(token ? '' : ERROR_CODES.INVALID_TOKEN);
   const [done, setDone] = useState(false);
 
-  function submit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function submit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (pw.length < 8) return setError('passwordTooShort');
+    if (!isStrongPassword(pw)) return setError('weak_password');
     if (pw !== pw2) return setError('passwordsDontMatch');
+    if (!token) return;
+    const res = await resetPassword(token, pw);
+    if (!res.ok) return setError(pickError(RESET_PASSWORD_ERRORS, res.code));
     setDone(true);
   }
 
@@ -47,6 +55,9 @@ export default function ResetPasswordPage() {
       <Field label={t('newPassword')}>
         <input
           type='password'
+          dir='ltr'
+          required
+          autoComplete='new-password'
           value={pw}
           onChange={(e) => {
             setPw(e.target.value);
@@ -58,6 +69,9 @@ export default function ResetPasswordPage() {
       <Field label={t('confirm')}>
         <input
           type='password'
+          dir='ltr'
+          required
+          autoComplete='new-password'
           value={pw2}
           onChange={(e) => {
             setPw2(e.target.value);
@@ -67,7 +81,12 @@ export default function ResetPasswordPage() {
         />
       </Field>
       {error && <div className={styles.error}>{te(error)}</div>}
-      <button type='submit' className='btn block'>
+      {error === ERROR_CODES.INVALID_TOKEN && (
+        <Link href='/forgot-password' className={`muted ${styles.foot}`}>
+          {t('requestNew')}
+        </Link>
+      )}
+      <button type='submit' className='btn block' disabled={!token}>
         {t('submit')}
       </button>
     </form>
