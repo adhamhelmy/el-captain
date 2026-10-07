@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { LocaleSetting } from '@/components/LocaleToggle';
+import { PasswordSetting } from '@/components/PasswordSetting';
 import { ThemeSetting } from '@/components/ThemeToggle';
 import { Avatar, Field, Toggle } from '@/components/ui';
 import { isolate } from '@/i18n/locale';
@@ -104,6 +105,7 @@ export default function CoachProfilePage() {
             }}
           />
         </div>
+        <PasswordSetting />
         <ThemeSetting />
         <LocaleSetting />
       </div>

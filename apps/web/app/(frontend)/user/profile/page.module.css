@@ -1,4 +1,2 @@
 .page { max-width: 720px; }
 .favouritesLabel { margin-bottom: 10px; }
-/* Beats .btn-ghost.sm's padding. */
-.change:global(.sm) { padding: 9px 14px; }

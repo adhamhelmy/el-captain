@@ -10,6 +10,7 @@ async function main() {
     create: {
       email: 'admin@elcaptain.com',
       passwordHash: await hash('admin123'),
+      emailVerified: new Date(),
       name: 'Admin',
       role: 'ADMIN',
     },
@@ -21,6 +22,7 @@ async function main() {
     create: {
       email: 'studio@elcaptain.com',
       passwordHash: await hash('studio123'),
+      emailVerified: new Date(),
       name: 'Cairo Fitness',
       role: 'STUDIO',
       clientProfile: {
@@ -39,6 +41,7 @@ async function main() {
     create: {
       email: 'user@elcaptain.com',
       passwordHash: await hash('user123'),
+      emailVerified: new Date(),
       name: 'Ahmed Ali',
       role: 'USER',
     },

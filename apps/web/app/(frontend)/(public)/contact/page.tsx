@@ -20,8 +20,8 @@ export default function ContactPage() {
         </p>
         <div className={`stack ${styles.emails}`}>
           {[
-            [t('emailLabel'), 'support@elcaptain.app'],
-            [t('coachesLabel'), 'coaches@elcaptain.app'],
+            [t('emailLabel'), 'support@el-captain.app'],
+            [t('coachesLabel'), 'coaches@el-captain.app'],
           ].map(([label, email]) => (
             <div key={label}>
               <div className='dim overline'>

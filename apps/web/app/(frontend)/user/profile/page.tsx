@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { LocaleSetting } from '@/components/LocaleToggle';
+import { PasswordSetting } from '@/components/PasswordSetting';
 import { ThemeSetting } from '@/components/ThemeToggle';
 import { Avatar, Field, Toggle } from '@/components/ui';
 import { CATEGORIES, ME, user, type Category } from '@/lib/mock';
@@ -107,20 +107,7 @@ export default function UserProfilePage() {
             }}
           />
         </div>
-        <div className='setting'>
-          <div>
-            <div className={settings.label}>{tc('password')}</div>
-            <div className={`muted ${settings.hint}`}>
-              {t('passwordHint')}
-            </div>
-          </div>
-          <Link
-            href='/reset-password'
-            className={`btn-ghost sm plain ${styles.change}`}
-          >
-            {tc('change')}
-          </Link>
-        </div>
+        <PasswordSetting />
       </div>
       <div className={profile.actions}>
         <button

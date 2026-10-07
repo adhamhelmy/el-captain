@@ -225,16 +225,21 @@
     "invalid_role": "Invalid role",
     "email_taken": "Email already in use",
     "generic": "Something went wrong.",
-    "passwordTooShort": "Password must be at least 8 characters.",
     "passwordsDontMatch": "Passwords don’t match.",
-    "signInAfterRegister": "Account created, but signing in failed. Try logging in.",
-    "invalidLogin": "Invalid email or password."
+    "invalidLogin": "Invalid email or password.",
+    "weak_password": "Use 8 or more characters with a letter and a number. English-only passwords also need an uppercase and a lowercase letter.",
+    "invalid_email": "Enter a valid email address.",
+    "invalid_token": "This link is invalid or has expired.",
+    "wrong_password": "Your current password is incorrect.",
+    "emailNotVerified": "Confirm your email before logging in. Check your inbox for the link."
   },
   "login": {
     "title": "WELCOME BACK",
     "sub": "Log in to book and manage your sessions.",
     "forgot": "Forgot password?",
-    "newHere": "New here? <link>Create an account</link>"
+    "newHere": "New here? <link>Create an account</link>",
+    "resend": "Resend confirmation email",
+    "resent": "Sent. Check your inbox."
   },
   "register": {
     "title": "CREATE ACCOUNT",
@@ -248,10 +253,15 @@
       "sub": "Run sessions"
     },
     "namePlaceholder": "Jordan Lee",
-    "passwordPlaceholder": "At least 8 characters",
+    "passwordPlaceholder": "8+ characters, letters and numbers",
     "coachNotice": "Coach accounts are reviewed before your sessions go live, usually within two business days.",
     "submit": "Create account",
-    "haveAccount": "Already have an account? <link>Log in</link>"
+    "haveAccount": "Already have an account? <link>Log in</link>",
+    "confirmPassword": "Confirm password",
+    "checkTitle": "CHECK YOUR INBOX",
+    "checkText": "We sent a link to {email}. Open it to activate your account. It expires in 24 hours.",
+    "resend": "Didn’t get it? Send it again",
+    "resent": "Sent again."
   },
   "forgot": {
     "back": "← Back to log in",
@@ -269,7 +279,8 @@
     "sub": "Choose something at least 8 characters long.",
     "newPassword": "New password",
     "confirm": "Confirm password",
-    "submit": "Update password"
+    "submit": "Update password",
+    "requestNew": "Request a new link"
   },
   "userDashboard": {
     "welcome": "Welcome back",
@@ -308,7 +319,10 @@
     "settings": "SETTINGS",
     "reminders": "Email reminders",
     "remindersHint": "A reminder 2 hours before each session",
-    "passwordHint": "Last changed 3 months ago"
+    "passwordHint": "Update the password you log in with",
+    "currentPassword": "Current password",
+    "updatePassword": "Update password",
+    "passwordUpdated": "Password updated."
   },
   "status": {
     "active": "Active",
@@ -470,5 +484,26 @@
   },
   "brand": {
     "name": "EL CAPTAIN"
+  },
+  "verify": {
+    "checking": "Confirming your email…",
+    "doneTitle": "EMAIL CONFIRMED",
+    "doneText": "Your account is ready. Log in to get started.",
+    "failTitle": "LINK EXPIRED",
+    "failText": "This link is invalid, already used, or has expired. Log in and we’ll offer to send a new one."
+  },
+  "emails": {
+    "verify": {
+      "subject": "Confirm your El Captain email",
+      "intro": "Welcome to El Captain. Confirm your email to activate your account. This link expires in 24 hours.",
+      "button": "Confirm email",
+      "ignore": "If you didn’t create an account, you can ignore this email."
+    },
+    "reset": {
+      "subject": "Reset your El Captain password",
+      "intro": "Someone asked to reset the password for this account. This link expires in 30 minutes.",
+      "button": "Set a new password",
+      "ignore": "If you didn’t ask for this, you can ignore this email. Your password won’t change."
+    }
   }
 }

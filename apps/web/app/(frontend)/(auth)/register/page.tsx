@@ -1,15 +1,15 @@
 'use client';
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { loginLink } from '@/components/rich';
 import { Field } from '@/components/ui';
 import type { Messages } from '@/i18n/messages';
+import { register } from '@/lib/auth-api';
+import { isStrongPassword, isValidEmail, normalizeEmail } from '@/lib/auth-rules';
+import { pickError, REGISTER_ERRORS } from '@/lib/error-codes';
+import { ResendVerification } from '../ResendVerification';
 import styles from '../auth.module.css';
-
-type ErrorKey = keyof Messages['errors'];
-const API_ERRORS = new Set<string>(['missing_fields', 'invalid_role', 'email_taken']);
 
 function RoleCard({
   on,
@@ -33,30 +33,35 @@ export default function RegisterPage() {
   const t = useTranslations('register');
   const tc = useTranslations('common');
   const te = useTranslations('errors');
-  const router = useRouter();
   const [role, setRole] = useState(useSearchParams().get('role') === 'coach' ? 'coach' : 'user');
-  const [error, setError] = useState<ErrorKey | ''>('');
+  const [error, setError] = useState<keyof Messages['errors'] | ''>('');
+  const [sentTo, setSentTo] = useState('');
 
   async function submit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
-    if (form.password.length < 8) return setError('passwordTooShort');
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, role: role === 'coach' ? 'COACH' : 'USER' }),
-    });
-    if (!res.ok) {
-      const code = (await res.json().catch(() => ({}))).code;
-      return setError(API_ERRORS.has(code) ? (code as ErrorKey) : 'generic');
-    }
-    const login = await signIn('credentials', {
-      redirect: false,
-      email: form.email,
-      password: form.password,
-    });
-    if (login?.error) return setError('signInAfterRegister');
-    router.push(role === 'coach' ? '/coach/profile' : '/user/dashboard');
+    const { confirmPassword, ...form } = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
+    const email = normalizeEmail(form.email);
+    if (!isValidEmail(email)) return setError('invalid_email');
+    if (!isStrongPassword(form.password)) return setError('weak_password');
+    if (form.password !== confirmPassword) return setError('passwordsDontMatch');
+    const res = await register({ ...form, email, role: role === 'coach' ? 'COACH' : 'USER' });
+    if (!res.ok) return setError(pickError(REGISTER_ERRORS, res.code));
+    setSentTo(email);
+  }
+
+  if (sentTo) {
+    return (
+      <div className={`stack ${styles.done}`}>
+        <div className='auth-title'>{t('checkTitle')}</div>
+        <div dir='auto' className={`muted ${styles.text}`}>
+          {t('checkText', { email: sentTo })}
+        </div>
+        <ResendVerification email={sentTo} label={t('resend')} sentLabel={t('resent')} />
+        <div className={`muted ${styles.foot}`}>
+          {t.rich('haveAccount', { link: loginLink })}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -98,9 +103,23 @@ export default function RegisterPage() {
         <input
           name='password'
           type='password'
+          dir='ltr'
           required
+          autoComplete='new-password'
           placeholder={t('passwordPlaceholder')}
           className='input on-page'
+          onChange={() => setError('')}
+        />
+      </Field>
+      <Field label={t('confirmPassword')}>
+        <input
+          name='confirmPassword'
+          type='password'
+          dir='ltr'
+          required
+          autoComplete='new-password'
+          className='input on-page'
+          onChange={() => setError('')}
         />
       </Field>
       {role === 'coach' && (

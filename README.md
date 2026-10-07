@@ -83,8 +83,15 @@ DIRECT_URL="postgresql://..."
 # Generate with: openssl rand -base64 32
 NEXTAUTH_SECRET="..."
 
-# Local dev
-NEXTAUTH_URL="http://localhost:3000"
+# next-auth takes its base URL from the request (always on Vercel), so no NEXTAUTH_URL is needed
+AUTH_TRUST_HOST=true
+
+# Base URL for links in emails
+APP_URL="http://localhost:3000"
+
+# Email via Resend. Leave empty locally: emails (with their links) print to the server console.
+RESEND_API_KEY=""
+MAIL_FROM="El Captain <no-reply@el-captain.app>"
 ```
 
 ### Install & Run
@@ -112,7 +119,7 @@ cd apps/web && npm run db:seed
 2. Import in [vercel.com/new](https://vercel.com/new)
 3. Set build command: `cd apps/web && npm run build:prod`
 4. Set output directory: `apps/web/.next`
-5. Add env vars: `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
+5. Add env vars: `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET`, `APP_URL`, `RESEND_API_KEY`, `MAIL_FROM`
 
 `build:prod` runs `prisma migrate deploy` (applies migrations) then `next build`.
 

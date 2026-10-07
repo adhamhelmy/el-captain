@@ -1,3 +1,10 @@
 /* Settings rows on the profile pages. */
 .label { font-size: 14px; font-weight: 600; }
 .hint { font-size: 13px; }
+
+/* Change password: the row, then its form below. */
+.password { gap: 16px; }
+.form { gap: 14px; }
+.error { color: var(--warn); font-size: 13px; }
+/* Beats .btn-ghost.sm's padding. */
+.change:global(.sm) { padding: 9px 14px; }

@@ -6,7 +6,10 @@ import { getSession, signIn } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { registerLink } from '@/components/rich';
 import { Field } from '@/components/ui';
+import { normalizeEmail } from '@/lib/auth-rules';
+import { ERROR_CODES } from '@/lib/error-codes';
 import { canAccess, homeForRole } from '@/lib/routes';
+import { ResendVerification } from '../ResendVerification';
 import styles from '../auth.module.css';
 
 export default function LoginPage() {
@@ -15,17 +18,20 @@ export default function LoginPage() {
   const te = useTranslations('errors');
   const router = useRouter();
   const callbackUrl = useSearchParams().get('callbackUrl');
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<'' | 'invalidLogin' | 'emailNotVerified'>('');
+  const [email, setEmail] = useState('');
 
   async function submit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
+    const address = normalizeEmail(form.get('email'));
+    setEmail(address);
     const res = await signIn('credentials', {
       redirect: false,
-      email: form.get('email'),
+      email: address,
       password: form.get('password'),
     });
-    if (res?.error) return setError(true);
+    if (res?.error) return setError(res.error === ERROR_CODES.EMAIL_NOT_VERIFIED ? 'emailNotVerified' : 'invalidLogin');
     const role = (await getSession())?.user?.role;
     // Only same-origin paths ("//host" would be an open redirect) the role can actually open.
     const safe =
@@ -65,7 +71,10 @@ export default function LoginPage() {
           className='input on-page'
         />
       </div>
-      {error && <div className={styles.error}>{te('invalidLogin')}</div>}
+      {error && <div className={styles.error}>{te(error)}</div>}
+      {error === 'emailNotVerified' && (
+        <ResendVerification key={email} email={email} label={t('resend')} sentLabel={t('resent')} />
+      )}
       <button type='submit' className='btn block'>
         {tc('logIn')}
       </button>
