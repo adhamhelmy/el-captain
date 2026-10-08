@@ -1,2 +1,8 @@
 .approve { padding: 12px 18px; }
-.bio { max-width: 680px; }
+.bio { max-width: 680px; white-space: pre-wrap; }
+.section { gap: 10px; }
+.dialog { gap: 12px; border-color: var(--warn); }
+.dialogActions { display: flex; gap: 8px; justify-content: flex-end; }
+.event { padding: 10px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.link { overflow-wrap: anywhere; }
+.newSport { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--pending-tint); color: var(--pending); border: 1px solid var(--pending-border); font-size: 12px; font-weight: 700; line-height: 1; cursor: help; }

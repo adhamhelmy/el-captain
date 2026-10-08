@@ -92,6 +92,41 @@
         summary: Delete coach by ID
         parameters:
           - id: string
+    - coaches/review:
+      - list:
+          get:
+            summary: Coaches by review status (?status=PENDING is the review queue, oldest first)
+      - get:
+          get:
+            summary: Full coach profile with review history
+      - status:
+          post:
+            summary: Approve, reject (reason required), suspend or reinstate a coach
+            request:
+              to: string
+              reason: string
+    - sports:
+      - list:
+          get:
+            summary: All sports with coach counts, pending first
+      - create:
+          post:
+            summary: Add an approved sport
+            request:
+              nameEn: string
+              nameAr: string
+      - update:
+          patch:
+            summary: Rename and/or approve a sport
+            request:
+              nameEn: string
+              nameAr: string
+              approve: boolean
+      - merge:
+          post:
+            summary: Merge a sport into another; its coaches move over
+            request:
+              intoId: string
 - coach (coach):
     - dashboard:
       get:
@@ -201,6 +236,41 @@
             summary: Remove a coach from user's favorites
             parameters:
               - id: string
+    - me/onboarding (coach):
+      get:
+        summary: The coach's own profile draft, review status, missing fields and latest rejection/suspension reason
+    - update (coach, admin):
+      patch:
+        summary: Save part of a coach profile (locked for the coach while PENDING)
+        parameters:
+          - id: string
+        request:
+          bio: string
+          instagram: string
+          tiktok: string
+          photoPath: string
+          links: "[{ label, url }]"
+          sportIds: "[string]"
+    - submit (coach):
+      post:
+        summary: Submit the profile for review (INCOMPLETE/REJECTED → PENDING); 400 profile_incomplete lists `missing`
+        parameters:
+          - id: string
+    - certifications (coach):
+      post:
+        summary: Attach an uploaded certificate
+        parameters:
+          - id: string
+        request:
+          title: string
+          filePath: string
+          fileName: string
+    - certifications/[certId] (coach):
+      delete:
+        summary: Remove a certificate and its file
+    - certifications/[certId]/file (coach, admin):
+      get:
+        summary: Stream a certificate file to its coach or an admin
 - bookings:
     - list (admin):
       get:
@@ -253,3 +323,15 @@
         summary: Get location by ID
         parameters:
           - id: string
+- sports:
+    - list:
+      get:
+        summary: Approved sports (plus the signed-in coach's own pending ones), ?q= to search
+    - create (coach):
+      post:
+        summary: Add a sport; hidden from others until an admin approves it; 409 sport_exists returns the match
+        request:
+          name: string
+- uploads (coach):
+    post:
+      summary: Vercel Blob client-upload token for a coach photo or certificate

@@ -32,55 +32,34 @@ export default function LoginPage() {
       password: form.get('password'),
     });
     if (res?.error) return setError(res.error === ERROR_CODES.EMAIL_NOT_VERIFIED ? 'emailNotVerified' : 'invalidLogin');
-    const role = (await getSession())?.user?.role;
+    const { role, coachStatus } = (await getSession())?.user ?? {};
     // Only same-origin paths ("//host" would be an open redirect) the role can actually open.
-    const safe =
-      callbackUrl?.startsWith('/') && !callbackUrl.startsWith('//') && canAccess(role, callbackUrl);
-    router.push(safe ? callbackUrl! : homeForRole(role));
+    const safe = callbackUrl?.startsWith('/') && !callbackUrl.startsWith('//') && canAccess(role, callbackUrl, coachStatus);
+    router.push(safe ? callbackUrl! : homeForRole(role, coachStatus));
   }
 
   return (
     <form onSubmit={submit} className={`stack ${styles.form}`}>
       <div>
         <div className='auth-title'>{t('title')}</div>
-        <div className={`muted ${styles.sub}`}>
-          {t('sub')}
-        </div>
+        <div className={`muted ${styles.sub}`}>{t('sub')}</div>
       </div>
       <Field label={tc('email')}>
-        <input
-          name='email'
-          type='email'
-          dir='ltr'
-          required
-          placeholder='you@example.com'
-          className='input on-page'
-        />
+        <input name='email' type='email' dir='ltr' required placeholder='you@example.com' className='input on-page' />
       </Field>
       <div>
         <div className={styles.passwordHead}>
           <span className='muted'>{tc('password')}</span>
           <Link href='/forgot-password'>{t('forgot')}</Link>
         </div>
-        <input
-          name='password'
-          type='password'
-          dir='ltr'
-          required
-          placeholder='••••••••'
-          className='input on-page'
-        />
+        <input name='password' type='password' dir='ltr' required placeholder='••••••••' className='input on-page' />
       </div>
       {error && <div className={styles.error}>{te(error)}</div>}
-      {error === 'emailNotVerified' && (
-        <ResendVerification key={email} email={email} label={t('resend')} sentLabel={t('resent')} />
-      )}
+      {error === 'emailNotVerified' && <ResendVerification key={email} email={email} label={t('resend')} sentLabel={t('resent')} />}
       <button type='submit' className='btn block'>
         {tc('logIn')}
       </button>
-      <div className={`muted ${styles.foot}`}>
-        {t.rich('newHere', { link: registerLink })}
-      </div>
+      <div className={`muted ${styles.foot}`}>{t.rich('newHere', { link: registerLink })}</div>
     </form>
   );
 }

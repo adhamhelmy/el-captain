@@ -24,6 +24,7 @@ const TAG_VARIANT: Record<string, string> = {
   cancelled: 'warn',
   rejected: 'warn',
   pending: 'pending',
+  incomplete: 'past',
   past: 'past',
   mine: 'solid',
 };
@@ -51,12 +52,7 @@ export function Avatar({
   return <div className={classes.filter(Boolean).join(' ')}>{initials}</div>;
 }
 
-export function SessionCard({
-  s,
-  href,
-  spots,
-  badge,
-}: Readonly<{ s: Session; href: string; spots?: boolean; badge?: React.ReactNode }>) {
+export function SessionCard({ s, href, spots, badge }: Readonly<{ s: Session; href: string; spots?: boolean; badge?: React.ReactNode }>) {
   const x = useSessionText();
   return (
     <Link href={href} className='scard'>
@@ -85,10 +81,7 @@ export function CoachCard({ c, meta }: Readonly<{ c: Coach; meta: string }>) {
   const t = useTranslations('ui');
   const x = useSessionText();
   return (
-    <Link
-      href={`/user/coaches/${c.id}`}
-      className={`card hover plain ${styles.coachCard}`}
-    >
+    <Link href={`/user/coaches/${c.id}`} className={`card hover plain ${styles.coachCard}`}>
       <div className={styles.coachHead}>
         <Avatar initials={x.initials(c)} size={52} />
         <div>
@@ -110,10 +103,7 @@ export function CoachCard({ c, meta }: Readonly<{ c: Coach; meta: string }>) {
   );
 }
 
-export function Stats({
-  items,
-  small,
-}: Readonly<{ items: [string | number, string][]; small?: boolean }>) {
+export function Stats({ items, small }: Readonly<{ items: [string | number, string][]; small?: boolean }>) {
   return (
     <div className={small ? 'stats small' : 'stats'}>
       {items.map(([value, label]) => (
@@ -136,12 +126,7 @@ export function Segmented<T extends string>({
   return (
     <div className={inset ? 'seg inset' : 'seg'}>
       {options.map(([label, v]) => (
-        <button
-          key={v}
-          type='button'
-          className={v === value ? 'on' : ''}
-          onClick={() => onChange(v)}
-        >
+        <button key={v} type='button' className={v === value ? 'on' : ''} onClick={() => onChange(v)}>
           {label}
         </button>
       ))}
@@ -150,20 +135,11 @@ export function Segmented<T extends string>({
 }
 
 /** Filter chips. `options` are [label, value] pairs. */
-export function Chips<T extends string>({
-  options,
-  value,
-  onChange,
-}: Readonly<{ options: [string, T][]; value: T; onChange: (v: T) => void }>) {
+export function Chips<T extends string>({ options, value, onChange }: Readonly<{ options: [string, T][]; value: T; onChange: (v: T) => void }>) {
   return (
     <div className='chips'>
       {options.map(([label, v]) => (
-        <button
-          key={v}
-          type='button'
-          className={v === value ? 'chip on' : 'chip'}
-          onClick={() => onChange(v)}
-        >
+        <button key={v} type='button' className={v === value ? 'chip on' : 'chip'} onClick={() => onChange(v)}>
           {label}
         </button>
       ))}
@@ -171,11 +147,7 @@ export function Chips<T extends string>({
   );
 }
 
-export function Field({
-  label,
-  children,
-  className,
-}: Readonly<{ label: string; children: React.ReactNode; className?: string }>) {
+export function Field({ label, children, className }: Readonly<{ label: string; children: React.ReactNode; className?: string }>) {
   return (
     <label className={className ? `${styles.field} ${className}` : styles.field}>
       <div className='label'>{label}</div>
@@ -207,11 +179,7 @@ export function Table({
 }
 
 /** Avatar + name + secondary line, used in the first table column. */
-export function Person({
-  initials,
-  name,
-  sub,
-}: Readonly<{ initials: string; name: string; sub: string }>) {
+export function Person({ initials, name, sub }: Readonly<{ initials: string; name: string; sub: string }>) {
   return (
     <span className={styles.person}>
       <Avatar initials={initials} className={styles.personAvatar} />
@@ -232,11 +200,7 @@ export function Back({ href, children }: Readonly<{ href: string; children: Reac
   );
 }
 
-export function SectionHead({
-  title,
-  href,
-  link,
-}: Readonly<{ title: string; href?: string; link?: string }>) {
+export function SectionHead({ title, href, link }: Readonly<{ title: string; href?: string; link?: string }>) {
   return (
     <div className={styles.sectionHead}>
       <div className='h2'>{title}</div>
@@ -250,10 +214,7 @@ export function SectionHead({
 }
 
 /** On/Off pill used for settings toggles. */
-export function Toggle({
-  on,
-  onChange,
-}: Readonly<{ on: boolean; onChange: (v: boolean) => void }>) {
+export function Toggle({ on, onChange }: Readonly<{ on: boolean; onChange: (v: boolean) => void }>) {
   const t = useTranslations('common');
   return (
     <button type='button' className={on ? 'chip on' : 'chip'} onClick={() => onChange(!on)}>

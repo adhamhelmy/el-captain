@@ -1,19 +1,22 @@
-import { NextResponse } from 'next/server'
-import { assertAllowed, assertFound, assertValid, protect, type AuthContext } from '@/lib/api'
-import { toSessionRequestDTO } from '@/lib/dto'
-import { findSessionRequest, updateSessionRequestStatus } from '@/prisma/models/session-request'
+import { NextResponse } from 'next/server';
+import { assertAllowed, assertFound, assertValid, protect, type AuthContext } from '@/lib/api';
+import { toSessionRequestDTO } from '@/lib/dto';
+import { findSessionRequest, updateSessionRequestStatus } from '@/prisma/models/session-request';
+import { assertActiveCoach } from '@/lib/coach-guard';
 
 /** The coach the request was sent to, or an admin, accepts or declines it. */
 async function respond({ req, user, params: { id } }: AuthContext<{ id: string }>) {
-  const { status } = await req.json()
-  assertValid(['ACCEPTED', 'DECLINED'].includes(status), 'Invalid status')
+  await assertActiveCoach(user);
 
-  const request = await findSessionRequest(id)
-  assertFound(request)
-  assertAllowed(request.coachId === user.id || user.role === 'ADMIN')
+  const { status } = await req.json();
+  assertValid(['ACCEPTED', 'DECLINED'].includes(status), 'Invalid status');
 
-  const updated = await updateSessionRequestStatus(id, status)
-  return NextResponse.json(toSessionRequestDTO(updated))
+  const request = await findSessionRequest(id);
+  assertFound(request);
+  assertAllowed(request.coachId === user.id || user.role === 'ADMIN');
+
+  const updated = await updateSessionRequestStatus(id, status);
+  return NextResponse.json(toSessionRequestDTO(updated));
 }
 
-export const PATCH = protect(respond, ['COACH', 'ADMIN'])
+export const PATCH = protect(respond, ['COACH', 'ADMIN']);

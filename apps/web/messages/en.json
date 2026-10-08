@@ -61,7 +61,6 @@
     "coaches": "Coaches",
     "myCoaches": "My coaches",
     "profile": "Profile",
-    "allSessions": "All sessions",
     "myClients": "My clients",
     "users": "Users",
     "sessions": "Sessions",
@@ -73,7 +72,8 @@
       "user": "Member",
       "coach": "Coach",
       "admin": "Platform admin"
-    }
+    },
+    "sports": "Sports"
   },
   "footer": {
     "copyright": "© 2026 El Captain",
@@ -231,7 +231,15 @@
     "invalid_email": "Enter a valid email address.",
     "invalid_token": "This link is invalid or has expired.",
     "wrong_password": "Your current password is incorrect.",
-    "emailNotVerified": "Confirm your email before logging in. Check your inbox for the link."
+    "emailNotVerified": "Confirm your email before logging in. Check your inbox for the link.",
+    "invalid_upload": "That file can't be used. Photos must be JPG, PNG or WebP up to 5 MB; certificates and licenses can also be PDF, up to 10 MB.",
+    "profile_incomplete": "Some required details are missing. Fix the items listed above, then submit.",
+    "profile_locked": "Your profile is under review, so it can't be changed right now.",
+    "invalid_status_transition": "This coach's status changed. Refresh the page.",
+    "sport_exists": "That sport is already listed.",
+    "invalid_profile": "Check the details and try again.",
+    "reason_required": "Write a reason so the coach knows what to fix.",
+    "coach_not_active": "Your coach profile needs to be approved first."
   },
   "login": {
     "title": "WELCOME BACK",
@@ -332,7 +340,8 @@
     "upcoming": "Upcoming",
     "past": "Past",
     "cancelled": "Cancelled",
-    "mine": "Yours"
+    "mine": "Yours",
+    "incomplete": "Incomplete"
   },
   "coachDashboard": {
     "welcome": "Welcome back",
@@ -406,16 +415,10 @@
     "empty": "No sessions here."
   },
   "coachEdit": {
-    "line": "{specialty} coach · {location}",
     "displayName": "Display name",
-    "specialty": "Specialty",
     "location": "Location",
-    "rate": "One to one rate (EGP / hour)",
     "bio": "Bio",
-    "account": "ACCOUNT & PAYOUTS",
-    "payout": "Payout account",
-    "notifications": "Booking notifications",
-    "notificationsHint": "Email me for new bookings and cancellations"
+    "account": "ACCOUNT"
   },
   "admin": {
     "overview": "Platform overview",
@@ -504,6 +507,122 @@
       "intro": "Someone asked to reset the password for this account. This link expires in 30 minutes.",
       "button": "Set a new password",
       "ignore": "If you didn’t ask for this, you can ignore this email. Your password won’t change."
+    },
+    "coachApproved": {
+      "subject": "You're live on El Captain",
+      "intro": "Your coach profile was approved. Members can now find you and book your sessions.",
+      "button": "Open your dashboard"
+    },
+    "coachRejected": {
+      "subject": "Your El Captain coach profile needs changes",
+      "intro": "We reviewed your coach profile and need a few changes before it can go live. Here's what to fix:",
+      "button": "Update your profile"
+    },
+    "coachSuspended": {
+      "subject": "Your El Captain coach profile was suspended",
+      "intro": "Your coach profile is hidden from members for now. Reply to this email if you have questions.",
+      "button": "See details"
+    },
+    "coachSubmitted": {
+      "subject": "New coach to review",
+      "intro": "A coach submitted their profile for review:",
+      "button": "Review profile"
     }
+  },
+  "onboarding": {
+    "title": "Set up your coach profile",
+    "intro": "Members see this profile before they book you. We review every coach before they go live.",
+    "progress": "Step {step} of 4",
+    "steps": {
+      "you": "You",
+      "socials": "Socials",
+      "sports": "Sports",
+      "certifications": "Certificates & licenses",
+      "review": "Review"
+    },
+    "next": "Save & continue",
+    "back": "Back",
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "photo": "Profile photo",
+    "photoHint": "A clear photo of your face. JPG, PNG or WebP, up to 5 MB.",
+    "upload": "Upload photo",
+    "replace": "Replace photo",
+    "uploading": "Uploading…",
+    "bio": "Bio",
+    "bioHint": "Tell members about your experience and how you coach.",
+    "bioCount": "{count} / {max} characters",
+    "instagram": "Instagram",
+    "tiktok": "TikTok",
+    "socialHint": "Your @handle or profile link",
+    "links": "Other links",
+    "linksHint": "Optional: LinkedIn, a portfolio, your website. Up to {max}.",
+    "linkLabel": "Label",
+    "linkUrl": "https://…",
+    "addLink": "Add link",
+    "remove": "Remove",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "sports": "Sports you coach",
+    "sportsHint": "Pick up to {max}. Can't find yours? Type it and add it.",
+    "sportSearch": "Search sports",
+    "addSport": "Add “{name}”",
+    "didYouMean": "Did you mean {name}?",
+    "useIt": "Use it",
+    "newSport": "Waiting for review",
+    "certifications": "Certificates & licenses",
+    "certificationsHint": "Optional. Upload up to {max} certificates or licenses as PDF or images, up to 10 MB each.",
+    "certTitle": "Certificate or license name",
+    "addCertification": "Upload certificate or license",
+    "view": "View",
+    "reviewTitle": "Check everything before you submit",
+    "edit": "Edit",
+    "missing": {
+      "photo": "Add a profile photo",
+      "bio": "Write a bio",
+      "sports": "Pick at least one sport"
+    },
+    "none": "None",
+    "added": "Added",
+    "submit": "Submit for review",
+    "submitting": "Submitting…",
+    "pendingTitle": "Your profile is under review",
+    "pendingBody": "Submitted {date}. We'll email you as soon as an admin has looked at it.",
+    "rejectedTitle": "Your profile needs changes",
+    "rejectedBody": "Fix the points below and submit again.",
+    "suspendedTitle": "Your profile is suspended",
+    "suspendedBody": "Members can't see your profile right now. Contact us if you have questions.",
+    "home": "Go to the home page"
+  },
+  "adminReview": {
+    "submitted": "Submitted {date}",
+    "notSubmitted": "Not submitted yet",
+    "awaitingCoach": "Waiting for the coach to finish and submit.",
+    "socials": "SOCIALS & LINKS",
+    "sports": "SPORTS",
+    "certifications": "CERTIFICATES & LICENSES",
+    "noCertifications": "No certificates or licenses uploaded.",
+    "history": "HISTORY",
+    "event": "{actor} · {status}",
+    "rejectTitle": "Reject this coach",
+    "rejectHint": "The coach sees this reason and gets it by email.",
+    "reason": "Reason",
+    "suspendTitle": "Suspend this coach",
+    "suspendHint": "Optional. The coach sees this reason and gets it by email.",
+    "confirm": "Confirm",
+    "newSport": "New sport",
+    "approveSport": "Approve",
+    "nameEn": "English name",
+    "nameAr": "Arabic name",
+    "review": "Review"
+  },
+  "adminSports": {
+    "title": "Sports",
+    "add": "Add sport",
+    "coaches": "{count, plural, one {# coach} other {# coaches}}",
+    "pending": "Waiting for review",
+    "save": "Save",
+    "mergeInto": "Merge into",
+    "empty": "No sports yet."
   }
 }
