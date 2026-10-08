@@ -11,27 +11,13 @@ import styles from './Shell.module.css';
 
 type Role = 'admin' | 'coach' | 'user';
 
-type NavKey =
-  | 'dashboard'
-  | 'browseSessions'
-  | 'mySessions'
-  | 'coaches'
-  | 'myCoaches'
-  | 'profile'
-  | 'allSessions'
-  | 'myClients'
-  | 'users'
-  | 'sessions';
+type NavKey = 'dashboard' | 'browseSessions' | 'mySessions' | 'coaches' | 'myCoaches' | 'profile' | 'myClients' | 'users' | 'sessions' | 'sports';
 
 /** Nav per role: [message key, path, extra paths that also mark it active]. */
 const NAV: Record<Role, [NavKey, string, ((p: string) => boolean)?][]> = {
   user: [
     ['dashboard', '/user/dashboard'],
-    [
-      'browseSessions',
-      '/user/sessions',
-      (p) => p.startsWith('/user/sessions/') && p !== '/user/sessions/me',
-    ],
+    ['browseSessions', '/user/sessions', (p) => p.startsWith('/user/sessions/') && p !== '/user/sessions/me'],
     ['mySessions', '/user/sessions/me'],
     ['coaches', '/user/coaches', (p) => p.startsWith('/user/coaches/') && p !== '/user/coaches/me'],
     ['myCoaches', '/user/coaches/me'],
@@ -40,11 +26,6 @@ const NAV: Record<Role, [NavKey, string, ((p: string) => boolean)?][]> = {
   coach: [
     ['dashboard', '/coach/dashboard'],
     ['mySessions', '/coach/sessions/me'],
-    [
-      'allSessions',
-      '/coach/sessions',
-      (p) => p.startsWith('/coach/sessions/') && p !== '/coach/sessions/me',
-    ],
     ['myClients', '/coach/users/me', (p) => p.startsWith('/coach/users/')],
     ['profile', '/coach/profile'],
   ],
@@ -52,6 +33,7 @@ const NAV: Record<Role, [NavKey, string, ((p: string) => boolean)?][]> = {
     ['dashboard', '/admin/dashboard'],
     ['users', '/admin/users', (p) => p.startsWith('/admin/users/')],
     ['coaches', '/admin/coaches', (p) => p.startsWith('/admin/coaches/')],
+    ['sports', '/admin/sports'],
     ['sessions', '/admin/sessions', (p) => p.startsWith('/admin/sessions/')],
   ],
 };
@@ -67,10 +49,7 @@ const initials = (name: string) =>
     .toUpperCase();
 
 /** App chrome for a role area. The footer shows the signed-in account with its role under the name. */
-export function Shell({
-  role,
-  children,
-}: Readonly<{ role: Role; children: React.ReactNode }>) {
+export function Shell({ role, children }: Readonly<{ role: Role; children: React.ReactNode }>) {
   const t = useTranslations('nav');
   const tc = useTranslations('common');
   const path = usePathname();
@@ -81,12 +60,7 @@ export function Shell({
   const nav = (
     <nav className='nav'>
       {NAV[role].map(([key, href, also]) => (
-        <Link
-          key={href}
-          href={href}
-          onClick={() => setMenu(false)}
-          className={path === href || also?.(path) ? 'on' : ''}
-        >
+        <Link key={href} href={href} onClick={() => setMenu(false)} className={path === href || also?.(path) ? 'on' : ''}>
           {t(key)}
         </Link>
       ))}
@@ -98,9 +72,7 @@ export function Shell({
       <Avatar initials={initials(name)} accent={role !== 'admin'} />
       <div>
         <div className={styles.name}>{name}</div>
-        <div className={`muted ${styles.role}`}>
-          {t(`sub.${role}`)}
-        </div>
+        <div className={`muted ${styles.role}`}>{t(`sub.${role}`)}</div>
       </div>
     </>
   );

@@ -9,9 +9,11 @@
     - users/[id]
     - coaches
     - coaches/[id]
+    - sports
     - sessions
     - sessions/[id]
 - coach (coach):
+    - onboarding
     - dashboard
     - profile
     - sessions

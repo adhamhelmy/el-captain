@@ -170,6 +170,7 @@ a.row:hover, a.hover:hover { border-color: var(--hover-border); color: var(--tex
 .label { font-size: 13px; color: var(--text-2); margin-bottom: 6px; }
 .input { width: 100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 12px 14px; border-radius: 8px; font-size: 14px; }
 .input.on-page { background: var(--surface); padding: 13px 14px; }
+.input:disabled { opacity: 0.6; cursor: not-allowed; }
 .search { flex: 1; min-width: 240px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 15px; padding: 14px 18px; border-radius: 10px; }
 .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
 .setting { display: flex; justify-content: space-between; align-items: center; gap: 16px; }

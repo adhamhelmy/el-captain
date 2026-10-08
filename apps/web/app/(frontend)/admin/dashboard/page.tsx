@@ -1,18 +1,27 @@
 'use client';
-import { useState } from 'react';
+import { sportName } from '@/lib/coach-rules';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { SectionHead, Stats } from '@/components/ui';
-import { bookings, coaches, session, user, type CoachStatus } from '@/lib/mock';
+import { adminListCoaches } from '@/lib/coach-api';
+import type { AdminCoachRowDTO } from '@/lib/dto';
+import { bookings, coaches, session, user } from '@/lib/mock';
 import { useSessionText } from '@/lib/session-text';
 import styles from './page.module.css';
 
 export default function AdminDashboard() {
   const t = useTranslations('admin');
+  const tr = useTranslations('adminReview');
   const x = useSessionText();
-  const [status, setStatus] = useState<Record<number, CoachStatus>>({}); // Mock until wired up: PUT /api/admin/coaches/[id]
-  const statusOf = (id: number) => status[id] ?? coaches.find((c) => c.id === id)!.status;
-  const pending = coaches.filter((c) => statusOf(c.id) === 'pending');
+  const f = useFormatter();
+  const locale = useLocale();
+  const [pending, setPending] = useState<AdminCoachRowDTO[]>([]);
+  useEffect(() => {
+    adminListCoaches('PENDING')
+      .then((r) => r.ok && setPending(r.data.slice(0, 5)))
+      .catch(() => setPending([]));
+  }, []);
   const recent = bookings.filter((b) => b.at);
 
   return (
@@ -25,7 +34,7 @@ export default function AdminDashboard() {
       <Stats
         items={[
           ['1,284', t('stats.totalUsers')],
-          [coaches.filter((c) => statusOf(c.id) === 'active').length + 33, t('stats.activeCoaches')],
+          [coaches.filter((c) => c.status === 'active').length + 33, t('stats.activeCoaches')],
           ['212', t('stats.sessionsWeek')],
           [x.price(1532500), t('stats.gross30')],
         ]}
@@ -38,33 +47,23 @@ export default function AdminDashboard() {
               <div key={c.id} className={`row ${styles.pending}`}>
                 <Link href={`/admin/coaches/${c.id}`} className='plain'>
                   <div dir='auto' className={styles.name}>
-                    {x.name(c)}
+                    {c.name}
                   </div>
                   <div className={`muted ${styles.applied}`}>
-                    {t('applied', { specialty: x.category(c.specialty), date: x.monthYear(c.joined) })}
+                    {t('applied', {
+                      specialty: c.sports.map((s) => sportName(s, locale)).join(' · '),
+                      date: f.dateTime(new Date(c.submittedAt ?? c.createdAt), { dateStyle: 'medium' }),
+                    })}
                   </div>
                 </Link>
                 <div className={styles.actions}>
-                  <button
-                    type='button'
-                    className={`btn ${styles.approve}`}
-                    onClick={() => setStatus({ ...status, [c.id]: 'active' })}
-                  >
-                    {t('approve')}
-                  </button>
-                  <button
-                    type='button'
-                    className={`btn-ghost sm ${styles.reject}`}
-                    onClick={() => setStatus({ ...status, [c.id]: 'rejected' })}
-                  >
-                    {t('reject')}
-                  </button>
+                  <Link href={`/admin/coaches/${c.id}`} className={`btn ${styles.approve}`}>
+                    {tr('review')}
+                  </Link>
                 </div>
               </div>
             ))}
-            {pending.length === 0 && (
-              <div className={`muted ${styles.none}`}>{t('noneWaiting')}</div>
-            )}
+            {pending.length === 0 && <div className={`muted ${styles.none}`}>{t('noneWaiting')}</div>}
           </div>
         </div>
         <div>
@@ -82,9 +81,7 @@ export default function AdminDashboard() {
                     <bdi>{session(b.sessionId)!.title}</bdi>
                   </Link>
                 </div>
-                <span className={`dim ${styles.ago}`}>
-                  {x.ago(b.at!)}
-                </span>
+                <span className={`dim ${styles.ago}`}>{x.ago(b.at!)}</span>
               </div>
             ))}
           </div>

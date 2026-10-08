@@ -9,13 +9,13 @@ datasource db {
 }
 
 model User {
-  id              String          @id @default(cuid())
-  email           String          @unique
+  id              String           @id @default(cuid())
+  email           String           @unique
   passwordHash    String
   /// Set once the user follows the link in their verification email. Sign-in needs it.
   emailVerified   DateTime?
   name            String
-  role            Role            @default(USER)
+  role            Role             @default(USER)
   authTokens      AuthToken[]
   clientProfile   ClientProfile?
   coachProfile    CoachProfile?
@@ -23,8 +23,8 @@ model User {
   classes         Class[]
   sessionRequests SessionRequest[] @relation("SessionRequests")
   coachSessions   SessionRequest[] @relation("CoachSessions")
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 enum Role {
@@ -66,16 +66,94 @@ model ClientProfile {
 }
 
 model CoachProfile {
-  id          String  @id @default(cuid())
-  bio         String?
-  specialties String?
-  city        String?
-  photoUrl    String?
-  website     String?
-  instagram   String?
-  phone       String?
-  userId      String  @unique
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String             @id @default(cuid())
+  status         CoachStatus        @default(INCOMPLETE)
+  submittedAt    DateTime?
+  bio            String?
+  city           String?
+  photoPath      String?
+  instagram      String?
+  tiktok         String?
+  phone          String?
+  locale         String?
+  userId         String             @unique
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links          CoachLink[]
+  certifications Certification[]
+  sports         CoachSport[]
+  statusEvents   CoachStatusEvent[]
+}
+
+enum CoachStatus {
+  INCOMPLETE
+  PENDING
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+model CoachLink {
+  id             String       @id @default(cuid())
+  coachProfileId String
+  coachProfile   CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+  label          String
+  url            String
+  position       Int
+
+  @@index([coachProfileId])
+}
+
+model Certification {
+  id             String       @id @default(cuid())
+  coachProfileId String
+  coachProfile   CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+  title          String
+  filePath       String
+  fileName       String
+  contentType    String
+  size           Int
+  createdAt      DateTime     @default(now())
+
+  @@index([coachProfileId])
+}
+
+enum SportStatus {
+  PENDING
+  APPROVED
+}
+
+model Sport {
+  id          String       @id @default(cuid())
+  nameEn      String
+  nameAr      String?
+  key         String       @unique
+  status      SportStatus  @default(APPROVED)
+  createdById String?
+  coaches     CoachSport[]
+  createdAt   DateTime     @default(now())
+}
+
+model CoachSport {
+  coachProfileId String
+  coachProfile   CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+  sportId        String
+  sport          Sport        @relation(fields: [sportId], references: [id], onDelete: Cascade)
+
+  @@id([coachProfileId, sportId])
+}
+
+/// One row per status change: the review history admins see.
+model CoachStatusEvent {
+  id             String       @id @default(cuid())
+  coachProfileId String
+  coachProfile   CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+  from           CoachStatus?
+  to             CoachStatus
+  reason         String?
+  actorId        String
+  createdAt      DateTime     @default(now())
+
+  @@index([coachProfileId, createdAt])
 }
 
 model Class {
@@ -115,15 +193,15 @@ enum BookingStatus {
 }
 
 model SessionRequest {
-  id          String              @id @default(cuid())
-  message     String
-  status      SessionRequestStatus @default(PENDING)
-  userId      String
-  user        User                @relation("SessionRequests", fields: [userId], references: [id], onDelete: Cascade)
-  coachId     String
-  coach       User                @relation("CoachSessions", fields: [coachId], references: [id], onDelete: Cascade)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id        String               @id @default(cuid())
+  message   String
+  status    SessionRequestStatus @default(PENDING)
+  userId    String
+  user      User                 @relation("SessionRequests", fields: [userId], references: [id], onDelete: Cascade)
+  coachId   String
+  coach     User                 @relation("CoachSessions", fields: [coachId], references: [id], onDelete: Cascade)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
 }
 
 enum SessionRequestStatus {

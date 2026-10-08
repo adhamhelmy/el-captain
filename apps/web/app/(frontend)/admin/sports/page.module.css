@@ -1,0 +1,7 @@
+.add { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr) auto auto auto minmax(0, 1fr); gap: 10px; align-items: center; padding: 16px; }
+.error { color: var(--warn); font-size: 14px; }
+.list { gap: 10px; }
+@media (max-width: 760px) {
+  .add, .row { grid-template-columns: minmax(0, 1fr); }
+}

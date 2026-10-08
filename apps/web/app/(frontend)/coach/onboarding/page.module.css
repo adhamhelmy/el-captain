@@ -1,0 +1,21 @@
+.wrap { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; gap: 24px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.bar { height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.barFill { height: 100%; background: var(--accent); transition: width .2s; }
+.w1 { width: 20%; } .w2 { width: 40%; } .w3 { width: 60%; } .w4 { width: 80%; } .w5 { width: 100%; }
+.steps { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; }
+.stepOn { font-weight: 700; }
+.card { gap: 22px; }
+.group { gap: 8px; }
+.banner { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border); gap: 6px; }
+.bannerWarn { border-color: var(--warn); }
+.reason { white-space: pre-wrap; }
+.nav { display: flex; justify-content: space-between; gap: 12px; }
+.summaryRow { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); }
+.summaryValue { gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.missing { margin: 0; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 4px; }
+.count { font-size: 13px; }
+.error { color: var(--warn); font-size: 14px; }
+.linkBtn { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; }
+.home { align-self: flex-start; }
+.topBar { display: flex; justify-content: flex-end; margin-bottom: -12px; }

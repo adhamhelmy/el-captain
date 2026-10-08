@@ -1,37 +1,57 @@
-'use client'
-import { useState } from 'react'
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
-import { Person, Segmented, Table, Tag } from '@/components/ui'
-import { coaches, type CoachStatus } from '@/lib/mock'
-import { useSessionText } from '@/lib/session-text'
-import { isolate } from '@/i18n/locale'
-import styles from './page.module.css'
+'use client';
+import { sportName, type CoachStatus } from '@/lib/coach-rules';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useFormatter, useLocale, useTranslations } from 'next-intl';
+import { Person, Segmented, Table, Tag } from '@/components/ui';
+import { adminListCoaches } from '@/lib/coach-api';
+import type { AdminCoachRowDTO } from '@/lib/dto';
+import styles from './page.module.css';
+
+type Filter = 'all' | CoachStatus;
+/** Review queue first; the order differs from the lifecycle order in COACH_STATUSES. */
+const FILTERS: CoachStatus[] = ['PENDING', 'ACTIVE', 'REJECTED', 'SUSPENDED', 'INCOMPLETE'];
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
 export default function AdminCoachesPage() {
-  const t = useTranslations('admin')
-  const tst = useTranslations('status')
-  const x = useSessionText()
-  const [filter, setFilter] = useState<'all' | CoachStatus>('all')
-  const list = coaches.filter(c => filter === 'all' || c.status === filter)
+  const t = useTranslations('admin');
+  const tst = useTranslations('status');
+  const td = useTranslations('data');
+  const f = useFormatter();
+  const locale = useLocale();
+  const [filter, setFilter] = useState<Filter>('PENDING');
+  const [list, setList] = useState<AdminCoachRowDTO[]>([]);
 
+  useEffect(() => {
+    adminListCoaches(filter === 'all' ? undefined : filter)
+      .then((r) => r.ok && setList(r.data))
+      .catch(() => setList([]));
+  }, [filter]);
+
+  const label = (s: string) => tst(s.toLowerCase() as 'pending');
   return (
     <div className='page'>
       <div className={`between ${styles.head}`}>
         <div className='title'>{t('coaches')}</div>
-        <Segmented options={[[x.category('all'), 'all'], [tst('active'), 'active'], [tst('pending'), 'pending'], [tst('suspended'), 'suspended']]} value={filter} onChange={setFilter} />
+        <Segmented options={[[td('all'), 'all'], ...FILTERS.map((s): [string, Filter] => [label(s), s])]} value={filter} onChange={setFilter} />
       </div>
-      <Table className={styles.cols} head={[t('head.coach'), t('head.rating'), t('head.clients'), t('head.revenue'), t('head.status')]}>
-        {list.map(c => (
+      <Table className={styles.cols} head={[t('head.coach'), t('head.joined'), t('head.status')]}>
+        {list.map((c) => (
           <Link key={c.id} href={`/admin/coaches/${c.id}`} className='tr'>
-            <Person initials={x.initials(c)} name={x.name(c)} sub={`${x.category(c.specialty)} · ${isolate(c.location)}`} />
-            <span className='muted'>{c.rating} ★</span>
-            <span className='muted'>{c.clients}</span>
-            <span className='muted'>{x.price(c.revenue)}</span>
-            <span><Tag kind={c.status}>{tst(c.status)}</Tag></span>
+            <Person initials={initials(c.name)} name={c.name} sub={c.sports.map((s) => sportName(s, locale)).join(' · ') || c.email} />
+            <span className='muted'>{f.dateTime(new Date(c.submittedAt ?? c.createdAt), { dateStyle: 'medium' })}</span>
+            <span>
+              <Tag kind={c.status.toLowerCase()}>{label(c.status)}</Tag>
+            </span>
           </Link>
         ))}
       </Table>
     </div>
-  )
+  );
 }

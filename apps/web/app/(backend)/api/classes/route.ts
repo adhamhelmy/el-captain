@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { assertValid, protect, publicRoute, type AuthContext, type RequestContext } from '@/lib/api';
 import { toClassDTO } from '@/lib/dto';
 import { createClass, listClasses } from '@/prisma/models/class';
+import { assertActiveCoach } from '@/lib/coach-guard';
 
 /** Browsing shows classes from today on; a host's own list also includes past ones. */
 function earliestDate(date: string | undefined, clientId: string | undefined) {
@@ -29,6 +30,7 @@ async function browse({ query, page }: RequestContext) {
 }
 
 async function create({ req, user }: AuthContext) {
+  await assertActiveCoach(user);
   const body = await req.json();
   const { title, type, description, date, durationMinutes, city, address, capacity, imageUrl } = body;
 
