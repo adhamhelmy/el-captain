@@ -1,9 +1,9 @@
 'use client';
 import { useRef, useState } from 'react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { addCertification, certificationFileUrl, removeCertification, type Certification } from '@/lib/coach-api';
-import { CERT_TITLE_MAX, MAX_CERTS, UPLOAD_RULES } from '@/lib/coach-rules';
-import { uploadFile } from '@/lib/upload';
+import { addCertification, certificationFileUrl, removeCertification, type Certification } from '@/lib/client/coach-api';
+import { CERT_TITLE_MAX, MAX_CERTS, UPLOAD_RULES } from '@/lib/shared/coach-rules';
+import { uploadFile } from '@/lib/client/upload';
 import styles from './onboarding.module.css';
 
 const KNOWN_ERRORS = ['invalid_upload', 'invalid_profile', 'profile_locked'] as const;

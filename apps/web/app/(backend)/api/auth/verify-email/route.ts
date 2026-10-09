@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { assertValid, publicRoute, type RequestContext } from '@/lib/api'
-import { ERROR_CODES } from '@/lib/error-codes'
+import { assertValid, publicRoute, type RequestContext } from '@/lib/server/api'
+import { ERROR_CODES } from '@/lib/shared/error-codes'
 import { consumeToken } from '@/prisma/models/auth-token'
 import { markEmailVerified } from '@/prisma/models/user'
 

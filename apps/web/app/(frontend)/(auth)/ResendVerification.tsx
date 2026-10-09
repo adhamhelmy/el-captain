@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { resendVerification } from '@/lib/auth-api';
+import { resendVerification } from '@/lib/client/auth-api';
 import styles from './auth.module.css';
 
 /** Asks for a new confirmation link, then says it went out. The API answers the same for any email. */

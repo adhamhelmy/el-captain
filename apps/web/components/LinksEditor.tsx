@@ -1,6 +1,6 @@
 'use client';
 import { useTranslations } from 'next-intl';
-import { LINK_LABEL_MAX, MAX_LINKS } from '@/lib/coach-rules';
+import { LINK_LABEL_MAX, MAX_LINKS } from '@/lib/shared/coach-rules';
 import styles from './onboarding.module.css';
 
 /** A link row being edited; `key` keeps React rows stable while they're reordered. */

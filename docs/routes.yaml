@@ -180,6 +180,447 @@
           email :
             type: string
           password: string
+- coaches:
+      - list:
+          get:
+            summary: List all coaches
+      - get:
+          get:
+            summary: Get coach by ID
+            parameters:
+              - id: string
+      - update:
+          put:
+            summary: Update coach information
+            parameters:
+              - id: string
+            request:
+              email :
+                type: string
+              password: string
+      - delete:
+      delete:
+        summary: Delete coach by ID
+        parameters:
+          - id: string
+    - coaches/review:
+      - list:
+          get:
+            summary: Coaches by review status (?status=PENDING is the review queue, oldest first)
+      - get:
+          get:
+            summary: Full coach profile with review history
+      - status:
+          post:
+            summary: Approve, reject (reason required), suspend or reinstate a coach
+            request:
+              to: string
+              reason: string
+    - sports:
+      - list:
+          get:
+            summary: All sports with coach counts, pending first
+      - create:
+          post:
+            summary: Add an approved sport
+            request:
+              nameEn: string
+              nameAr: string
+      - update:
+          patch:
+            summary: Rename and/or approve a sport
+            request:
+              nameEn: string
+              nameAr: string
+              approve: boolean
+      - merge:
+          post:
+            summary: Merge a sport into another; its coaches move over
+            request:
+              intoId: string
+- coach (coach):
+    - dashboard:
+      get:
+        summary: Get coach dashboard information
+    - profile:
+      get:
+        summary: Get coach profile information
+      put:
+        summary: Update coach profile information
+        request:
+          email: string
+          password: string
+    - locations:
+      - list:
+          get:
+            summary: List all locations for the coach
+      - get:
+          get:
+            summary: Get location by ID for the coach
+            parameters:
+              - id: string
+      - create:
+          post:
+            summary: Create a new location for the coach
+            request:
+              name: string
+              address: string
+      - update:
+          put:
+            summary: Update location information for the coach
+            parameters:
+              - id: string
+            request:
+              name: string
+              address: string
+      - delete:
+          delete:
+            summary: Delete location by ID for the coach
+            parameters:
+              - id: string
+- user (user):
+    - dashboard:
+      get:
+        summary: Get user dashboard information
+    - profile:
+      get:
+        summary: Get user profile information
+      put:
+        summary: Update user profile information
+        request:
+          email :
+            type: string
+          password: string
+- sessions:
+    - list:
+      get:
+        summary: List all sessions
+    - get:
+      get:
+        summary: Get session by ID
+        parameters:
+          - id: string
+    - create (admin, coach):
+      post:
+        summary: Create a new session
+        request:
+          title: string
+          description: string
+          coach_id: string
+    - update (admin, coach):
+      put:
+        summary: Update session information
+        parameters:
+          - id: string
+        request:
+          title: string
+          description: string
+    - delete (admin, coach):
+      delete:
+        summary: Delete session by ID
+        parameters:
+          - id: string
+    - me (coach, user):
+        - list:
+          get:
+            summary: List sessions for the current user
+- coaches:
+    - list:
+      get:
+        summary: List all coaches
+    - get:
+      get:
+        summary: Get coach by ID
+        parameters:
+          - id: string
+    - me (user):
+      get:
+        summary: Get current user's coach information
+    - [id]:
+      - favorite (user):
+          post:
+            summary: Add a coach to user's favorites
+            parameters:
+              - id: string
+      - unfavorite (user):
+          delete:
+            summary: Remove a coach from user's favorites
+            parameters:
+              - id: string
+    - me/onboarding (coach):
+      get:
+        summary: The coach's own profile draft, review status, missing fields and latest rejection/suspension reason
+    - update (coach, admin):
+      patch:
+        summary: Save part of a coach profile (locked for the coach while PENDING)
+        parameters:
+          - id: string
+        request:
+          bio: string
+          instagram: string
+          tiktok: string
+          photoPath: string
+          links: "[{ label, url }]"
+          sportIds: "[string]"
+    - submit (coach):
+      post:
+        summary: Submit the profile for review (INCOMPLETE/REJECTED → PENDING); 400 profile_incomplete lists `missing`
+        parameters:
+          - id: string
+    - certifications (coach):
+      post:
+        summary: Attach an uploaded certificate
+        parameters:
+          - id: string
+        request:
+          title: string
+          filePath: string
+          fileName: string
+    - certifications/[certId] (coach):
+      delete:
+        summary: Remove a certificate and its file
+    - certifications/[certId]/file (coach, admin):
+      get:
+        summary: Stream a certificate file to its coach or an admin
+- sessions:
+    - list:
+      get:
+        summary: Upcoming group sessions of active coaches. ?sport= ?q= ?coach= ?from= ?to= ?limit= ?offset=
+    - get:
+      get:
+        summary: One session with venue, coach, booked count, and bookedByMe for a signed-in member. Private sessions 404 except for their coach, member and admins
+        parameters:
+          - id: string
+    - create (coach):
+      post:
+        summary: Create a group session; repeatWeeks (1-12) creates weekly copies
+        request:
+          title: string
+          description: string
+          sportId: string
+          venueId: string
+          level: ALL_LEVELS | BEGINNER | INTERMEDIATE | ADVANCED
+          startsAt: date-time
+          durationMin: integer
+          price: integer
+          capacity: integer
+          repeatWeeks: integer
+    - update (coach):
+      patch:
+        summary: Edit before start. Time, venue and length are locked once anyone is booked; capacity can't go below bookings
+        parameters:
+          - id: string
+    - cancel (coach, admin):
+      post:
+        summary: Cancel the session and every booking; emails booked members
+        parameters:
+          - id: string
+        request:
+          reason: string
+    - book (user):
+      post:
+        summary: Book a spot (or rebook after cancelling). 409 session_full / session_closed
+    - unbook (user):
+      post:
+        summary: Cancel own booking up to 2 hours before start. 409 cancel_too_late
+    - attendees (coach, admin):
+      get:
+        summary: Confirmed bookings with member name and email
+    - me (coach, user):
+      get:
+        summary: Coach's own sessions or a member's booked sessions. ?when=upcoming|past
+- venues:
+    - me (coach):
+      get:
+        summary: The coach's venues, archived last
+      post:
+        summary: Add a venue
+        request:
+          name: string
+          address: string
+          city: string
+          mapUrl: string
+    - [id] (coach):
+      patch:
+        summary: Edit own venue
+      delete:
+        summary: Archive own venue
+- private-requests:
+    - create (user):
+      post:
+        summary: Ask a coach for a private session; price and length are copied from the coach
+        request:
+          coachId: string
+          venueId: string
+          sportId: string
+          startsAt: date-time
+          message: string
+    - me (user, coach):
+      get:
+        summary: Sent (member) or received (coach) requests, with EXPIRED derived
+    - accept (coach):
+      post:
+        summary: Creates the private session and the member's booking. 409 request_closed / time_conflict
+    - reject (coach):
+      post:
+        summary: Reject with an optional note
+        request:
+          note: string
+    - cancel (user):
+      post:
+        summary: Withdraw a pending request
+- locations:
+      - list:
+          get:
+            summary: List all locations for the coach
+      - get:
+          get:
+            summary: Get location by ID for the coach
+            parameters:
+              - id: string
+      - create:
+          post:
+            summary: Create a new location for the coach
+            request:
+              name: string
+              address: string
+      - update:
+          put:
+            summary: Update location information for the coach
+            parameters:
+              - id: string
+            request:
+              name: string
+              address: string
+      - delete:
+          delete:
+            summary: Delete location by ID for the coach
+            parameters:
+              - id: string
+- user (user):
+    - dashboard:
+      get:
+        summary: Get user dashboard information
+    - profile:
+      get:
+        summary: Get user profile information
+      put:
+        summary: Update user profile information
+        request:
+          email :
+            type: string
+          password: string
+- coaches:
+      - list:
+          get:
+            summary: List all coaches
+      - get:
+          get:
+            summary: Get coach by ID
+            parameters:
+              - id: string
+      - update:
+          put:
+            summary: Update coach information
+            parameters:
+              - id: string
+            request:
+              email :
+                type: string
+              password: string
+      - delete:
+      delete:
+        summary: Delete coach by ID
+        parameters:
+          - id: string
+    - coaches/review:
+      - list:
+          get:
+            summary: Coaches by review status (?status=PENDING is the review queue, oldest first)
+      - get:
+          get:
+            summary: Full coach profile with review history
+      - status:
+          post:
+            summary: Approve, reject (reason required), suspend or reinstate a coach
+            request:
+              to: string
+              reason: string
+    - sports:
+      - list:
+          get:
+            summary: All sports with coach counts, pending first
+      - create:
+          post:
+            summary: Add an approved sport
+            request:
+              nameEn: string
+              nameAr: string
+      - update:
+          patch:
+            summary: Rename and/or approve a sport
+            request:
+              nameEn: string
+              nameAr: string
+              approve: boolean
+      - merge:
+          post:
+            summary: Merge a sport into another; its coaches move over
+            request:
+              intoId: string
+- coach (coach):
+    - dashboard:
+      get:
+        summary: Get coach dashboard information
+    - profile:
+      get:
+        summary: Get coach profile information
+      put:
+        summary: Update coach profile information
+        request:
+          email: string
+          password: string
+    - locations:
+      - list:
+          get:
+            summary: List all locations for the coach
+      - get:
+          get:
+            summary: Get location by ID for the coach
+            parameters:
+              - id: string
+      - create:
+          post:
+            summary: Create a new location for the coach
+            request:
+              name: string
+              address: string
+      - update:
+          put:
+            summary: Update location information for the coach
+            parameters:
+              - id: string
+            request:
+              name: string
+              address: string
+      - delete:
+          delete:
+            summary: Delete location by ID for the coach
+            parameters:
+              - id: string
+- user (user):
+    - dashboard:
+      get:
+        summary: Get user dashboard information
+    - profile:
+      get:
+        summary: Get user profile information
+      put:
+        summary: Update user profile information
+        request:
+          email :
+            type: string
+          password: string
 - sessions:
     - list:
       get:

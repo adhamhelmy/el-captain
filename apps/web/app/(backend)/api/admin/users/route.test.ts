@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }))
-vi.mock('@/lib/auth', () => ({ authOptions: {} }))
-vi.mock('@/prisma/models/user', () => ({ listUsers: vi.fn(), updateUserRole: vi.fn() }))
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }))
+vi.mock('@/prisma/models/user', () => ({ updateUserRole: vi.fn() }))
+vi.mock('@/prisma/models/member', () => ({ listMembersForAdmin: vi.fn() }))
 
 import { GET, PATCH } from './route'
-import { listUsers, updateUserRole } from '@/prisma/models/user'
+import { listMembersForAdmin } from '@/prisma/models/member'
+import { updateUserRole } from '@/prisma/models/user'
 import { call, signInAs } from '@/test/api'
 
 beforeEach(() => vi.clearAllMocks())
@@ -16,10 +18,14 @@ describe('GET /api/admin/users', () => {
     expect((await call(GET)).status).toBe(403)
   })
 
-  it('lists users for an admin', async () => {
+  it('lists members for an admin, with a trimmed search and no password hash', async () => {
     signInAs('admin', 'ADMIN')
-    vi.mocked(listUsers).mockResolvedValue([{ id: 'u1', name: 'Ali' }] as any)
-    expect(await (await call(GET)).json()).toEqual([{ id: 'u1', name: 'Ali' }])
+    const member = { id: 'u1', name: 'Ali', email: 'a@b.com', phone: null, passwordHash: 'x', suspendedAt: null, favouriteSports: [] }
+    vi.mocked(listMembersForAdmin).mockResolvedValue([member] as any)
+    const json = await (await call(GET, { url: 'http://localhost/api/admin/users?q=%20ali%20' })).json()
+    expect(json).toEqual([expect.objectContaining({ id: 'u1', name: 'Ali', suspendedAt: null })])
+    expect(json[0]).not.toHaveProperty('passwordHash')
+    expect(listMembersForAdmin).toHaveBeenCalledWith('ali', expect.anything())
   })
 })
 

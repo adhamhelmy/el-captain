@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { assertAllowed, assertFound, protect, publicRoute, type AuthContext, type RequestContext } from '@/lib/api'
-import { toClientDTO } from '@/lib/dto'
+import { assertAllowed, assertFound, protect, publicRoute, type AuthContext, type RequestContext } from '@/lib/server/api'
+import { toClientDTO } from '@/lib/server/dto'
 import { findClient, updateClient } from '@/prisma/models/client-profile'
 
 async function getStudio({ params: { id } }: RequestContext<{ id: string }>) {

@@ -12,18 +12,11 @@
   },
   "data": {
     "all": "All",
-    "category": {
-      "yoga": "Yoga",
-      "circuit": "Circuit",
-      "spin": "Spin",
-      "climbing": "Climbing",
-      "strength": "Strength"
-    },
     "level": {
       "allLevels": "All levels",
       "beginner": "Beginner",
       "intermediate": "Intermediate",
-      "private": "Private"
+      "advanced": "Advanced"
     },
     "type": {
       "group": "Group",
@@ -34,7 +27,8 @@
     "attended": "{count, plural, one {# attended} other {# attended}}",
     "minutes": "{count} min",
     "when": "{day} · {date} · {time}",
-    "oneOnOneShort": "One to one"
+    "oneOnOneShort": "One to one",
+    "privateTitle": "One to one · {sport}"
   },
   "common": {
     "logIn": "Log in",
@@ -200,25 +194,47 @@
   "session": {
     "allSessions": "All sessions",
     "whatToExpect": "WHAT TO EXPECT",
-    "coachLine": "{specialty} coach · {rating} ★ ({reviews})",
+    "where": "WHERE",
+    "map": "Open map →",
+    "coach": "COACH",
     "profileLink": "Profile →",
     "ended": "This session has ended.",
+    "cancelled": "This session was cancelled.",
+    "reason": "Reason: {reason}",
+    "full": "This session is full.",
     "booked": "YOU’RE BOOKED",
     "confirmation": "Confirmation sent to {email}",
     "viewMine": "View my sessions",
     "cancel": "Cancel booking",
+    "cancelUntil": "Free cancellation until {when}.",
+    "cancelClosed": "It starts in under 2 hours, so it can't be cancelled now.",
+    "privateCancel": "To cancel a one to one session, contact your coach.",
     "logInToBook": "Log in to book",
     "reserve": "Reserve spot",
-    "book": "Book session",
-    "freeCancel": "Free cancellation up to 12 hours before"
+    "payAtSession": "Nothing to pay now. You pay the coach at the session."
   },
   "coachProfile": {
     "allCoaches": "All coaches",
     "allSessions": "All sessions",
-    "line": "{specialty} coach · {location} · {rating} ★ ({reviews})",
-    "bookPrivate": "Book one to one · {price}",
+    "sports": "SPORTS",
+    "links": "LINKS",
     "upcoming": "UPCOMING SESSIONS",
-    "none": "No upcoming sessions."
+    "none": "No upcoming sessions.",
+    "requestPrivate": "Request a private session",
+    "requestLine": "{minutes} min · {price}, paid at the session",
+    "logInToRequest": "Log in to request a private session",
+    "formTitle": "REQUEST A PRIVATE SESSION",
+    "formHint": "Pick a place and time. The coach confirms or declines, and you'll get an email either way.",
+    "where": "Where",
+    "sport": "Sport",
+    "date": "Date",
+    "time": "Time (Cairo)",
+    "message": "Message (optional)",
+    "messageCount": "{count}/{max}",
+    "send": "Send request",
+    "sent": "Request sent. You'll get an email when the coach answers. Track it under My sessions → Requests.",
+    "pickFuture": "Pick a date and time in the future.",
+    "fix": "Check the highlighted fields."
   },
   "errors": {
     "missing_fields": "Missing required fields",
@@ -227,6 +243,7 @@
     "generic": "Something went wrong.",
     "passwordsDontMatch": "Passwords don’t match.",
     "invalidLogin": "Invalid email or password.",
+    "accountSuspended": "This account is suspended. Contact us if you think this is a mistake.",
     "weak_password": "Use 8 or more characters with a letter and a number. English-only passwords also need an uppercase and a lowercase letter.",
     "invalid_email": "Enter a valid email address.",
     "invalid_token": "This link is invalid or has expired.",
@@ -239,7 +256,15 @@
     "sport_exists": "That sport is already listed.",
     "invalid_profile": "Check the details and try again.",
     "reason_required": "Write a reason so the coach knows what to fix.",
-    "coach_not_active": "Your coach profile needs to be approved first."
+    "coach_not_active": "Your coach profile needs to be approved first.",
+    "session_full": "That session just filled up.",
+    "session_closed": "This session isn't open for booking anymore.",
+    "cancel_too_late": "It's too close to the start to cancel.",
+    "time_conflict": "You already have a session at that time.",
+    "request_closed": "This request was already answered or has expired.",
+    "private_unavailable": "This coach isn't taking private requests right now, or you already have one waiting.",
+    "invalid_session": "Check the highlighted fields.",
+    "invalid_venue": "Check the venue details."
   },
   "login": {
     "title": "WELCOME BACK",
@@ -309,12 +334,13 @@
     "past": "Past",
     "details": "Details",
     "bookAgain": "Book again",
-    "empty": "Nothing here yet. <link>Browse sessions</link>"
+    "empty": "Nothing here yet. <link>Browse sessions</link>",
+    "requests": "Requests"
   },
   "userCoaches": {
     "title": "COACHES",
     "sub": "Find a coach that fits how you train.",
-    "from_": "From {price}",
+    "none": "No coaches yet. Check back soon.",
     "mineTitle": "MY COACHES",
     "mineSub": "Coaches you’ve trained with before.",
     "together": "{count, plural, one {# session together} other {# sessions together}}"
@@ -324,9 +350,14 @@
     "memberSince": "Member since {date}",
     "phone": "Phone",
     "favourites": "Favourite disciplines",
+    "nameRequired": "Your name can’t be empty.",
+    "emailLocked": "Your email can’t be changed here.",
+    "phoneHint": "Optional. Include the country code, e.g. +20.",
+    "phoneInvalid": "That doesn’t look like a phone number: use 7 to 15 digits, with an optional + in front.",
+    "favouritesCount": "{count}/{max}",
+    "favouritesMax": "You can pick up to {max} sports.",
+    "fixFields": "Fix the highlighted fields first.",
     "settings": "SETTINGS",
-    "reminders": "Email reminders",
-    "remindersHint": "A reminder 2 hours before each session",
     "passwordHint": "Update the password you log in with",
     "currentPassword": "Current password",
     "updatePassword": "Update password",
@@ -347,10 +378,9 @@
     "welcome": "Welcome back",
     "title": "{name}’S DASHBOARD",
     "stats": {
-      "bookings": "Bookings this week",
-      "revenue": "Revenue this week",
-      "rating": "Average rating",
-      "fill": "Fill rate"
+      "bookings": "Booked, next 7 days",
+      "revenue": "Expected earnings (30 days)",
+      "fill": "Fill rate (30 days)"
     },
     "comingUp": "COMING UP",
     "schedule": "Schedule →",
@@ -368,12 +398,18 @@
     "booked": "Booked",
     "price": "Price",
     "duration": "Duration",
-    "earnings": "Earnings",
+    "earnings": "Expected earnings",
     "level": "Level",
     "description": "DESCRIPTION",
     "roster": "ROSTER",
     "noBookings": "No bookings yet.",
-    "notYours": "This session belongs to another coach. Roster and earnings are only visible to them."
+    "notYours": "This session belongs to another coach. Roster and earnings are only visible to them.",
+    "edit": "Edit",
+    "cancelTitle": "CANCEL THIS SESSION",
+    "cancelHint": "Everyone booked gets an email. Add a reason if you like; it's included.",
+    "reason": "Reason (optional)",
+    "confirmCancel": "Cancel session",
+    "keep": "Keep it"
   },
   "clients": {
     "title": "MY CLIENTS",
@@ -384,25 +420,43 @@
     "back": "My clients",
     "withYou": "Sessions with you",
     "memberSince": "Member since",
-    "history": "SESSIONS WITH YOU",
-    "notes": "PRIVATE NOTES",
-    "notesPlaceholder": "Injuries, goals, preferences… only you can see this."
+    "history": "SESSIONS WITH YOU"
   },
   "schedule": {
     "title": "MY SESSIONS",
     "add": "+ Add session",
     "newSession": "NEW SESSION",
-    "privateOneOnOne": "One to one",
+    "editSession": "EDIT SESSION",
     "fieldTitle": "Title",
     "titlePlaceholder": "e.g. Saturday Power Flow",
-    "day": "Day",
-    "start": "Start time",
+    "description": "What to expect",
+    "sport": "Sport",
+    "venue": "Venue",
+    "level": "Level",
+    "date": "Date",
+    "start": "Start time (Cairo)",
     "duration": "Duration (min)",
     "price": "Price (EGP)",
     "capacity": "Capacity",
+    "repeat": "Repeat weekly",
+    "rules": {
+      "title": "Up to {max} characters",
+      "description": "Optional, up to {max} characters",
+      "startsAt": "In the future",
+      "duration": "{min}–{max} minutes",
+      "price": "0–{max, number} EGP, paid at the session",
+      "capacity": "{min}–{max} people",
+      "repeat": "1–{max} weeks: one session per week, each booked on its own"
+    },
+    "noSports": "Your sports are still waiting for approval, so you can't publish yet.",
+    "noVenues": "Add a venue on your profile first.",
+    "lockedHint": "Members are booked, so time, place and length can't change. Cancel and publish a new session instead.",
+    "fix": "Check the highlighted fields.",
+    "published": "{count, plural, one {Session published.} other {# sessions published.}}",
     "publish": "Publish session",
     "upcoming": "Upcoming",
     "past": "Past",
+    "requests": "Requests",
     "table": "Table",
     "calendar": "Calendar",
     "head": {
@@ -418,7 +472,24 @@
     "displayName": "Display name",
     "location": "Location",
     "bio": "Bio",
-    "account": "ACCOUNT"
+    "account": "ACCOUNT",
+    "venues": "VENUES",
+    "venuesHint": "Places you train at. Members see them on your sessions.",
+    "addVenue": "+ Add venue",
+    "venueName": "Name",
+    "address": "Address",
+    "city": "City",
+    "mapUrl": "Map link (optional)",
+    "venueRules": "Name up to 80, address up to 200, city up to 80 characters. Map link must start with https://.",
+    "editVenue": "Edit",
+    "archive": "Archive",
+    "archived": "Archived",
+    "saveVenue": "Save venue",
+    "private": "PRIVATE SESSIONS",
+    "privateHint": "Set both to let members request one to one sessions with you. Clear both to stop requests.",
+    "privatePrice": "Price per session (EGP)",
+    "privateDuration": "Length (minutes)",
+    "privateRules": "Set both or neither. Price 0–100,000 EGP, length 15–240 minutes."
   },
   "admin": {
     "overview": "Platform overview",
@@ -430,17 +501,11 @@
     "backCoaches": "Coaches",
     "backSessions": "Sessions",
     "stats": {
-      "totalUsers": "Total users",
+      "totalUsers": "Members",
       "activeCoaches": "Active coaches",
-      "sessionsWeek": "Sessions this week",
-      "gross30": "Gross bookings (30d)",
-      "bookings": "Bookings",
-      "totalSpent": "Total spent",
+      "sessionsWeek": "Sessions, next 7 days",
+      "gross30": "Booked value (30 days)",
       "joined": "Joined",
-      "lastActive": "Last active",
-      "listed": "Sessions listed",
-      "clients": "Clients",
-      "revenue30": "Revenue (30d)",
       "booked": "Booked",
       "price": "Price",
       "gross": "Gross"
@@ -456,6 +521,11 @@
     "recentBookings": "RECENT BOOKINGS",
     "search": "Search by name or email…",
     "noUsers": "No users match.",
+    "joinedOn": "Joined {date}",
+    "emailNotVerified": "Email not verified",
+    "suspendedSince": "Suspended since {date}",
+    "noFavourites": "No favourite sports picked yet.",
+    "noCoaches": "No coaches match.",
     "suspendUser": "Suspend user",
     "reactivate": "Reactivate",
     "history": "BOOKING HISTORY",
@@ -463,14 +533,15 @@
     "bio": "BIO",
     "description": "DESCRIPTION",
     "attendees": "ATTENDEES",
-    "cancelRefund": "Cancel & refund",
     "head": {
+      "phone": "Phone",
       "user": "User",
       "joined": "Joined",
       "bookings": "Bookings",
       "spent": "Spent",
       "status": "Status",
       "coach": "Coach",
+      "sports": "Sports",
       "rating": "Rating",
       "clients": "Clients",
       "revenue": "Revenue",
@@ -479,7 +550,10 @@
       "booked": "Booked",
       "price": "Price"
     },
-    "booked": "booked"
+    "booked": "booked",
+    "cancelSession": "Cancel session",
+    "noSessions": "No sessions match.",
+    "searchSessions": "Search by title or coach…"
   },
   "notFound": {
     "text": "This page took a rest day.",
@@ -527,7 +601,36 @@
       "subject": "New coach to review",
       "intro": "A coach submitted their profile for review:",
       "button": "Review profile"
-    }
+    },
+    "bookingConfirmed": {
+      "subject": "You're booked",
+      "intro": "Your spot is reserved. You pay the coach at the session.",
+      "button": "View session"
+    },
+    "sessionCancelled": {
+      "subject": "Your session was cancelled",
+      "intro": "The coach cancelled a session you booked. There's nothing to pay.",
+      "button": "Find another session"
+    },
+    "privateRequested": {
+      "subject": "New private session request",
+      "intro": "A member asked you for a one to one session:",
+      "button": "Answer the request"
+    },
+    "requestAccepted": {
+      "subject": "Your private session is confirmed",
+      "intro": "The coach accepted your request. You pay the coach at the session.",
+      "button": "View session"
+    },
+    "requestRejected": {
+      "subject": "Your private session request wasn't accepted",
+      "intro": "The coach can't take this session. Their note, if they left one, is below.",
+      "button": "Pick another time"
+    },
+    "sessionDetail": "{title} with {coach}\n{when} (Cairo time) · {minutes} min\n{venue}, {address}\n{price}, paid at the session",
+    "cancelBy": "You can cancel until {when}.",
+    "requestDetail": "{member} · {sport}\n{when} (Cairo time) · {minutes} min\n{venue}",
+    "reasonLine": "Reason: {reason}"
   },
   "onboarding": {
     "title": "Set up your coach profile",
@@ -624,5 +727,25 @@
     "save": "Save",
     "mergeInto": "Merge into",
     "empty": "No sports yet."
+  },
+  "requests": {
+    "status": {
+      "pending": "Waiting",
+      "accepted": "Accepted",
+      "rejected": "Declined",
+      "cancelled": "Withdrawn",
+      "expired": "Expired"
+    },
+    "line": "{sport} · {when} · {place}",
+    "terms": "{minutes} min · {price}",
+    "message": "Message: {message}",
+    "note": "Coach's note: {note}",
+    "withdraw": "Withdraw",
+    "accept": "Accept",
+    "reject": "Decline",
+    "notePlaceholder": "A note for the member (optional)",
+    "confirmReject": "Decline request",
+    "viewSession": "View session",
+    "none": "No requests yet."
   }
 }

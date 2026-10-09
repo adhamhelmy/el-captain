@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { assertValid, publicRoute, type RequestContext } from '@/lib/api'
-import { ERROR_CODES } from '@/lib/error-codes'
-import { isStrongPassword } from '@/lib/auth-rules'
-import { hashPassword } from '@/lib/password'
+import { assertValid, publicRoute, type RequestContext } from '@/lib/server/api'
+import { ERROR_CODES } from '@/lib/shared/error-codes'
+import { isStrongPassword } from '@/lib/shared/auth-rules'
+import { hashPassword } from '@/lib/server/password'
 import { consumeToken } from '@/prisma/models/auth-token'
 import { markEmailVerified, updatePasswordHash } from '@/prisma/models/user'
 

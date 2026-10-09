@@ -9,22 +9,30 @@ datasource db {
 }
 
 model User {
-  id              String           @id @default(cuid())
-  email           String           @unique
-  passwordHash    String
+  id               String           @id @default(cuid())
+  email            String           @unique
+  passwordHash     String
   /// Set once the user follows the link in their verification email. Sign-in needs it.
-  emailVerified   DateTime?
-  name            String
-  role            Role             @default(USER)
-  authTokens      AuthToken[]
-  clientProfile   ClientProfile?
-  coachProfile    CoachProfile?
-  bookings        Booking[]
-  classes         Class[]
-  sessionRequests SessionRequest[] @relation("SessionRequests")
-  coachSessions   SessionRequest[] @relation("CoachSessions")
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  emailVerified    DateTime?
+  name             String
+  /// Members only; coaches keep theirs on the coach profile.
+  phone            String?
+  role             Role             @default(USER)
+  /// Set by an admin. A suspended user can't sign in, and open sessions stop working at the next status check.
+  suspendedAt      DateTime?
+  favouriteSports  FavouriteSport[]
+  authTokens       AuthToken[]
+  clientProfile    ClientProfile?
+  coachProfile     CoachProfile?
+  /// Language for member emails, saved from the request each time a member books or sends a request.
+  locale           String?
+  venues           Venue[]
+  coachedSessions  Session[]        @relation("CoachSessions")
+  bookings         Booking[]
+  sentRequests     PrivateRequest[] @relation("PrivateRequestsSent")
+  receivedRequests PrivateRequest[] @relation("PrivateRequestsReceived")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 }
 
 enum Role {
@@ -66,22 +74,25 @@ model ClientProfile {
 }
 
 model CoachProfile {
-  id             String             @id @default(cuid())
-  status         CoachStatus        @default(INCOMPLETE)
-  submittedAt    DateTime?
-  bio            String?
-  city           String?
-  photoPath      String?
-  instagram      String?
-  tiktok         String?
-  phone          String?
-  locale         String?
-  userId         String             @unique
-  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  links          CoachLink[]
-  certifications Certification[]
-  sports         CoachSport[]
-  statusEvents   CoachStatusEvent[]
+  id              String             @id @default(cuid())
+  status          CoachStatus        @default(INCOMPLETE)
+  submittedAt     DateTime?
+  bio             String?
+  city            String?
+  photoPath       String?
+  instagram       String?
+  tiktok          String?
+  phone           String?
+  locale          String?
+  /// Price (EGP) and length (minutes) of one private session. Members can request one only when both are set.
+  privatePrice    Int?
+  privateDuration Int?
+  userId          String             @unique
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links           CoachLink[]
+  certifications  Certification[]
+  sports          CoachSport[]
+  statusEvents    CoachStatusEvent[]
 }
 
 enum CoachStatus {
@@ -123,14 +134,17 @@ enum SportStatus {
 }
 
 model Sport {
-  id          String       @id @default(cuid())
-  nameEn      String
-  nameAr      String?
-  key         String       @unique
-  status      SportStatus  @default(APPROVED)
-  createdById String?
-  coaches     CoachSport[]
-  createdAt   DateTime     @default(now())
+  id              String           @id @default(cuid())
+  nameEn          String
+  nameAr          String?
+  key             String           @unique
+  status          SportStatus      @default(APPROVED)
+  createdById     String?
+  coaches         CoachSport[]
+  favouredBy      FavouriteSport[]
+  sessions        Session[]
+  privateRequests PrivateRequest[]
+  createdAt       DateTime         @default(now())
 }
 
 model CoachSport {
@@ -140,6 +154,16 @@ model CoachSport {
   sport          Sport        @relation(fields: [sportId], references: [id], onDelete: Cascade)
 
   @@id([coachProfileId, sportId])
+}
+
+/// A sport a member picked on their profile.
+model FavouriteSport {
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sportId String
+  sport   Sport  @relation(fields: [sportId], references: [id], onDelete: Cascade)
+
+  @@id([userId, sportId])
 }
 
 /// One row per status change: the review history admins see.
@@ -156,35 +180,21 @@ model CoachStatusEvent {
   @@index([coachProfileId, createdAt])
 }
 
-model Class {
-  id              String    @id @default(cuid())
-  title           String
-  type            String
-  description     String?
-  date            DateTime
-  durationMinutes Int
-  city            String
-  address         String
-  capacity        Int
-  spotsLeft       Int
-  imageUrl        String?
-  clientId        String
-  client          User      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  bookings        Booking[]
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+enum SessionType {
+  GROUP
+  PRIVATE
 }
 
-model Booking {
-  id        String        @id @default(cuid())
-  status    BookingStatus @default(CONFIRMED)
-  userId    String
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  classId   String
-  class     Class         @relation(fields: [classId], references: [id], onDelete: Cascade)
-  createdAt DateTime      @default(now())
+enum SessionLevel {
+  ALL_LEVELS
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
 
-  @@unique([userId, classId])
+enum SessionStatus {
+  SCHEDULED
+  CANCELLED
 }
 
 enum BookingStatus {
@@ -192,20 +202,109 @@ enum BookingStatus {
   CANCELLED
 }
 
-model SessionRequest {
-  id        String               @id @default(cuid())
-  message   String
-  status    SessionRequestStatus @default(PENDING)
-  userId    String
-  user      User                 @relation("SessionRequests", fields: [userId], references: [id], onDelete: Cascade)
-  coachId   String
-  coach     User                 @relation("CoachSessions", fields: [coachId], references: [id], onDelete: Cascade)
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
+enum CancelledBy {
+  MEMBER
+  COACH
+  ADMIN
 }
 
-enum SessionRequestStatus {
+enum PrivateRequestStatus {
   PENDING
   ACCEPTED
-  DECLINED
+  REJECTED
+  CANCELLED
+}
+
+/// A place a coach trains at. Archived venues are hidden from new sessions but stay linked to old ones.
+model Venue {
+  id         String           @id @default(cuid())
+  coachId    String
+  coach      User             @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  name       String
+  address    String
+  city       String
+  mapUrl     String?
+  archivedAt DateTime?
+  sessions   Session[]
+  requests   PrivateRequest[]
+  createdAt  DateTime         @default(now())
+
+  @@index([coachId])
+}
+
+/// Something on the calendar: a group session anyone can book, or a private one made from an accepted request.
+model Session {
+  id           String          @id @default(cuid())
+  coachId      String
+  coach        User            @relation("CoachSessions", fields: [coachId], references: [id], onDelete: Cascade)
+  sportId      String
+  sport        Sport           @relation(fields: [sportId], references: [id])
+  venueId      String
+  venue        Venue           @relation(fields: [venueId], references: [id])
+  type         SessionType
+  /// Group sessions only.
+  level        SessionLevel?
+  title        String
+  description  String?
+  startsAt     DateTime
+  durationMin  Int
+  price        Int
+  /// Always 1 for private sessions.
+  capacity     Int
+  /// Shared by the copies made with "repeat weekly".
+  seriesId     String?
+  status       SessionStatus   @default(SCHEDULED)
+  cancelledAt  DateTime?
+  cancelReason String?
+  bookings     Booking[]
+  request      PrivateRequest?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([coachId, startsAt])
+  @@index([status, startsAt])
+}
+
+/// A member's place in a session. Cancelling keeps the row; booking again reactivates it.
+model Booking {
+  id          String        @id @default(cuid())
+  sessionId   String
+  session     Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  memberId    String
+  member      User          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  status      BookingStatus @default(CONFIRMED)
+  cancelledAt DateTime?
+  cancelledBy CancelledBy?
+  createdAt   DateTime      @default(now())
+
+  @@unique([sessionId, memberId])
+  @@index([memberId])
+}
+
+/// A member asking a coach for a one-to-one session. Accepting creates the private Session.
+model PrivateRequest {
+  id           String               @id @default(cuid())
+  memberId     String
+  member       User                 @relation("PrivateRequestsSent", fields: [memberId], references: [id], onDelete: Cascade)
+  coachId      String
+  coach        User                 @relation("PrivateRequestsReceived", fields: [coachId], references: [id], onDelete: Cascade)
+  venueId      String
+  venue        Venue                @relation(fields: [venueId], references: [id])
+  sportId      String
+  sport        Sport                @relation(fields: [sportId], references: [id])
+  startsAt     DateTime
+  /// Copied from the coach's settings when sent.
+  durationMin  Int
+  /// Copied from the coach's settings when sent.
+  price        Int
+  message      String?
+  status       PrivateRequestStatus @default(PENDING)
+  responseNote String?
+  respondedAt  DateTime?
+  sessionId    String?              @unique
+  session      Session?             @relation(fields: [sessionId], references: [id])
+  createdAt    DateTime             @default(now())
+
+  @@index([coachId, status])
+  @@index([memberId, status])
 }

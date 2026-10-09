@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { assertFound, protect, type AuthContext } from '@/lib/api';
-import { toAdminCoachDTO } from '@/lib/dto';
+import { assertFound, protect, type AuthContext } from '@/lib/server/api';
+import { toAdminCoachDTO } from '@/lib/server/dto';
 import { findCoach } from '@/prisma/models/coach-profile';
 import { listStatusEvents } from '@/prisma/models/coach-status';
 

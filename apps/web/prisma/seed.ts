@@ -47,29 +47,6 @@ async function main() {
     },
   });
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(9, 0, 0, 0);
-
-  const classes = [
-    { title: 'Morning Kickboxing', type: 'kickboxing', city: 'Cairo', address: '10 Tahrir Square', capacity: 15 },
-    { title: 'Power Yoga', type: 'yoga', city: 'Cairo', address: '10 Tahrir Square', capacity: 10 },
-    { title: 'Pilates Basics', type: 'pilates', city: 'Alexandria', address: '5 Corniche St', capacity: 12 },
-  ];
-
-  for (const c of classes) {
-    await prisma.class.create({
-      data: {
-        ...c,
-        description: `A great ${c.type} class for all levels.`,
-        date: tomorrow,
-        durationMinutes: 60,
-        spotsLeft: c.capacity,
-        clientId: client.id,
-      },
-    });
-  }
-
   const sports = [
     { key: 'yoga', nameEn: 'Yoga', nameAr: 'يوجا' },
     { key: 'circuit', nameEn: 'Circuit', nameAr: 'سيركيت' },
@@ -102,6 +79,34 @@ async function main() {
       },
     },
   });
+
+  // A venue and three group sessions next week, so the seeded coach has something on the calendar.
+  const venue =
+    (await prisma.venue.findFirst({ where: { coachId: coach.id } })) ??
+    (await prisma.venue.create({ data: { coachId: coach.id, name: 'El Captain Studio', address: '10 Tahrir Square', city: 'Cairo' } }));
+  if ((await prisma.session.count({ where: { coachId: coach.id } })) === 0) {
+    for (const days of [2, 4, 6]) {
+      const startsAt = new Date();
+      startsAt.setUTCDate(startsAt.getUTCDate() + days);
+      startsAt.setUTCHours(5, 0, 0, 0); // 07:00 or 08:00 in Cairo depending on the season
+      await prisma.session.create({
+        data: {
+          coachId: coach.id,
+          sportId: yoga.id,
+          venueId: venue.id,
+          type: 'GROUP',
+          level: 'ALL_LEVELS',
+          title: 'Sunrise Yoga Flow',
+          description: 'A steady, breath-led flow to open the morning. Mats provided.',
+          startsAt,
+          durationMin: 60,
+          price: 350,
+          capacity: 12,
+        },
+      });
+    }
+  }
+  await prisma.coachProfile.update({ where: { userId: coach.id }, data: { privatePrice: 800, privateDuration: 60 } });
 
   console.log('Seed complete. Users:', admin.email, client.email, user.email, coach.email);
 }

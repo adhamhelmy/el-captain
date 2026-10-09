@@ -1,69 +1,71 @@
 'use client';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { Chips, Segmented, SessionCard } from '@/components/ui';
-import { CATEGORIES, sessions, type Category } from '@/lib/mock';
-import { useSessionText } from '@/lib/session-text';
+import { useLocale, useTranslations } from 'next-intl';
+import { SessionCard } from '@/components/sessions';
+import { Chips } from '@/components/ui';
+import { searchSports } from '@/lib/client/coach-api';
+import { listSessions } from '@/lib/client/session-api';
+import type { SessionDTO, SportDTO } from '@/lib/server/dto';
+import { sportName } from '@/lib/shared/coach-rules';
 import styles from './SessionBrowse.module.css';
+
+/** How long typing must pause before the search is sent. */
+const SEARCH_DELAY_MS = 300;
 
 function Browse({ base }: Readonly<{ base: string }>) {
   const params = useSearchParams();
-  const [q, setQ] = useState(params.get('q') ?? '');
   const t = useTranslations('browse');
-  const x = useSessionText();
-  const raw = params.get('cat');
-  // Unknown or old capitalised values (?cat=Yoga) fall back to all instead of an empty list.
-  const [cat, setCat] = useState<Category | 'all'>(
-    CATEGORIES.includes(raw as Category) ? (raw as Category) : 'all',
-  );
-  const [type, setType] = useState<'all' | 'group' | 'private'>('all');
+  const td = useTranslations('data');
+  const locale = useLocale();
+  const [q, setQ] = useState(params.get('q') ?? '');
+  const [needle, setNeedle] = useState(q.trim());
+  const [sport, setSport] = useState(params.get('sport') ?? 'all');
+  const [sports, setSports] = useState<SportDTO[]>([]);
+  const [list, setList] = useState<SessionDTO[] | null>(null);
 
-  const needle = q.trim().toLowerCase();
-  const list = sessions.filter(
-    (s) =>
-      s.status === 'upcoming' &&
-      (cat === 'all' || s.category === cat) &&
-      (type === 'all' || s.type === type) &&
-      (!needle || x.searchText(s).toLowerCase().includes(needle)),
-  );
+  useEffect(() => {
+    searchSports('')
+      .then((r) => r.ok && setSports(r.data))
+      .catch(() => setSports([]));
+  }, []);
+
+  useEffect(() => {
+    const id = setTimeout(() => setNeedle(q.trim()), SEARCH_DELAY_MS);
+    return () => clearTimeout(id);
+  }, [q]);
+
+  useEffect(() => {
+    // A slow answer to an older filter must not replace a newer one.
+    let stale = false;
+    listSessions({ sport: sport === 'all' ? undefined : sport, q: needle })
+      .then((r) => !stale && setList(r.ok ? r.data : []))
+      .catch(() => !stale && setList([]));
+    return () => {
+      stale = true;
+    };
+  }, [sport, needle]);
 
   return (
     <div className='page'>
       <div className='title'>{t('title')}</div>
       <div className='sub'>{t('sub')}</div>
       <div className={styles.filters}>
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={t('search')}
-          className='search'
-        />
-        <Segmented
-          options={[
-            [x.category('all'), 'all'],
-            [x.type('group'), 'group'],
-            [x.type('private'), 'private'],
-          ]}
-          value={type}
-          onChange={setType}
-        />
+        <input type='search' value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('search')} aria-label={t('search')} className='search' />
       </div>
       <div className={styles.chips}>
         <Chips
-          options={(['all', ...CATEGORIES] as const).map((c) => [x.category(c), c])}
-          value={cat}
-          onChange={setCat}
+          options={[[td('all'), 'all'], ...sports.map((s): [string, string] => [sportName(s, locale), s.id])]}
+          value={sport}
+          onChange={setSport}
         />
       </div>
       <div className='grid-cards'>
-        {list.map((s) => (
+        {list?.map((s) => (
           <SessionCard key={s.id} s={s} href={`${base}/${s.id}`} spots />
         ))}
       </div>
-      {list.length === 0 && (
-        <div className={`empty ${styles.empty}`}>{t('empty')}</div>
-      )}
+      {list?.length === 0 && <div className={`empty ${styles.empty}`}>{t('empty')}</div>}
     </div>
   );
 }

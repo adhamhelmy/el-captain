@@ -1,72 +1,69 @@
 'use client';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Field, Segmented, Table, TypeTag } from '@/components/ui';
-import {
-  coach,
-  DAYS,
-  fill,
-  ME,
-  sessionsOfCoach,
-  startFor,
-  weekdayKey,
-  type DayKey,
-  type Session,
-} from '@/lib/mock';
-import { useSessionText } from '@/lib/session-text';
+import { RequestList } from '@/components/RequestList';
+import { SessionForm } from '@/components/SessionForm';
+import { PhaseTag, TypeTag } from '@/components/sessions';
+import { Segmented, Table } from '@/components/ui';
+import { getOnboarding } from '@/lib/client/coach-api';
+import { listVenues, myRequests, mySessions } from '@/lib/client/session-api';
+import { useSessionLabels } from '@/lib/client/session-labels';
+import type { RequestDTO, SessionDTO, SportDTO, VenueDTO } from '@/lib/server/dto';
+import { fromWallClock, wallClock } from '@/lib/shared/app-time';
 import styles from './page.module.css';
 
-const EMPTY = {
-  title: '',
-  day: 'sat' as DayKey,
-  time: '09:00',
-  duration: '60',
-  price: '',
-  capacity: '12',
-  type: 'group' as Session['type'],
-};
+type Tab = 'upcoming' | 'past' | 'requests';
+const DAY_MS = 86_400_000;
+
+/** The next seven Cairo dates, starting today. */
+function nextWeek() {
+  const today = new Date(`${wallClock(new Date()).date}T12:00:00Z`).getTime();
+  return Array.from({ length: 7 }, (_, i) => new Date(today + i * DAY_MS).toISOString().slice(0, 10));
+}
+
 function MySessions() {
   const t = useTranslations('schedule');
   const tc = useTranslations('common');
-  const x = useSessionText();
-  const me = coach(ME.coach)!;
-  const [adding, setAdding] = useState(useSearchParams().has('add'));
-  const [draft, setDraft] = useState(EMPTY);
-  const [extra, setExtra] = useState<Session[]>([]);
-  const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
+  const l = useSessionLabels();
+  const params = useSearchParams();
+  const [tab, setTab] = useState<Tab>(params.get('tab') === 'requests' ? 'requests' : 'upcoming');
   const [view, setView] = useState<'table' | 'calendar'>('table');
+  const [adding, setAdding] = useState(params.has('add'));
+  const [reload, setReload] = useState(0);
+  const [list, setList] = useState<SessionDTO[] | null>(null);
+  const [requests, setRequests] = useState<RequestDTO[] | null>(null);
+  const [sports, setSports] = useState<SportDTO[]>([]);
+  const [venues, setVenues] = useState<VenueDTO[]>([]);
+  const [notice, setNotice] = useState('');
 
-  const all = [...sessionsOfCoach(me.id), ...extra];
-  const list = all.filter((s) => (tab === 'upcoming') === (s.status === 'upcoming'));
-  const edit = (patch: Partial<typeof draft>) => setDraft({ ...draft, ...patch });
+  useEffect(() => {
+    getOnboarding()
+      .then((r) => r.ok && setSports(r.data.coach.sports.filter((s) => s.status === 'APPROVED')))
+      .catch(() => setSports([]));
+    listVenues()
+      .then((r) => r.ok && setVenues(r.data.filter((v) => !v.archived)))
+      .catch(() => setVenues([]));
+  }, []);
 
-  // Mock until wired up: POST /api/sessions
-  function publish() {
-    if (!draft.title.trim()) return;
-    const capacity = draft.type === 'private' ? 1 : Number.parseInt(draft.capacity, 10) || 10;
-    setExtra([
-      ...extra,
-      {
-        id: 1000 + extra.length,
-        title: draft.title,
-        category: me.specialty,
-        coachId: me.id,
-        type: draft.type,
-        level: draft.type === 'private' ? 'private' : 'allLevels',
-        duration: Number.parseInt(draft.duration, 10) || 60,
-        price: Number.parseInt(draft.price, 10) || 0,
-        capacity,
-        booked: 0,
-        start: startFor(draft.day, draft.time || '09:00'),
-        status: 'upcoming',
-        description: 'New session.',
-      },
-    ]);
-    setDraft(EMPTY);
-    setAdding(false);
-  }
+  useEffect(() => {
+    let stale = false;
+    if (tab === 'requests') {
+      myRequests()
+        .then((r) => !stale && setRequests(r.ok ? r.data : []))
+        .catch(() => !stale && setRequests([]));
+    } else {
+      mySessions(tab)
+        .then((r) => !stale && setList(r.ok ? r.data : []))
+        .catch(() => !stale && setList([]));
+    }
+    return () => {
+      stale = true;
+    };
+  }, [tab, reload]);
+
+  const days = nextWeek();
 
   return (
     <div className={`page stack ${styles.page}`}>
@@ -78,112 +75,47 @@ function MySessions() {
       </div>
 
       {adding && (
-        <div className={`card stack ${styles.form}`}>
-          <div className={`between ${styles.formHead}`}>
-            <div className='h3'>{t('newSession')}</div>
-            <Segmented
-              inset
-              options={[
-                [x.type('group'), 'group'],
-                [t('privateOneOnOne'), 'private'],
-              ]}
-              value={draft.type}
-              onChange={(type) => edit({ type })}
-            />
-          </div>
-          <div className={styles.fields}>
-            <Field label={t('fieldTitle')} className={styles.wide}>
-              <input
-                className='input'
-                value={draft.title}
-                onChange={(e) => edit({ title: e.target.value })}
-                placeholder={t('titlePlaceholder')}
-              />
-            </Field>
-            <Field label={t('day')}>
-              <select
-                className='input'
-                value={draft.day}
-                onChange={(e) => edit({ day: e.target.value as DayKey })}
-              >
-                {DAYS.map((d) => (
-                  <option key={d} value={d}>
-                    {x.day(startFor(d, '12:00'))}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={t('start')}>
-              <input
-                type='time'
-                className='input'
-                value={draft.time}
-                onChange={(e) => edit({ time: e.target.value })}
-              />
-            </Field>
-            <Field label={t('duration')}>
-              <input
-                className='input'
-                value={draft.duration}
-                onChange={(e) => edit({ duration: e.target.value })}
-              />
-            </Field>
-            <Field label={t('price')}>
-              <input
-                className='input'
-                value={draft.price}
-                onChange={(e) => edit({ price: e.target.value })}
-              />
-            </Field>
-            {draft.type === 'group' && (
-              <Field label={t('capacity')}>
-                <input
-                  className='input'
-                  value={draft.capacity}
-                  onChange={(e) => edit({ capacity: e.target.value })}
-                />
-              </Field>
-            )}
-          </div>
-          <div className={styles.actions}>
-            <button
-              type='button'
-              className={`btn ${styles.publish}`}
-              onClick={publish}
-            >
-              {t('publish')}
-            </button>
-            <button
-              type='button'
-              className={`btn-ghost ${styles.cancel}`}
-              onClick={() => setAdding(false)}
-            >
-              {tc('cancel')}
-            </button>
-          </div>
-        </div>
+        <SessionForm
+          sports={sports}
+          venues={venues}
+          onClose={() => setAdding(false)}
+          onSaved={(saved) => {
+            setAdding(false);
+            setNotice(t('published', { count: saved.length }));
+            setTab('upcoming');
+            setReload(reload + 1);
+          }}
+        />
       )}
+      {notice && <div className={styles.notice}>{notice}</div>}
 
       <div className={`between ${styles.toolbar}`}>
         <Segmented
           options={[
             [t('upcoming'), 'upcoming'],
             [t('past'), 'past'],
+            [t('requests'), 'requests'],
           ]}
           value={tab}
           onChange={setTab}
         />
-        <Segmented
-          options={[
-            [t('table'), 'table'],
-            [t('calendar'), 'calendar'],
-          ]}
-          value={view}
-          onChange={setView}
-        />
+        {tab === 'upcoming' && (
+          <Segmented
+            options={[
+              [t('table'), 'table'],
+              [t('calendar'), 'calendar'],
+            ]}
+            value={view}
+            onChange={setView}
+          />
+        )}
       </div>
 
-      {view === 'table' ? (
+      {tab === 'requests' && requests && (
+        <RequestList role='coach' requests={requests} onChange={(r) => setRequests(requests.map((x) => (x.id === r.id ? r : x)))} />
+      )}
+
+      {tab !== 'requests' && (view === 'table' || tab === 'past') && (
         <Table
           className={styles.cols}
           head={[
@@ -196,53 +128,39 @@ function MySessions() {
             </span>,
           ]}
         >
-          {list.map((s) => (
-            <Link
-              key={s.id}
-              href={`/coach/sessions/${s.id}`}
-              className={`tr ${styles.row}`}
-            >
+          {list?.map((s) => (
+            <Link key={s.id} href={`/coach/sessions/${s.id}`} className={`tr ${styles.row}`}>
               <span dir='auto' className={styles.title}>
-                {s.title}
+                {l.title(s)}
               </span>
-              <span className='muted'>{x.when(s)}</span>
-              <span>
-                <TypeTag s={s} />
-              </span>
-              <span className='muted'>{fill(s)}</span>
-              <span className={styles.price}>{x.price(s.price)}</span>
+              <span className='muted'>{l.when(s.startsAt)}</span>
+              <span>{s.status === 'CANCELLED' ? <PhaseTag s={s} /> : <TypeTag type={s.type} />}</span>
+              <span className='muted'>{l.fill(s)}</span>
+              <span className={styles.price}>{l.price(s.price)}</span>
             </Link>
           ))}
-          {list.length === 0 && (
-            <div className={`empty ${styles.empty}`}>
-              {t('empty')}
-            </div>
-          )}
+          {list?.length === 0 && <div className={`empty ${styles.empty}`}>{t('empty')}</div>}
         </Table>
-      ) : (
+      )}
+
+      {tab === 'upcoming' && view === 'calendar' && (
         <div className={styles.calendarScroll}>
           <div className={styles.calendar}>
-            {DAYS.map((d) => (
-              <div key={d} className={`stack ${styles.day}`}>
+            {days.map((day) => (
+              <div key={day} className={`stack ${styles.day}`}>
                 <div className={`dim overline ${styles.dayName}`}>
-                  {x.day(startFor(d, '12:00'))}
+                  {l.day(fromWallClock({ date: day, time: '12:00' })!)} · {l.dayMonth(fromWallClock({ date: day, time: '12:00' })!)}
                 </div>
                 <div className={`stack ${styles.dayBody}`}>
                   {list
-                    .filter((s) => weekdayKey(s.start) === d)
+                    ?.filter((s) => s.status === 'SCHEDULED' && wallClock(new Date(s.startsAt)).date === day)
                     .map((s) => (
-                      <Link
-                        key={s.id}
-                        href={`/coach/sessions/${s.id}`}
-                        className={`tag-${s.type === 'group' ? 'accent' : 'warn'} ${styles.event}`}
-                      >
-                        <div className={styles.eventMeta}>{x.time(s.start)}</div>
+                      <Link key={s.id} href={`/coach/sessions/${s.id}`} className={`tag-${s.type === 'GROUP' ? 'accent' : 'warn'} ${styles.event}`}>
+                        <div className={styles.eventMeta}>{l.time(s.startsAt)}</div>
                         <div dir='auto' className={styles.eventTitle}>
-                          {s.title}
+                          {l.title(s)}
                         </div>
-                        <div className={styles.eventMeta}>
-                          {s.type === 'private' ? x.oneToOne() : fill(s)}
-                        </div>
+                        <div className={styles.eventMeta}>{s.type === 'PRIVATE' ? l.oneToOne() : l.fill(s)}</div>
                       </Link>
                     ))}
                 </div>

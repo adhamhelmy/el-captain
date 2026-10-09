@@ -1,26 +1,33 @@
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
-import { Person, Table } from '@/components/ui'
-import { clientsOfCoach, ME } from '@/lib/mock'
-import { useSessionText } from '@/lib/session-text'
-import styles from './page.module.css'
+'use client';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { initialsOf, Person, Table } from '@/components/ui';
+import { coachClients } from '@/lib/client/insights-api';
+import { useSessionLabels } from '@/lib/client/session-labels';
+import type { CoachClientDTO } from '@/lib/server/dto';
+import styles from './page.module.css';
 
 export default function MyClientsPage() {
-  const t = useTranslations('clients')
-  const x = useSessionText()
+  const t = useTranslations('clients');
+  const l = useSessionLabels();
+  const [list, setList] = useState<CoachClientDTO[]>([]);
+  useEffect(() => {
+    coachClients().then((r) => r.ok && setList(r.data));
+  }, []);
   return (
     <div className={`page ${styles.page}`}>
       <div className='title'>{t('title')}</div>
       <div className={`sub ${styles.sub}`}>{t('sub')}</div>
       <Table className={styles.cols} head={[t('client'), t('sessions'), t('lastVisit')]}>
-        {clientsOfCoach(ME.coach).map(c => (
-          <Link key={c.id} href={`/coach/users/${c.id}`} className='tr'>
-            <Person initials={c.initials} name={c.name} sub={c.email} />
+        {list.map((c) => (
+          <Link key={c.member.id} href={`/coach/users/${c.member.id}`} className='tr'>
+            <Person initials={initialsOf(c.member.name)} name={c.member.name} sub={c.member.email} />
             <span className='muted'>{c.count}</span>
-            <span className='muted'>{c.last ? x.dayMonth(c.last) : '—'}</span>
+            <span className='muted'>{c.lastVisit ? l.dayMonth(c.lastVisit) : '—'}</span>
           </Link>
         ))}
       </Table>
     </div>
-  )
+  );
 }

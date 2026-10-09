@@ -1,0 +1,7 @@
+.list { gap: 10px; }
+.row { flex-wrap: wrap; gap: 12px; padding: 16px 18px; align-items: flex-start; }
+.text { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 4px; }
+.who { font-weight: 700; }
+.small { font-size: 13px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.reject { width: 100%; display: flex; flex-direction: column; gap: 8px; }

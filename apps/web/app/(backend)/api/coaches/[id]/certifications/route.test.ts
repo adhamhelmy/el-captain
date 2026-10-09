@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
-vi.mock('@/lib/auth', () => ({ authOptions: {} }));
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoach: vi.fn() }));
 vi.mock('@/prisma/models/certification', () => ({ createCertification: vi.fn() }));
-vi.mock('@/lib/blob', () => ({ blobInfo: vi.fn() }));
+vi.mock('@/lib/server/blob', () => ({ blobInfo: vi.fn() }));
 
 import { POST } from './route';
 import { findCoach } from '@/prisma/models/coach-profile';
 import { createCertification } from '@/prisma/models/certification';
-import { blobInfo } from '@/lib/blob';
+import { blobInfo } from '@/lib/server/blob';
 import { call, signInAs } from '@/test/api';
 
 const params = { id: 'k1' };

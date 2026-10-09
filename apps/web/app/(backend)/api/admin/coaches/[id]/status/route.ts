@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { assertFound, assertNoConflict, assertValid, protect, type AuthContext } from '@/lib/api';
-import { canTransition } from '@/lib/coach-rules';
-import { sendCoachDecisionEmail } from '@/lib/coach-emails';
-import { ERROR_CODES } from '@/lib/error-codes';
+import { assertFound, assertNoConflict, assertValid, protect, type AuthContext } from '@/lib/server/api';
+import { canTransition } from '@/lib/shared/coach-rules';
+import { sendCoachDecisionEmail } from '@/lib/email/coach-emails';
+import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { isAppLocale } from '@/i18n/locale';
 import { findCoach, type CoachStatus } from '@/prisma/models/coach-profile';
 import { setCoachStatus } from '@/prisma/models/coach-status';

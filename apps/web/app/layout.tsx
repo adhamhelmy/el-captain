@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Bebas_Neue, Cairo, Space_Grotesk } from 'next/font/google';
 import { SessionProvider } from '@/components/SessionProvider';
 import { appLocale } from '@/i18n/locale';
-import { themeInitScript } from '@/lib/theme';
+import { themeInitScript } from '@/lib/client/theme';
 
 const bebas = Bebas_Neue({ weight: '400', subsets: ['latin'], variable: '--font-bebas' });
 const cairo = Cairo({ subsets: ['arabic', 'latin'], variable: '--font-cairo' });

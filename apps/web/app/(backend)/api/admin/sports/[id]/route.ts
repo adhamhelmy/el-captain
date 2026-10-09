@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { assertFound, assertNoConflict, assertValid, protect, type AuthContext } from '@/lib/api';
-import { cleanSportName, isValidSportName, sportKey } from '@/lib/coach-rules';
-import { toSportDTO } from '@/lib/dto';
-import { ERROR_CODES } from '@/lib/error-codes';
+import { assertFound, assertNoConflict, assertValid, protect, type AuthContext } from '@/lib/server/api';
+import { cleanSportName, isValidSportName, sportKey } from '@/lib/shared/coach-rules';
+import { toSportDTO } from '@/lib/server/dto';
+import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { findSport, findSportByKey, updateSport } from '@/prisma/models/sport';
 
 /** Rename (either language) and/or approve a sport. */

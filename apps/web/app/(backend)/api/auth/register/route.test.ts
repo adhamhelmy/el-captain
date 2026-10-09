@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { call } from '@/test/api'
 
 vi.mock('@/prisma/models/user', () => ({ findUserByEmail: vi.fn(), createUser: vi.fn() }))
-vi.mock('@/lib/auth-emails', () => ({ sendVerificationEmail: vi.fn() }))
+vi.mock('@/lib/email/auth-emails', () => ({ sendVerificationEmail: vi.fn() }))
 
 import { POST } from './route'
 import { createUser, findUserByEmail } from '@/prisma/models/user'
-import { sendVerificationEmail } from '@/lib/auth-emails'
+import { sendVerificationEmail } from '@/lib/email/auth-emails'
 
 const valid = { email: 'a@b.com', password: 'Password123', name: 'Ahmed', role: 'USER' }
 

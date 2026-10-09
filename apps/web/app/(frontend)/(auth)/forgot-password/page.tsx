@@ -3,8 +3,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Field } from '@/components/ui';
-import { forgotPassword } from '@/lib/auth-api';
-import { normalizeEmail } from '@/lib/auth-rules';
+import { forgotPassword } from '@/lib/client/auth-api';
+import { normalizeEmail } from '@/lib/shared/auth-rules';
 import styles from '../auth.module.css';
 
 export default function ForgotPasswordPage() {
@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
       ) : (
-        <form className={`stack ${styles.form}`} onSubmit={submit}>
+        <form method='post' className={`stack ${styles.form}`} onSubmit={submit}>
           <div>
             <div className='auth-title'>{t('title')}</div>
             <div className={`muted ${styles.sub}`}>

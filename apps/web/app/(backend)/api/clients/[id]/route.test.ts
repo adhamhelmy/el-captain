@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }))
-vi.mock('@/lib/auth', () => ({ authOptions: {} }))
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }))
 vi.mock('@/prisma/models/client-profile', () => ({ findClient: vi.fn(), updateClient: vi.fn() }))
 
 import { GET, PATCH } from './route'

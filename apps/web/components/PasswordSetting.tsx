@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Field } from '@/components/ui';
 import type { Messages } from '@/i18n/messages';
-import { changePassword } from '@/lib/auth-api';
-import { isStrongPassword } from '@/lib/auth-rules';
-import { CHANGE_PASSWORD_ERRORS, pickError } from '@/lib/error-codes';
+import { changePassword } from '@/lib/client/auth-api';
+import { isStrongPassword } from '@/lib/shared/auth-rules';
+import { CHANGE_PASSWORD_ERRORS, pickError } from '@/lib/shared/error-codes';
 import settings from './settings.module.css';
 
 /** Profile settings row that opens a form to change the signed-in user's password. */
@@ -51,7 +51,7 @@ export function PasswordSetting() {
         </button>
       </div>
       {open && (
-        <form onSubmit={submit} onChange={() => setError('')} className={`stack ${settings.form}`}>
+        <form method='post' onSubmit={submit} onChange={() => setError('')} className={`stack ${settings.form}`}>
           <Field label={t('currentPassword')}>
             <input name='currentPassword' type='password' dir='ltr' required autoComplete='current-password' className='input' />
           </Field>

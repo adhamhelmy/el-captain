@@ -1,7 +1,7 @@
 import type { SportStatus } from '@prisma/client';
 
 export type { Sport } from '@prisma/client';
-import { sportKey } from '@/lib/coach-rules';
+import { sportKey } from '@/lib/shared/coach-rules';
 import { prisma } from '../client';
 
 const LIST_LIMIT = 50;
@@ -44,7 +44,10 @@ export function updateSport(id: string, { nameEn, ...data }: { nameEn?: string; 
   return prisma.sport.update({ where: { id }, data: { ...data, ...(nameEn && { nameEn, key: sportKey(nameEn) }) } });
 }
 
-/** Moves every coach from one sport to another (skipping coaches who already have both), then deletes the first. */
+/**
+ * Moves every coach, fan, session and private request from one sport to another
+ * (skipping coaches and fans who already have both), then deletes the first.
+ */
 export function mergeSport(fromId: string, intoId: string) {
   return prisma.$transaction(async (tx) => {
     const moving = await tx.coachSport.findMany({ where: { sportId: fromId }, select: { coachProfileId: true } });
@@ -52,6 +55,10 @@ export function mergeSport(fromId: string, intoId: string) {
       data: moving.map(({ coachProfileId }) => ({ coachProfileId, sportId: intoId })),
       skipDuplicates: true,
     });
+    const fans = await tx.favouriteSport.findMany({ where: { sportId: fromId }, select: { userId: true } });
+    await tx.favouriteSport.createMany({ data: fans.map(({ userId }) => ({ userId, sportId: intoId })), skipDuplicates: true });
+    await tx.session.updateMany({ where: { sportId: fromId }, data: { sportId: intoId } });
+    await tx.privateRequest.updateMany({ where: { sportId: fromId }, data: { sportId: intoId } });
     await tx.sport.delete({ where: { id: fromId } });
   });
 }

@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
-vi.mock('@/lib/auth', () => ({ authOptions: {} }));
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/prisma/models/coach-profile', () => ({ listCoachesForAdmin: vi.fn() }));
-vi.mock('@/lib/blob', () => ({ blobUrlOrNull: (p: string | null) => p }));
+vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p }));
 
 import { GET } from './route';
 import { listCoachesForAdmin } from '@/prisma/models/coach-profile';
@@ -25,14 +25,28 @@ describe('GET /api/admin/coaches', () => {
     ] as any);
     const res = await call(GET, { url: 'http://localhost/api/admin/coaches?status=PENDING&limit=5' });
     expect(await res.json()).toEqual([expect.objectContaining({ id: 'k1', name: 'Mona', email: 'k@x.com', status: 'PENDING', sports: [] })]);
-    expect(listCoachesForAdmin).toHaveBeenCalledWith('PENDING', { take: 5, skip: 0 });
+    expect(listCoachesForAdmin).toHaveBeenCalledWith({ status: 'PENDING', sportIds: [], q: undefined }, { take: 5, skip: 0 });
   });
 
   it('ignores an unknown status', async () => {
     signInAs('a1', 'ADMIN');
     vi.mocked(listCoachesForAdmin).mockResolvedValue([]);
     await call(GET, { url: 'http://localhost/api/admin/coaches?status=nope' });
-    expect(listCoachesForAdmin).toHaveBeenCalledWith(undefined, expect.anything());
+    expect(listCoachesForAdmin).toHaveBeenCalledWith(expect.objectContaining({ status: undefined }), expect.anything());
+  });
+
+  it('passes every sport and a trimmed search', async () => {
+    signInAs('a1', 'ADMIN');
+    vi.mocked(listCoachesForAdmin).mockResolvedValue([]);
+    await call(GET, { url: 'http://localhost/api/admin/coaches?sport=s1&sport=s2&q=%20mona%20' });
+    expect(listCoachesForAdmin).toHaveBeenCalledWith({ status: undefined, sportIds: ['s1', 's2'], q: 'mona' }, expect.anything());
+  });
+
+  it('treats a blank search as no search', async () => {
+    signInAs('a1', 'ADMIN');
+    vi.mocked(listCoachesForAdmin).mockResolvedValue([]);
+    await call(GET, { url: 'http://localhost/api/admin/coaches?q=%20%20' });
+    expect(listCoachesForAdmin).toHaveBeenCalledWith(expect.objectContaining({ q: undefined }), expect.anything());
   });
 
   it('is admin only', async () => {

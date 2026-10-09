@@ -1,7 +1,7 @@
 import type { CoachStatus, Prisma } from '@prisma/client';
 
 export type { CoachStatus };
-import type { Page } from '@/lib/api';
+import type { Page } from '@/lib/server/api';
 import { prisma } from '../client';
 
 const withProfile = {
@@ -12,6 +12,7 @@ const withProfile = {
       sports: { include: { sport: true }, orderBy: { sport: { nameEn: 'asc' } } },
     },
   },
+  venues: { where: { archivedAt: null }, orderBy: { name: 'asc' } },
 } satisfies Prisma.UserInclude;
 
 export type Coach = Prisma.UserGetPayload<{ include: typeof withProfile }>;
@@ -24,6 +25,8 @@ export type ProfileUpdate = {
   instagram?: string | null;
   tiktok?: string | null;
   photoPath?: string | null;
+  privatePrice?: number | null;
+  privateDuration?: number | null;
   links?: { label: string; url: string }[];
   sportIds?: string[];
 };
@@ -36,6 +39,21 @@ export function findCoach(id: string) {
 /** The coach only when approved: what the public and members may see. */
 export function findActiveCoach(id: string) {
   return prisma.user.findFirst({ where: { id, role: 'COACH', coachProfile: { status: 'ACTIVE' } }, include: withProfile });
+}
+
+/** Approved coaches for members and guests, newest first, narrowed by sport and a name search. */
+export function listActiveCoaches({ sportId, q }: { sportId?: string; q?: string }, { take, skip }: Page) {
+  return prisma.user.findMany({
+    where: {
+      role: 'COACH',
+      coachProfile: { status: 'ACTIVE', ...(sportId && { sports: { some: { sportId } } }) },
+      ...(q && { name: { contains: q, mode: 'insensitive' as const } }),
+    },
+    include: withProfile,
+    orderBy: { createdAt: 'desc' },
+    take,
+    skip,
+  });
 }
 
 /** Just the coach's review status, for the session token. Null when the user has no coach profile. */
@@ -61,10 +79,20 @@ export function updateCoach(id: string, { name, links, sportIds, ...fields }: Pr
   });
 }
 
-/** Coaches for the admin list. Pending ones come oldest submission first: that's the review queue. */
-export function listCoachesForAdmin(status: CoachStatus | undefined, { take, skip }: Page) {
+export type AdminCoachFilter = { status?: CoachStatus; sportIds?: string[]; q?: string };
+
+/**
+ * Coaches for the admin list, narrowed by status, a name or email search, and sports (coaching any of them counts).
+ * Pending ones come oldest submission first: that's the review queue.
+ */
+export function listCoachesForAdmin({ status, sportIds = [], q }: AdminCoachFilter, { take, skip }: Page) {
+  const bySport = sportIds.length > 0;
+  const profile = { ...(status && { status }), ...(bySport && { sports: { some: { sportId: { in: sportIds } } } }) };
+  const search = q && {
+    OR: [{ name: { contains: q, mode: 'insensitive' as const } }, { email: { contains: q, mode: 'insensitive' as const } }],
+  };
   return prisma.user.findMany({
-    where: { role: 'COACH', ...(status && { coachProfile: { status } }) },
+    where: { role: 'COACH', ...((status || bySport) && { coachProfile: profile }), ...search },
     include: withProfile,
     orderBy: status === 'PENDING' ? { coachProfile: { submittedAt: 'asc' } } : { createdAt: 'desc' },
     take,

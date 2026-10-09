@@ -6,7 +6,7 @@ import { signOut, useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { LocaleToggle } from './LocaleToggle';
 import { ThemeToggle } from './ThemeToggle';
-import { Avatar, Logo } from './ui';
+import { Avatar, initialsOf, Logo } from './ui';
 import styles from './Shell.module.css';
 
 type Role = 'admin' | 'coach' | 'user';
@@ -40,14 +40,6 @@ const NAV: Record<Role, [NavKey, string, ((p: string) => boolean)?][]> = {
 
 const ROLE_LABEL: Record<Role, 'coach' | 'admin' | null> = { user: null, coach: 'coach', admin: 'admin' };
 
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
 /** App chrome for a role area. The footer shows the signed-in account with its role under the name. */
 export function Shell({ role, children }: Readonly<{ role: Role; children: React.ReactNode }>) {
   const t = useTranslations('nav');
@@ -69,7 +61,7 @@ export function Shell({ role, children }: Readonly<{ role: Role; children: React
   const profile = role === 'admin' ? null : `/${role}/profile`;
   const who = (
     <>
-      <Avatar initials={initials(name)} accent={role !== 'admin'} />
+      <Avatar initials={initialsOf(name)} accent={role !== 'admin'} />
       <div>
         <div className={styles.name}>{name}</div>
         <div className={`muted ${styles.role}`}>{t(`sub.${role}`)}</div>

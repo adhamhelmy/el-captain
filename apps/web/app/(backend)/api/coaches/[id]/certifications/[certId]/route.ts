@@ -1,6 +1,6 @@
-import { assertAllowed, assertFound, assertNoConflict, protect, type AuthContext } from '@/lib/api';
-import { deleteBlob } from '@/lib/blob';
-import { ERROR_CODES } from '@/lib/error-codes';
+import { assertAllowed, assertFound, assertNoConflict, protect, type AuthContext } from '@/lib/server/api';
+import { deleteBlob } from '@/lib/server/blob';
+import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { deleteCertification, findCertification } from '@/prisma/models/certification';
 import { findCoach } from '@/prisma/models/coach-profile';
 

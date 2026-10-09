@@ -1,14 +1,14 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getSession, signIn } from 'next-auth/react';
+import { getSession, signIn, signOut } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { registerLink } from '@/components/rich';
 import { Field } from '@/components/ui';
-import { normalizeEmail } from '@/lib/auth-rules';
-import { ERROR_CODES } from '@/lib/error-codes';
-import { canAccess, homeForRole } from '@/lib/routes';
+import { normalizeEmail } from '@/lib/shared/auth-rules';
+import { ERROR_CODES, signInError, type SignInError } from '@/lib/shared/error-codes';
+import { canAccess, homeForRole } from '@/lib/shared/routes';
 import { ResendVerification } from '../ResendVerification';
 import styles from '../auth.module.css';
 
@@ -17,9 +17,16 @@ export default function LoginPage() {
   const tc = useTranslations('common');
   const te = useTranslations('errors');
   const router = useRouter();
-  const callbackUrl = useSearchParams().get('callbackUrl');
-  const [error, setError] = useState<'' | 'invalidLogin' | 'emailNotVerified'>('');
+  const params = useSearchParams();
+  const callbackUrl = params.get('callbackUrl');
+  const suspendedNow = params.get('error') === ERROR_CODES.ACCOUNT_SUSPENDED;
+  const [error, setError] = useState<'' | SignInError>(suspendedNow ? 'accountSuspended' : '');
   const [email, setEmail] = useState('');
+
+  // Sent here because the account was suspended while signed in: end that session.
+  useEffect(() => {
+    if (suspendedNow) signOut({ redirect: false });
+  }, [suspendedNow]);
 
   async function submit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,7 +38,7 @@ export default function LoginPage() {
       email: address,
       password: form.get('password'),
     });
-    if (res?.error) return setError(res.error === ERROR_CODES.EMAIL_NOT_VERIFIED ? 'emailNotVerified' : 'invalidLogin');
+    if (res?.error) return setError(signInError(res.error));
     const { role, coachStatus } = (await getSession())?.user ?? {};
     // Only same-origin paths ("//host" would be an open redirect) the role can actually open.
     const safe = callbackUrl?.startsWith('/') && !callbackUrl.startsWith('//') && canAccess(role, callbackUrl, coachStatus);
@@ -39,7 +46,7 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={submit} className={`stack ${styles.form}`}>
+    <form method='post' onSubmit={submit} className={`stack ${styles.form}`}>
       <div>
         <div className='auth-title'>{t('title')}</div>
         <div className={`muted ${styles.sub}`}>{t('sub')}</div>

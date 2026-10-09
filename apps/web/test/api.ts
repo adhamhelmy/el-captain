@@ -4,7 +4,7 @@ import type { Role } from '@el-captain/types'
 
 // Route tests mock these two modules, then use the helpers below:
 //   vi.mock('next-auth', () => ({ getServerSession: vi.fn() }))
-//   vi.mock('@/lib/auth', () => ({ authOptions: {} }))
+//   vi.mock('@/lib/server/auth', () => ({ authOptions: {} }))
 
 type Handler = (req: any, ctx: { params: Promise<any> }) => Promise<Response>
 

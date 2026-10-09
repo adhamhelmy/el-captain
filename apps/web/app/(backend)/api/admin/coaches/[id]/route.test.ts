@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
-vi.mock('@/lib/auth', () => ({ authOptions: {} }));
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoach: vi.fn() }));
 vi.mock('@/prisma/models/coach-status', () => ({ listStatusEvents: vi.fn() }));
-vi.mock('@/lib/blob', () => ({ blobUrlOrNull: (p: string | null) => p }));
+vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p }));
 
 import { GET } from './route';
 import { findCoach } from '@/prisma/models/coach-profile';

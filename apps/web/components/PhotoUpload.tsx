@@ -1,8 +1,8 @@
 'use client';
 import { useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { UPLOAD_RULES } from '@/lib/coach-rules';
-import { uploadFile } from '@/lib/upload';
+import { UPLOAD_RULES } from '@/lib/shared/coach-rules';
+import { uploadFile } from '@/lib/client/upload';
 import styles from './onboarding.module.css';
 
 /** Picks and uploads the profile photo; the parent saves the returned path with the rest of the step. */

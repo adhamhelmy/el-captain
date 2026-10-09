@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { assertNoConflict, assertValid, protect, publicRoute, type AuthContext, type RequestContext } from '@/lib/api';
-import { authOptions } from '@/lib/auth';
-import { cleanSportName, isValidSportName, sportKey } from '@/lib/coach-rules';
-import { toSportDTO } from '@/lib/dto';
-import { ERROR_CODES } from '@/lib/error-codes';
+import { assertNoConflict, assertValid, protect, publicRoute, type AuthContext, type RequestContext } from '@/lib/server/api';
+import { authOptions } from '@/lib/server/auth';
+import { cleanSportName, isValidSportName, sportKey } from '@/lib/shared/coach-rules';
+import { toSportDTO } from '@/lib/server/dto';
+import { search } from '@/lib/server/query-filter';
+import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { createSport, findSportByKey, listVisibleSports } from '@/prisma/models/sport';
 
 /** Sports to pick from. Pending sports are only listed for the coach who added them. */
 async function list({ query }: RequestContext) {
   const session = await getServerSession(authOptions);
-  const sports = await listVisibleSports(session?.user.id ?? null, query.get('q')?.trim() || undefined);
+  const sports = await listVisibleSports(session?.user.id ?? null, search()(query));
   return NextResponse.json(sports.map(toSportDTO));
 }
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { publicRoute, type RequestContext } from '@/lib/api'
-import { sendResetEmail } from '@/lib/auth-emails'
-import { isValidEmail, normalizeEmail } from '@/lib/auth-rules'
+import { publicRoute, type RequestContext } from '@/lib/server/api'
+import { sendResetEmail } from '@/lib/email/auth-emails'
+import { isValidEmail, normalizeEmail } from '@/lib/shared/auth-rules'
 import { findUserByEmail } from '@/prisma/models/user'
 
 /** Emails a reset link. Answers the same whether or not the account exists, so emails can't be probed. */

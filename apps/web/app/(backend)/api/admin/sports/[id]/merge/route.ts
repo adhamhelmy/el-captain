@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { assertFound, assertValid, protect, type AuthContext } from '@/lib/api';
+import { assertFound, assertValid, protect, type AuthContext } from '@/lib/server/api';
 import { findSport, mergeSport } from '@/prisma/models/sport';
 
 /** Folds a duplicate sport into the one to keep; its coaches move over. */
