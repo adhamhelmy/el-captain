@@ -76,7 +76,7 @@ export async function sendSessionCancelled(members: Recipient[], session: EmailS
     const w = words(locale);
     const detail = lines(w.sessionDetail(session), reason && w.t('reasonLine', { reason }));
     await send(
-      noticeMail(member.email, locale, MESSAGES[locale].emails.sessionCancelled, appUrl('/user/sessions'), detail),
+      noticeMail(member.email, locale, MESSAGES[locale].emails.sessionCancelled, appUrl('/user/explore'), detail),
       `cancel email to ${member.id}`,
     );
   }
@@ -101,12 +101,13 @@ export async function sendRequestAccepted(member: Recipient, session: EmailSessi
   );
 }
 
-export async function sendRequestRejected(member: Recipient, request: EmailRequest, note: string | null) {
+/** Links to the coach's page, so the member can pick another time. */
+export async function sendRequestRejected(member: Recipient, request: EmailRequest & { coachId: string }, note: string | null) {
   const locale = localeOf(member);
   const w = words(locale);
   const detail = lines(w.requestDetail(request), note);
   await send(
-    noticeMail(member.email, locale, MESSAGES[locale].emails.requestRejected, appUrl('/user/coaches'), detail),
+    noticeMail(member.email, locale, MESSAGES[locale].emails.requestRejected, appUrl(`/user/coaches/${request.coachId}`), detail),
     `rejected email to ${member.id}`,
   );
 }

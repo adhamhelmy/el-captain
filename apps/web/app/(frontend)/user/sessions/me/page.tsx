@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { RequestList } from '@/components/RequestList';
-import { browseLink } from '@/components/rich';
+import { exploreLink } from '@/components/rich';
 import { PhaseTag, TypeTag } from '@/components/sessions';
 import { Segmented } from '@/components/ui';
 import { myRequests, mySessions } from '@/lib/client/session-api';
@@ -82,7 +82,7 @@ export default function MySessionsPage() {
               </div>
             </div>
           ))}
-          {list?.length === 0 && <div className='empty'>{t.rich('empty', { link: browseLink })}</div>}
+          {list?.length === 0 && <div className='empty'>{t.rich('empty', { link: exploreLink })}</div>}
         </div>
       )}
     </div>

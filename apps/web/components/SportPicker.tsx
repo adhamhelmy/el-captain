@@ -6,7 +6,9 @@ import { MAX_SPORTS, sportKey, sportName } from '@/lib/shared/coach-rules';
 import type { SportDTO } from '@/lib/server/dto';
 import styles from './onboarding.module.css';
 
-/** Search and pick sports; offers to add one that isn't listed, and catches duplicates. */
+const SHOWN = 16;
+
+/** Search and pick sports from a grid; offers to add one that isn't listed, and catches duplicates. */
 export function SportPicker({ selected, onChange }: Readonly<{ selected: SportDTO[]; onChange: (s: SportDTO[]) => void }>) {
   const t = useTranslations('onboarding');
   const te = useTranslations('errors');
@@ -27,7 +29,8 @@ export function SportPicker({ selected, onChange }: Readonly<{ selected: SportDT
   const chosen = new Set(selected.map((s) => s.id));
   const full = selected.length >= MAX_SPORTS;
   const typed = q.trim();
-  const exact = results.some((s) => sportKey(s.nameEn) === sportKey(typed) || (s.nameAr && sportKey(s.nameAr) === sportKey(typed)));
+  const exact = [...results, ...selected].some((s) => sportKey(s.nameEn) === sportKey(typed) || (s.nameAr && sportKey(s.nameAr) === sportKey(typed)));
+  const options = results.filter((s) => !chosen.has(s.id)).slice(0, SHOWN);
 
   function pick(s: SportDTO) {
     if (!chosen.has(s.id) && !full) onChange([...selected, s]);
@@ -44,59 +47,72 @@ export function SportPicker({ selected, onChange }: Readonly<{ selected: SportDT
   }
 
   return (
-    <div className={`stack ${styles.group}`}>
-      {selected.length > 0 && (
+    <div className={styles.picker}>
+      <input
+        className={`input ${styles.search}`}
+        dir='auto'
+        placeholder={t('sportSearch')}
+        aria-label={t('sportSearch')}
+        value={q}
+        disabled={full}
+        onChange={(e) => {
+          setQ(e.target.value);
+          setSuggest(null);
+        }}
+      />
+
+      <div className={styles.pickerGroup}>
+        <div className={styles.labelRow}>
+          <span>{t('yourSports')}</span>
+          <span className={styles.counter}>
+            {selected.length} / {MAX_SPORTS}
+          </span>
+        </div>
         <div className={styles.chips}>
           {selected.map((s) => (
-            <span
+            <button
               key={s.id}
-              className={`${styles.chip} ${s.status === 'PENDING' ? styles.chipPending : ''}`}
+              type='button'
+              className={`${styles.chipOn} ${s.status === 'PENDING' ? styles.chipPending : ''}`}
               title={s.status === 'PENDING' ? t('newSport') : undefined}
+              aria-label={t('removeSport', { name: sportName(s, locale) })}
+              onClick={() => onChange(selected.filter((x) => x.id !== s.id))}
             >
               <bdi>{sportName(s, locale)}</bdi>
-              <button type='button' className={styles.chipX} aria-label={t('remove')} onClick={() => onChange(selected.filter((x) => x.id !== s.id))}>
+              <span aria-hidden className={styles.chipX}>
                 ×
-              </button>
-            </span>
+              </span>
+            </button>
           ))}
+          {selected.length === 0 && <span className={styles.nothing}>{t('noSportsYet')}</span>}
         </div>
-      )}
-      {!full && (
-        <>
-          <input
-            className='input'
-            dir='auto'
-            placeholder={t('sportSearch')}
-            aria-label={t('sportSearch')}
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setSuggest(null);
-            }}
-          />
-          <div className={styles.results}>
-            {results
-              .filter((s) => !chosen.has(s.id))
-              .slice(0, 8)
-              .map((s) => (
-                <button key={s.id} type='button' className={styles.result} onClick={() => pick(s)}>
-                  <bdi>{sportName(s, locale)}</bdi>
-                </button>
-              ))}
-            {typed.length >= 2 && !exact && !suggest && (
-              <button type='button' className={styles.result} onClick={add}>
-                {t('addSport', { name: typed })}
-              </button>
-            )}
-          </div>
-        </>
-      )}
+      </div>
+
       {suggest && (
         <div className='between'>
           <span>{t('didYouMean', { name: sportName(suggest, locale) })}</span>
           <button type='button' className='btn-ghost sm' onClick={() => pick(suggest)}>
             {t('useIt')}
           </button>
+        </div>
+      )}
+
+      {!full && (
+        <div className={styles.pickerGroup}>
+          <div className={styles.labelRow}>{typed ? t('sportMatches') : t('sportsOnApp')}</div>
+          <div className={styles.chips}>
+            {typed.length >= 2 && !exact && !suggest && (
+              <button type='button' className={styles.chipAdd} onClick={add}>
+                {t('addSport', { name: typed })}
+              </button>
+            )}
+            {options.map((s) => (
+              <button key={s.id} type='button' className={styles.chipOption} onClick={() => pick(s)}>
+                <bdi>{sportName(s, locale)}</bdi>
+              </button>
+            ))}
+          </div>
+          <div className={styles.photoHint}>{t('newSportNote')}</div>
         </div>
       )}
       {error && <div className={styles.error}>{error}</div>}

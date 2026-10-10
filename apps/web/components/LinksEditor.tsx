@@ -44,14 +44,24 @@ export function LinksEditor({ links, onChange }: Readonly<{ links: LinkDraft[]; 
             onChange={(e) => set(i, { url: e.target.value })}
           />
           <div className={styles.rowActions}>
-            <button type='button' className='btn-ghost sm' disabled={i === 0} onClick={() => move(i, -1)} aria-label={t('moveUp')}>
-              ↑
-            </button>
-            <button type='button' className='btn-ghost sm' disabled={i === links.length - 1} onClick={() => move(i, 1)} aria-label={t('moveDown')}>
-              ↓
-            </button>
-            <button type='button' className='btn-ghost sm danger' onClick={() => onChange(links.filter((_, j) => j !== i))}>
-              {t('remove')}
+            {links.length > 1 && (
+              <>
+                <button type='button' className={styles.iconBtn} disabled={i === 0} onClick={() => move(i, -1)} aria-label={t('moveUp')}>
+                  ↑
+                </button>
+                <button
+                  type='button'
+                  className={styles.iconBtn}
+                  disabled={i === links.length - 1}
+                  onClick={() => move(i, 1)}
+                  aria-label={t('moveDown')}
+                >
+                  ↓
+                </button>
+              </>
+            )}
+            <button type='button' className={styles.iconBtn} onClick={() => onChange(links.filter((_, j) => j !== i))} aria-label={t('removeLink')}>
+              ×
             </button>
           </div>
         </div>
@@ -60,7 +70,7 @@ export function LinksEditor({ links, onChange }: Readonly<{ links: LinkDraft[]; 
         <div>
           <button
             type='button'
-            className='btn-ghost sm'
+            className={styles.dashedBtn}
             onClick={() => onChange([...links, { key: crypto.randomUUID(), label: '', url: 'https://' }])}
           >
             {t('addLink')}

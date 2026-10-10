@@ -15,6 +15,7 @@ beforeEach(() => {
   vi.stubGlobal('localStorage', {
     getItem: (k: string) => store.get(k) ?? null,
     setItem: (k: string, v: string) => void store.set(k, v),
+    removeItem: (k: string) => void store.delete(k),
   });
   vi.stubGlobal('matchMedia', () => ({
     get matches() {
@@ -77,5 +78,18 @@ describe('theme', () => {
     setTheme('dark');
     expect(listener).toHaveBeenCalledTimes(2);
     expect(mediaListeners.size).toBe(0);
+  });
+});
+
+describe('theme choice', () => {
+  it('is "system" until the user picks one, and "system" forgets the pick', async () => {
+    const { getThemeChoice, setThemeChoice } = await load();
+    expect(getThemeChoice()).toBe('system');
+    setThemeChoice('light');
+    expect(getThemeChoice()).toBe('light');
+    expect(html.dataset.theme).toBe('light');
+    setThemeChoice('system');
+    expect(getThemeChoice()).toBe('system');
+    expect(html.dataset.theme).toBeUndefined();
   });
 });

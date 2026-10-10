@@ -13,10 +13,10 @@ export default function HomePage() {
         <div className='eyebrow'>{t('eyebrow')}</div>
         <h2 className='display lh-88 hero-title'>{t('heroTitle')}</h2>
         <p className={`muted ${styles.heroText}`}>{t('heroText')}</p>
-        <form action='/sessions' className={styles.search}>
+        <form action='/explore' className={styles.search}>
           <input name='q' className={`search ${styles.searchInput}`} placeholder={t('searchPlaceholder')} />
           <button type='submit' className={`btn ${styles.searchBtn}`}>
-            {t('findSessions')}
+            {t('searchButton')}
           </button>
         </form>
         <HomeSports />
@@ -25,7 +25,7 @@ export default function HomePage() {
       <section className={`site-section ${styles.featured}`}>
         <div className={`between ${styles.featuredHead}`}>
           <div className={`display ${styles.featuredTitle}`}>{t('onThisWeek')}</div>
-          <Link href='/sessions' className={styles.seeAll}>
+          <Link href='/explore' className={styles.seeAll}>
             {t('seeAll')}
           </Link>
         </div>

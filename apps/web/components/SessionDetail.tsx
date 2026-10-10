@@ -51,7 +51,7 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
 
   return (
     <div className={`page detail ${styles.page}`}>
-      <Back href={guest ? '/sessions' : '/user/sessions'}>{t('allSessions')}</Back>
+      <Back href={guest ? '/explore' : '/user/explore'}>{t('backToExplore')}</Back>
       <div className={`hero ${styles.hero}`}>
         <div className='chips'>
           <TypeTag type={s.type} />

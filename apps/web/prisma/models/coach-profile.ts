@@ -41,13 +41,28 @@ export function findActiveCoach(id: string) {
   return prisma.user.findFirst({ where: { id, role: 'COACH', coachProfile: { status: 'ACTIVE' } }, include: withProfile });
 }
 
-/** Approved coaches for members and guests, newest first, narrowed by sport and a name search. */
+/** Approved coaches for members and guests, newest first, narrowed by sport and a search on the name or a sport they coach. */
 export function listActiveCoaches({ sportId, q }: { sportId?: string; q?: string }, { take, skip }: Page) {
   return prisma.user.findMany({
     where: {
       role: 'COACH',
       coachProfile: { status: 'ACTIVE', ...(sportId && { sports: { some: { sportId } } }) },
-      ...(q && { name: { contains: q, mode: 'insensitive' as const } }),
+      ...(q && {
+        OR: [
+          { name: { contains: q, mode: 'insensitive' as const } },
+          {
+            coachProfile: {
+              sports: {
+                some: {
+                  sport: {
+                    OR: [{ nameEn: { contains: q, mode: 'insensitive' as const } }, { nameAr: { contains: q, mode: 'insensitive' as const } }],
+                  },
+                },
+              },
+            },
+          },
+        ],
+      }),
     },
     include: withProfile,
     orderBy: { createdAt: 'desc' },

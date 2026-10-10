@@ -41,6 +41,8 @@ export const ERROR_CODES = {
   INVALID_SESSION: 'invalid_session',
   /** A venue field breaks a rule; the response lists them as `fields`. */
   INVALID_VENUE: 'invalid_venue',
+  /** Archiving would leave the coach with no venue to run sessions at. */
+  LAST_VENUE: 'last_venue',
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

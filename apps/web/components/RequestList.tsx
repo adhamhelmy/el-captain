@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Tag } from '@/components/ui';
-import { acceptRequest, cancelRequest, rejectRequest } from '@/lib/client/session-api';
+import { acceptRequest, cancelRequest, REQUESTS_CHANGED, rejectRequest } from '@/lib/client/session-api';
 import { useSessionLabels } from '@/lib/client/session-labels';
 import type { RequestDTO } from '@/lib/server/dto';
 import type { RequestState } from '@/lib/shared/session-rules';
@@ -42,6 +42,7 @@ export function RequestList({
     if (!r.ok) return setError(te(ACTION_ERRORS.find((c) => c === r.code) ?? 'generic'));
     setRejecting('');
     setNote('');
+    globalThis.dispatchEvent(new Event(REQUESTS_CHANGED));
     onChange(r.data);
   }
 
@@ -70,7 +71,10 @@ export function RequestList({
             )}
           </div>
           <div className={styles.actions}>
-            <Tag kind={TAG_KIND[r.status]}>{t(`status.${r.status.toLowerCase() as 'pending'}`)}</Tag>
+            {/* A coach answers pending requests with the buttons, so only settled ones get a tag. */}
+            {(role === 'member' || r.status !== 'PENDING') && (
+              <Tag kind={TAG_KIND[r.status]}>{t(`status.${r.status.toLowerCase() as 'pending'}`)}</Tag>
+            )}
             {r.status === 'ACCEPTED' && r.sessionId && (
               <Link href={`${role === 'coach' ? '/coach' : '/user'}/sessions/${r.sessionId}`} className='btn-ghost sm plain'>
                 {t('viewSession')}

@@ -10,7 +10,8 @@ export function PhotoUpload({
   userId,
   url,
   onUploaded,
-}: Readonly<{ userId: string; url: string | null; onUploaded: (path: string, previewUrl: string) => void }>) {
+  warn,
+}: Readonly<{ userId: string; url: string | null; onUploaded: (path: string, previewUrl: string) => void; warn?: boolean }>) {
   const t = useTranslations('onboarding');
   const te = useTranslations('errors');
   const input = useRef<HTMLInputElement>(null);
@@ -40,13 +41,21 @@ export function PhotoUpload({
           // eslint-disable-next-line @next/next/no-img-element -- a local preview or a small Blob image
           <img src={url} alt='' className={styles.photo} />
         ) : (
-          <div className={styles.photo} aria-hidden />
+          <button
+            type='button'
+            className={`${styles.photo} ${styles.photoEmpty} ${warn ? styles.photoWarn : ''}`}
+            disabled={busy}
+            aria-label={label}
+            onClick={() => input.current?.click()}
+          >
+            +
+          </button>
         )}
-        <div className={`stack ${styles.group}`}>
+        <div className={styles.photoSide}>
           <button type='button' className='btn-ghost sm' disabled={busy} onClick={() => input.current?.click()}>
             {label}
           </button>
-          <div className={`muted ${styles.hint}`}>{t('photoHint')}</div>
+          <div className={styles.photoHint}>{t('photoHint')}</div>
         </div>
       </div>
       <input ref={input} type='file' hidden accept={UPLOAD_RULES.photo.types.join(',')} onChange={pick} />

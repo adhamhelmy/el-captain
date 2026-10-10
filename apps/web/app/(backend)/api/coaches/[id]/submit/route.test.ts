@@ -20,11 +20,12 @@ const complete = {
   status: 'INCOMPLETE',
   photoPath: 'coaches/k1/photo/a.jpg',
   bio: 'x'.repeat(60),
+  city: 'Zamalek, Cairo',
   instagram: 'https://www.instagram.com/m',
   tiktok: 'https://www.tiktok.com/@m',
   sports: [{ sport: {} }],
 };
-const coachWith = (p: object) => ({ id: 'k1', name: 'Mona', coachProfile: { ...complete, ...p } }) as any;
+const coachWith = (p: object, venues = [{ id: 'v1' }]) => ({ id: 'k1', name: 'Mona', coachProfile: { ...complete, ...p }, venues }) as any;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -55,10 +56,10 @@ describe('POST /api/coaches/[id]/submit', () => {
   });
 
   it('lists what is missing', async () => {
-    vi.mocked(findCoach).mockResolvedValue(coachWith({ photoPath: null, sports: [] }));
+    vi.mocked(findCoach).mockResolvedValue(coachWith({ photoPath: null, city: null, sports: [] }, []));
     const res = await call(POST, { params, body: {} });
     expect(res.status).toBe(400);
-    expect(await res.json()).toMatchObject({ code: 'profile_incomplete', missing: ['photo', 'sports'] });
+    expect(await res.json()).toMatchObject({ code: 'profile_incomplete', missing: ['photo', 'address', 'sports', 'locations'] });
     expect(setCoachStatus).not.toHaveBeenCalled();
   });
 

@@ -1,0 +1,46 @@
+/* Desktop: a time grid with days as columns. Every hour is 46px; the whole week fits without scrolling. */
+.grid { --row: 46px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 0 8px 10px; }
+.headRow, .body { display: grid; grid-template-columns: 52px repeat(7, minmax(0, 1fr)); column-gap: 6px; }
+.head { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 0 6px; }
+.name { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-3); }
+:lang(ar) .name { letter-spacing: 0; }
+.nameToday { color: var(--accent-text); }
+.num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 18px; line-height: 1; color: var(--text); }
+.today { background: var(--accent); color: var(--on-accent); }
+.past { color: var(--text-3); }
+.body { padding-top: 8px; }
+.axis { display: flex; flex-direction: column; }
+.hour { height: var(--row); font-size: 11px; color: var(--text-3); text-align: end; padding-inline-end: 6px; }
+.hour span { position: relative; top: -7px; white-space: nowrap; }
+.col { position: relative; height: calc(var(--hours) * var(--row)); border-radius: 10px; }
+.colToday { background: color-mix(in oklab, var(--accent-tint) 35%, transparent); }
+.event {
+  position: absolute; overflow: hidden;
+  top: calc(var(--top) * var(--row) + 2px);
+  height: max(40px, calc(var(--height) * var(--row) - 4px));
+  inset-inline-start: calc(var(--col) * 100% / var(--cols) + 2px);
+  width: calc(100% / var(--cols) - 4px);
+  display: flex; flex-direction: column; justify-content: center; gap: 3px; padding: 6px 10px;
+  border-radius: 8px; border-inline-start: 3px solid; color: var(--text);
+}
+.event:hover { filter: brightness(1.05); color: var(--text); }
+.group { border-color: var(--accent-text); background: var(--accent-tag); }
+.private { border-color: var(--pending); background: var(--pending-tint); }
+.eventTitle { width: 100%; font-size: 13px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eventMeta { width: 100%; display: flex; justify-content: space-between; gap: 4px; font-size: 11px; line-height: 1.2; white-space: nowrap; }
+.eventTime { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; }
+.eventFill { font-weight: 700; color: var(--text); }
+
+/* Phones: a list of the days that have sessions. */
+.agenda { display: none; flex-direction: column; gap: 16px; }
+.agendaDay { display: flex; flex-direction: column; gap: 8px; }
+.agendaHead { display: flex; align-items: center; gap: 8px; flex-direction: row-reverse; justify-content: flex-end; }
+.agendaRow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; border-inline-start: 3px solid; color: var(--text); }
+.agendaTime { font-size: 13px; color: var(--text-2); white-space: nowrap; }
+.agendaTitle { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agendaFill { font-size: 13px; font-weight: 700; }
+
+@media (max-width: 759px) {
+  .grid { display: none; }
+  .agenda { display: flex; }
+}

@@ -6,6 +6,7 @@ node_modules/
 docs/designs
 coverage/
 docs/superpowers/
+docs/designs/
 
 # Playwright MCP snapshots and screenshots
 .playwright-mcp/

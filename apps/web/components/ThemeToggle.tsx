@@ -1,7 +1,7 @@
 'use client';
 import { useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
-import { getTheme, setTheme, subscribeTheme } from '@/lib/client/theme';
+import { getTheme, getThemeChoice, setTheme, setThemeChoice, subscribeTheme, type ThemeChoice } from '@/lib/client/theme';
 import styles from './settings.module.css';
 
 const Sun = () => (
@@ -47,6 +47,21 @@ export function ThemeSetting() {
         </div>
       </div>
       <ThemeToggle />
+    </div>
+  );
+}
+
+/** Dark / Light / System as a segmented control. The server render assumes System. */
+export function ThemeChoiceControl() {
+  const t = useTranslations('theme');
+  const choice = useSyncExternalStore(subscribeTheme, getThemeChoice, () => 'system' as const);
+  return (
+    <div className='seg inset' role='radiogroup' aria-label={t('setting')}>
+      {(['dark', 'light', 'system'] as ThemeChoice[]).map((c) => (
+        <button key={c} type='button' role='radio' aria-checked={choice === c} className={choice === c ? 'on' : ''} onClick={() => setThemeChoice(c)}>
+          {t(`choice.${c}`)}
+        </button>
+      ))}
     </div>
   );
 }

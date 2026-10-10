@@ -45,7 +45,7 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
 
   return (
     <div className={`page detail stack ${styles.page}`}>
-      {area ? <Back href='/user/coaches'>{t('allCoaches')}</Back> : <Back href='/sessions'>{t('allSessions')}</Back>}
+      <Back href={`${area}/explore`}>{t('backToExplore')}</Back>
       <div className={styles.head}>
         <Avatar initials={initialsOf(c.name)} size={96} accent src={c.photoUrl} />
         <div className={styles.headText}>

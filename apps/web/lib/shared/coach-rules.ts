@@ -65,6 +65,13 @@ export function normalizeSocial(network: keyof typeof SOCIAL, input: string): st
   return handle.test(raw) ? url(raw) : null;
 }
 
+/** The bare handle of a saved profile link (or of whatever was typed), for showing after an "@". */
+export function socialHandle(network: keyof typeof SOCIAL, value: string | null): string {
+  const raw = (value ?? '').trim();
+  const fromUrl = raw.includes('/') ? handleFromUrl(raw, SOCIAL[network].host) : null;
+  return (fromUrl ?? raw).replace(/^@/, '');
+}
+
 /** Extra profile links must be https and point at a real host name. */
 export function isValidLinkUrl(url: string): boolean {
   try {
@@ -104,29 +111,49 @@ export function ownsUpload(userId: string, kind: UploadKind, path: unknown): pat
 }
 
 /** What must be filled in before submitting. Instagram and TikTok are optional. */
-export type MissingField = 'photo' | 'bio' | 'sports';
+export type MissingField = 'photo' | 'address' | 'bio' | 'sports' | 'locations';
 export type Draft = {
   photoPath: string | null;
+  /** The coach's area and city ("Zamalek, Cairo"), kept in the profile's city field. */
+  city: string | null;
   bio: string | null;
   instagram: string | null;
   tiktok: string | null;
   sportCount: number;
+  /** Venues the coach can run sessions at (not archived). */
+  venueCount: number;
 };
 
 /** What still stops the coach from submitting, in wizard order. */
 export function missingFields(d: Draft): MissingField[] {
   const bio = d.bio?.trim().length ?? 0;
+  const city = d.city?.trim().length ?? 0;
   const checks: [MissingField, boolean][] = [
     ['photo', !!d.photoPath],
+    ['address', city > 0 && city <= CITY_MAX],
     // Any length is fine; admins judge the content when they review.
     ['bio', bio > 0 && bio <= BIO_MAX],
     ['sports', d.sportCount >= MIN_SPORTS && d.sportCount <= MAX_SPORTS],
+    ['locations', d.venueCount >= 1],
   ];
   return checks.filter(([, ok]) => !ok).map(([field]) => field);
 }
 
-/** The wizard step each field lives on. */
-export const STEP_OF: Record<MissingField, 1 | 3> = { photo: 1, bio: 1, sports: 3 };
+/** The wizard's steps, in order. Review is the last one and holds the submit button. */
+export const WIZARD_STEPS = ['you', 'socials', 'sports', 'locations', 'certifications', 'review'] as const;
+export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
+export const REVIEW_STEP: WizardStep = 6;
 
-/** The step the wizard opens on: the first one with something missing, else the last (certifications). */
-export const firstIncompleteStep = (missing: MissingField[]): 1 | 2 | 3 | 4 => (missing.length ? STEP_OF[missing[0]] : 4);
+/** The wizard step each field lives on. */
+export const STEP_OF: Record<MissingField, WizardStep> = { photo: 1, address: 1, bio: 1, sports: 3, locations: 4 };
+
+/** The step the wizard opens on: the first one with something missing, else review. */
+export const firstIncompleteStep = (missing: MissingField[]): WizardStep => (missing.length ? STEP_OF[missing[0]] : REVIEW_STEP);
+
+/** Which steps show a ✓ in the rail: required steps once complete, optional ones (`filled`) once they hold something. */
+export function doneSteps(missing: MissingField[], filled: ReadonlySet<WizardStep>): Set<WizardStep> {
+  const open = new Set(missing.map((m) => STEP_OF[m]));
+  const required = new Set(Object.values(STEP_OF));
+  const steps = WIZARD_STEPS.map((_, i) => (i + 1) as WizardStep).filter((s) => s !== REVIEW_STEP);
+  return new Set(steps.filter((s) => !open.has(s) && (required.has(s) || filled.has(s))));
+}

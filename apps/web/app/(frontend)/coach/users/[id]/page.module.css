@@ -1,1 +1,13 @@
-.visit { padding: 14px 16px; flex-wrap: nowrap; }
+.page { max-width: 1000px; gap: 28px; }
+.profile { display: flex; align-items: center; gap: 18px; }
+.name { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(40px, 5vw, 52px); letter-spacing: 1px; line-height: 1; text-transform: uppercase; }
+:lang(ar) .name { letter-spacing: 0; font-weight: 800; line-height: 1.2; font-size: clamp(28px, 4vw, 40px); }
+.history { display: flex; flex-direction: column; gap: 12px; }
+.heading { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 24px; letter-spacing: 1px; }
+:lang(ar) .heading { letter-spacing: 0; font-weight: 800; font-size: 20px; }
+.list { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); color: var(--text); }
+.row:last-child { border-bottom: none; }
+.row:hover { background: var(--surface-2); color: var(--text); }
+.rowTitle { display: block; font-weight: 600; }
+.rowSub { display: block; font-size: 13px; color: var(--text-2); }

@@ -3,10 +3,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
 vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoachStatus: vi.fn(async () => 'ACTIVE') }));
-vi.mock('@/prisma/models/venue', () => ({ findVenue: vi.fn(), updateVenue: vi.fn(), archiveVenue: vi.fn() }));
+vi.mock('@/prisma/models/venue', () => ({ findVenue: vi.fn(), updateVenue: vi.fn(), archiveVenueKeepingOne: vi.fn() }));
 
 import { DELETE, PATCH } from './route';
-import { archiveVenue, findVenue, updateVenue } from '@/prisma/models/venue';
+import { archiveVenueKeepingOne, findVenue, updateVenue } from '@/prisma/models/venue';
 import { call, signInAs } from '@/test/api';
 
 const venue = { id: 'v1', coachId: 'k1', name: 'Zamalek Club', address: '26 July St', city: 'Cairo', mapUrl: null, archivedAt: null };
@@ -18,7 +18,7 @@ beforeEach(() => {
   signInAs('k1', 'COACH');
   vi.mocked(findVenue).mockResolvedValue(venue as any);
   vi.mocked(updateVenue).mockResolvedValue({ ...venue, city: 'Giza' } as any);
-  vi.mocked(archiveVenue).mockResolvedValue({ ...venue, archivedAt: new Date() } as any);
+  vi.mocked(archiveVenueKeepingOne).mockResolvedValue({ ...venue, archivedAt: new Date() } as any);
 });
 
 describe('PATCH /api/venues/[id]', () => {
@@ -44,5 +44,13 @@ describe('DELETE /api/venues/[id]', () => {
     const res = await call(DELETE, { params });
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ id: 'v1', archived: true });
+  });
+
+  it('keeps the last location', async () => {
+    vi.mocked(archiveVenueKeepingOne).mockResolvedValue(null);
+    const res = await call(DELETE, { params });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toMatchObject({ code: 'last_venue' });
+    expect(archiveVenueKeepingOne).toHaveBeenCalledWith('v1', 'k1');
   });
 });

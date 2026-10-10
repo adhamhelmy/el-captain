@@ -76,10 +76,11 @@ describe('sendPrivateRequested', () => {
 });
 
 describe('sendRequestRejected', () => {
-  it("passes on the coach's note", async () => {
+  it("passes on the coach's note and links to the coach's page", async () => {
     await sendRequestRejected(
       member,
       {
+        coachId: 'k1',
         startsAt: session.startsAt,
         durationMin: 60,
         message: null,
@@ -89,6 +90,8 @@ describe('sendRequestRejected', () => {
       },
       'Fully booked that week',
     );
-    expect(vi.mocked(sendMail).mock.calls[0][0].text).toContain('Fully booked that week');
+    const { text } = vi.mocked(sendMail).mock.calls[0][0];
+    expect(text).toContain('Fully booked that week');
+    expect(text).toContain('/user/coaches/k1');
   });
 });

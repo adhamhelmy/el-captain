@@ -1,5 +1,6 @@
-import { SessionBrowse } from '@/components/SessionBrowse'
+import { redirect } from 'next/navigation';
 
+/** Browsing moved to Explore; old links land there. */
 export default function BrowseSessionsPage() {
-  return <SessionBrowse base='/user/sessions' />
+  redirect('/user/explore');
 }

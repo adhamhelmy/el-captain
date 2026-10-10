@@ -13,3 +13,12 @@
 - Move coach certifications to private Blob access (@vercel/blob 2.8 supports it)
 - Admin coach page: real stats and sessions
 - Studio onboarding
+- smart scheduling
+- attendance
+- payement
+- performance notes \*
+- coach/client relationship
+- packages
+- automated reminders
+- monthly performance report \*
+- coach and member analytics
