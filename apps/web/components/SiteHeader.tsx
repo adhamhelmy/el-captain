@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
-import { homeForRole } from '@/lib/routes';
+import { homeForRole } from '@/lib/shared/routes';
 import { LocaleToggle } from './LocaleToggle';
 import { ThemeToggle } from './ThemeToggle';
 import { Logo } from './ui';

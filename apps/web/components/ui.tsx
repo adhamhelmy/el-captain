@@ -1,8 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { type Coach, type Session } from '@/lib/mock';
-import { useSessionText } from '@/lib/session-text';
 import styles from './ui.module.css';
 
 export function Logo({ href = '/' }: Readonly<{ href?: string }>) {
@@ -34,71 +32,67 @@ export function Tag({ kind, children }: Readonly<{ kind: string; children: React
   return <span className={`tag tag-${TAG_VARIANT[kind] ?? 'past'}`}>{children}</span>;
 }
 
-export function TypeTag({ s }: Readonly<{ s: Session }>) {
-  const x = useSessionText();
-  return <Tag kind={s.type}>{x.type(s.type)}</Tag>;
-}
-
 type AvatarSize = 32 | 34 | 36 | 48 | 52 | 64 | 80 | 96;
 
-/** Round initials badge; `size` is the diameter in px and also sets the initials size. */
+/** Up to two initials: the first letter of the first two words ("Ahmed Ali" → "AA"). */
+export const initialsOf = (name: string) =>
+  name
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0] ?? '')
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+/** Round initials badge, or the photo when there is one; `size` is the diameter in px and also sets the initials size. */
 export function Avatar({
   initials,
   size = 34,
   accent,
   className,
-}: Readonly<{ initials: string; size?: AvatarSize; accent?: boolean; className?: string }>) {
-  const classes = ['avatar', styles[`size${size}`], accent && 'accent', className];
-  return <div className={classes.filter(Boolean).join(' ')}>{initials}</div>;
+  src,
+}: Readonly<{ initials: string; size?: AvatarSize; accent?: boolean; className?: string; src?: string | null }>) {
+  const classes = ['avatar', styles[`size${size}`], accent && !src && 'accent', src && styles.photo, className].filter(Boolean).join(' ');
+  // eslint-disable-next-line @next/next/no-img-element -- a small Blob image
+  if (src) return <img src={src} alt='' className={classes} />;
+  return <div className={classes}>{initials}</div>;
 }
 
-export function SessionCard({ s, href, spots, badge }: Readonly<{ s: Session; href: string; spots?: boolean; badge?: React.ReactNode }>) {
-  const x = useSessionText();
+/** A coach in a grid: photo or initials, name and a line under it, and an optional footer (left and right). */
+export function CoachCard({
+  href,
+  name,
+  initials,
+  photoUrl,
+  sub,
+  foot,
+  meta,
+}: Readonly<{
+  href: string;
+  name: string;
+  initials: string;
+  photoUrl?: string | null;
+  sub?: React.ReactNode;
+  foot?: React.ReactNode;
+  meta?: string;
+}>) {
   return (
-    <Link href={href} className='scard'>
-      <div className='scard-head'>
-        <span className='scard-cat'>{x.category(s.category)}</span>
-        {badge ?? <TypeTag s={s} />}
-      </div>
-      <div className='scard-body'>
-        <div dir='auto' className={styles.cardTitle}>
-          {s.title}
-        </div>
-        <div className={`muted ${styles.cardMeta}`}>
-          <bdi>{x.coachName(s)}</bdi> · {x.minutes(s.duration)}
-          {spots && ` · ${x.spots(s)}`}
-        </div>
-        <div className='scard-foot'>
-          <span>{x.when(s)}</span>
-          <span className={styles.price}>{x.price(s.price)}</span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-export function CoachCard({ c, meta }: Readonly<{ c: Coach; meta: string }>) {
-  const t = useTranslations('ui');
-  const x = useSessionText();
-  return (
-    <Link href={`/user/coaches/${c.id}`} className={`card hover plain ${styles.coachCard}`}>
+    <Link href={href} className={`card hover plain ${styles.coachCard}`}>
       <div className={styles.coachHead}>
-        <Avatar initials={x.initials(c)} size={52} />
+        <Avatar initials={initials} size={52} src={photoUrl} />
         <div>
           <div dir='auto' className={styles.coachName}>
-            {x.name(c)}
+            {name}
           </div>
-          <div className={`muted ${styles.coachMeta}`}>
-            {x.category(c.specialty)} · <bdi>{c.location}</bdi>
-          </div>
+          {sub && <div className={`muted ${styles.coachMeta}`}>{sub}</div>}
         </div>
       </div>
-      <div className={`scard-foot ${styles.coachFoot}`}>
-        <span>
-          {c.rating} ★ · {t('reviews', { count: c.reviews })}
-        </span>
-        <span className={styles.coachFootValue}>{meta}</span>
-      </div>
+      {(foot || meta) && (
+        <div className={`scard-foot ${styles.coachFoot}`}>
+          <span>{foot}</span>
+          {meta && <span className={styles.coachFootValue}>{meta}</span>}
+        </div>
+      )}
     </Link>
   );
 }

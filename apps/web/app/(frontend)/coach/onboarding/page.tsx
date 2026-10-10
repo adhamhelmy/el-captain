@@ -1,5 +1,4 @@
 'use client';
-import { sportName } from '@/lib/coach-rules';
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -9,9 +8,19 @@ import { CertificationList } from '@/components/CertificationList';
 import { LinksEditor, toLinks, type LinkDraft } from '@/components/LinksEditor';
 import { PhotoUpload } from '@/components/PhotoUpload';
 import { SportPicker } from '@/components/SportPicker';
-import { getOnboarding, saveProfile, submitProfile, type Certification, type Onboarding } from '@/lib/coach-api';
-import { BIO_MAX, firstIncompleteStep, MAX_CERTS, MAX_LINKS, MAX_SPORTS, missingFields, STEP_OF, type MissingField } from '@/lib/coach-rules';
-import type { SportDTO } from '@/lib/dto';
+import { getOnboarding, saveProfile, submitProfile, type Certification, type Onboarding } from '@/lib/client/coach-api';
+import type { SportDTO } from '@/lib/server/dto';
+import {
+  BIO_MAX,
+  firstIncompleteStep,
+  MAX_CERTS,
+  MAX_LINKS,
+  MAX_SPORTS,
+  missingFields,
+  sportName,
+  STEP_OF,
+  type MissingField,
+} from '@/lib/shared/coach-rules';
 import styles from './page.module.css';
 
 type Step = 1 | 2 | 3 | 4 | 5;

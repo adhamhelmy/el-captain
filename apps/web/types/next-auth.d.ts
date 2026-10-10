@@ -1,5 +1,5 @@
 import type { Role } from '@el-captain/types';
-import type { CoachStatus } from '@/lib/coach-rules';
+import type { CoachStatus } from '@/lib/shared/coach-rules';
 
 declare module 'next-auth' {
   interface Session {
@@ -9,6 +9,7 @@ declare module 'next-auth' {
       email: string;
       role: Role;
       coachStatus?: CoachStatus;
+      suspended?: boolean;
     };
   }
 }
@@ -18,6 +19,7 @@ declare module 'next-auth/jwt' {
     id: string;
     role: Role;
     coachStatus?: CoachStatus;
-    coachStatusCheckedAt?: number;
+    suspended?: boolean;
+    statusCheckedAt?: number;
   }
 }

@@ -1,14 +1,5 @@
 .page { gap: 24px; }
 
-/* New session form */
-.form { gap: 18px; }
-.formHead { align-items: center; }
-.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
-.wide { grid-column: 1 / -1; }
-.actions { display: flex; gap: 10px; }
-.publish { padding: 12px 22px; border-radius: 8px; }
-.cancel { padding: 12px 22px; border-radius: 8px; color: var(--text-2); font-weight: 400; }
-
 .toolbar { align-items: center; gap: 12px; }
 
 /* Table view */
@@ -28,3 +19,5 @@
 .event { display: block; padding: 8px 10px; border-radius: 8px; }
 .eventMeta { font-size: 11px; opacity: 0.8; }
 .eventTitle { font-size: 13px; font-weight: 700; line-height: 1.3; }
+
+.notice { color: var(--accent-text); font-size: 14px; }

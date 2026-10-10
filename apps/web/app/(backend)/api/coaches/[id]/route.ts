@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
-import { assertAllowed, assertFound, assertNoConflict, assertValid, protect, publicRoute, type AuthContext, type RequestContext } from '@/lib/api';
-import { blobInfo, deleteBlob } from '@/lib/blob';
+import {
+  assertAllowed,
+  assertFound,
+  assertNoConflict,
+  assertValid,
+  protect,
+  publicRoute,
+  type AuthContext,
+  type RequestContext,
+} from '@/lib/server/api';
+import { blobInfo, deleteBlob } from '@/lib/server/blob';
 import {
   BIO_MAX,
   CITY_MAX,
@@ -12,11 +21,12 @@ import {
   normalizeSocial,
   ownsUpload,
   UPLOAD_RULES,
-} from '@/lib/coach-rules';
-import { toCoachDTO } from '@/lib/dto';
-import { ERROR_CODES } from '@/lib/error-codes';
+} from '@/lib/shared/coach-rules';
+import { toCoachDTO, toPublicCoachDTO } from '@/lib/server/dto';
+import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { findActiveCoach, findCoach, updateCoach, type ProfileUpdate } from '@/prisma/models/coach-profile';
 import { countSports } from '@/prisma/models/sport';
+import { privateSettingsOk } from '@/lib/shared/session-rules';
 
 const invalid = (ok: unknown, message: string) => assertValid(ok, message, ERROR_CODES.INVALID_PROFILE);
 
@@ -24,8 +34,7 @@ const invalid = (ok: unknown, message: string) => assertValid(ok, message, ERROR
 async function getCoach({ params: { id } }: RequestContext<{ id: string }>) {
   const coach = await findActiveCoach(id);
   assertFound(coach);
-  const dto = toCoachDTO(coach);
-  return NextResponse.json({ ...dto, sports: dto.sports.filter((s) => s.status === 'APPROVED') });
+  return NextResponse.json(toPublicCoachDTO(coach));
 }
 
 function name(value: unknown) {
@@ -87,6 +96,15 @@ async function photoPath(id: string, value: unknown) {
   return value as string;
 }
 
+/** Both set turns private requests on; both null turns them off. Sending only one is an error. */
+function privateSettings(body: Record<string, unknown>): Pick<ProfileUpdate, 'privatePrice' | 'privateDuration'> {
+  if (body.privatePrice === undefined && body.privateDuration === undefined) return {};
+  const price = (body.privatePrice ?? null) as number | null;
+  const duration = (body.privateDuration ?? null) as number | null;
+  invalid(privateSettingsOk(price, duration), 'Invalid private settings');
+  return { privatePrice: price, privateDuration: duration };
+}
+
 function isNewPhoto(oldPath: string | null | undefined, newPath: string | null | undefined) {
   return newPath && oldPath && newPath !== oldPath;
 }
@@ -111,6 +129,7 @@ async function updateCoachProfile({ req, user, params: { id } }: AuthContext<{ i
     links: links(body.links),
     sportIds: await sportIds(body.sportIds),
     photoPath: await photoPath(id, body.photoPath),
+    ...privateSettings(body),
   };
   const changes = Object.fromEntries(Object.entries(update).filter(([, v]) => v !== undefined)) as ProfileUpdate;
   const updated = await updateCoach(id, changes);

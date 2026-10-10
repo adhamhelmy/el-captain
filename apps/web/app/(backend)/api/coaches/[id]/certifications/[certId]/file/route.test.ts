@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
-vi.mock('@/lib/auth', () => ({ authOptions: {} }));
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/prisma/models/certification', () => ({ findCertification: vi.fn() }));
-vi.mock('@/lib/blob', () => ({ readBlob: vi.fn() }));
+vi.mock('@/lib/server/blob', () => ({ readBlob: vi.fn() }));
 
 import { GET } from './route';
 import { findCertification } from '@/prisma/models/certification';
-import { readBlob } from '@/lib/blob';
+import { readBlob } from '@/lib/server/blob';
 import { call, signInAs } from '@/test/api';
 
 const params = { id: 'k1', certId: 'c1' };
@@ -49,7 +49,7 @@ describe('GET /api/coaches/[id]/certifications/[certId]/file', () => {
 
   it('passes on a 502 when the store fails', async () => {
     signInAs('k1', 'COACH');
-    const { HttpError } = await import('@/lib/api');
+    const { HttpError } = await import('@/lib/server/api');
     vi.mocked(readBlob).mockRejectedValue(new HttpError(502, 'File unavailable'));
     expect((await call(GET, { params })).status).toBe(502);
   });

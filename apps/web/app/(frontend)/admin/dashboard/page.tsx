@@ -1,28 +1,33 @@
 'use client';
-import { sportName } from '@/lib/coach-rules';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { SectionHead, Stats } from '@/components/ui';
-import { adminListCoaches } from '@/lib/coach-api';
-import type { AdminCoachRowDTO } from '@/lib/dto';
-import { bookings, coaches, session, user } from '@/lib/mock';
-import { useSessionText } from '@/lib/session-text';
+import { adminListCoaches } from '@/lib/client/coach-api';
+import { adminRecentBookings, adminStats, type AdminStats } from '@/lib/client/insights-api';
+import { useSessionLabels } from '@/lib/client/session-labels';
+import type { AdminCoachRowDTO, RecentBookingDTO } from '@/lib/server/dto';
+import { sportName } from '@/lib/shared/coach-rules';
 import styles from './page.module.css';
 
 export default function AdminDashboard() {
   const t = useTranslations('admin');
   const tr = useTranslations('adminReview');
-  const x = useSessionText();
   const f = useFormatter();
   const locale = useLocale();
   const [pending, setPending] = useState<AdminCoachRowDTO[]>([]);
   useEffect(() => {
-    adminListCoaches('PENDING')
+    adminListCoaches({ status: 'PENDING' })
       .then((r) => r.ok && setPending(r.data.slice(0, 5)))
       .catch(() => setPending([]));
   }, []);
-  const recent = bookings.filter((b) => b.at);
+  const l = useSessionLabels();
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [recent, setRecent] = useState<RecentBookingDTO[]>([]);
+  useEffect(() => {
+    adminStats().then((r) => r.ok && setStats(r.data));
+    adminRecentBookings().then((r) => r.ok && setRecent(r.data));
+  }, []);
 
   return (
     <div className={`page stack ${styles.page}`}>
@@ -30,15 +35,16 @@ export default function AdminDashboard() {
         <div className={`muted ${styles.overline}`}>{t('overview')}</div>
         <div className='title'>{t('dashboard')}</div>
       </div>
-      {/* Mock until wired up: real platform stats from GET /api/admin/dashboard */}
-      <Stats
-        items={[
-          ['1,284', t('stats.totalUsers')],
-          [coaches.filter((c) => c.status === 'active').length + 33, t('stats.activeCoaches')],
-          ['212', t('stats.sessionsWeek')],
-          [x.price(1532500), t('stats.gross30')],
-        ]}
-      />
+      {stats && (
+        <Stats
+          items={[
+            [stats.members, t('stats.totalUsers')],
+            [stats.activeCoaches, t('stats.activeCoaches')],
+            [stats.sessionsNext7, t('stats.sessionsWeek')],
+            [l.price(stats.bookedValue30), t('stats.gross30')],
+          ]}
+        />
+      )}
       <div className={`grid-2 ${styles.columns}`}>
         <div>
           <SectionHead title={t('pendingCoaches')} href='/admin/coaches' link={t('allCoaches')} />
@@ -73,17 +79,18 @@ export default function AdminDashboard() {
               <div key={b.id} className={styles.booking}>
                 {/* "<user> booked <session>" reads in the same order in Arabic («<user> حجز <session>»). */}
                 <div>
-                  <Link href={`/admin/users/${b.userId}`} className={`plain ${styles.link}`}>
-                    <bdi>{user(b.userId)!.name}</bdi>
+                  <Link href={`/admin/users/${b.member.id}`} className={`plain ${styles.link}`}>
+                    <bdi>{b.member.name}</bdi>
                   </Link>
                   <span className='muted'> {t('booked')} </span>
-                  <Link href={`/admin/sessions/${b.sessionId}`} className={`plain ${styles.link}`}>
-                    <bdi>{session(b.sessionId)!.title}</bdi>
+                  <Link href={`/admin/sessions/${b.session.id}`} className={`plain ${styles.link}`}>
+                    <bdi>{l.title(b.session)}</bdi>
                   </Link>
                 </div>
-                <span className={`dim ${styles.ago}`}>{x.ago(b.at!)}</span>
+                <span className={`dim ${styles.ago}`}>{l.ago(b.createdAt)}</span>
               </div>
             ))}
+            {recent.length === 0 && <div className={`muted ${styles.none}`}>{t('noBookings')}</div>}
           </div>
         </div>
       </div>

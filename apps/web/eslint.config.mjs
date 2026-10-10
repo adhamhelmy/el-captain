@@ -41,6 +41,8 @@ const eslintConfig = defineConfig([
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // One import per module: merge `import type { A }` and `import type { B }` from the same path.
+      'import/no-duplicates': 'error',
       // Styling lives in CSS files: no inline style on DOM elements…
       'react/forbid-dom-props': ['error', { forbid: [
         { propName: 'style', message: 'Use a class from a CSS file instead of inline styles.' },

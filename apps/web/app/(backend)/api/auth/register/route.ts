@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { assertNoConflict, assertValid, publicRoute, type RequestContext } from '@/lib/api'
-import { ERROR_CODES } from '@/lib/error-codes'
-import { sendVerificationEmail } from '@/lib/auth-emails'
-import { isStrongPassword, isValidEmail, normalizeEmail, SIGNUP_ROLES } from '@/lib/auth-rules'
-import { hashPassword } from '@/lib/password'
+import { assertNoConflict, assertValid, publicRoute, type RequestContext } from '@/lib/server/api'
+import { ERROR_CODES } from '@/lib/shared/error-codes'
+import { sendVerificationEmail } from '@/lib/email/auth-emails'
+import { isStrongPassword, isValidEmail, normalizeEmail, SIGNUP_ROLES } from '@/lib/shared/auth-rules'
+import { hashPassword } from '@/lib/server/password'
 import { createUser, findUserByEmail } from '@/prisma/models/user'
 
 /** Creates the account unverified and emails a confirmation link. Sign-in waits for that link. */

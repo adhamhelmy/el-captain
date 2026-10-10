@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { assertNoConflict, assertValid, protect, type AuthContext } from '@/lib/api';
-import { cleanSportName, isValidSportName, sportKey } from '@/lib/coach-rules';
-import { toSportDTO } from '@/lib/dto';
-import { ERROR_CODES } from '@/lib/error-codes';
+import { assertNoConflict, assertValid, protect, type AuthContext } from '@/lib/server/api';
+import { cleanSportName, isValidSportName, sportKey } from '@/lib/shared/coach-rules';
+import { toSportDTO } from '@/lib/server/dto';
+import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { createSport, findSportByKey, listSportsForAdmin } from '@/prisma/models/sport';
 
 async function list() {

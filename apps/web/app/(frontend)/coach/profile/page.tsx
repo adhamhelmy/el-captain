@@ -9,25 +9,22 @@ import { PasswordSetting } from '@/components/PasswordSetting';
 import { PhotoUpload } from '@/components/PhotoUpload';
 import { SportPicker } from '@/components/SportPicker';
 import { ThemeSetting } from '@/components/ThemeToggle';
-import { Avatar, Field } from '@/components/ui';
-import { getOnboarding, saveProfile, type Certification } from '@/lib/coach-api';
-import { BIO_MAX, CITY_MAX, sportName } from '@/lib/coach-rules';
-import type { CoachDTO, SportDTO } from '@/lib/dto';
+import { VenueEditor } from '@/components/VenueEditor';
+import { privateSettingsOk } from '@/lib/shared/session-rules';
+import { Avatar, Field, initialsOf } from '@/components/ui';
+import { getOnboarding, saveProfile, type Certification } from '@/lib/client/coach-api';
+import { BIO_MAX, CITY_MAX, NAME_MAX, sportName } from '@/lib/shared/coach-rules';
+import type { CoachDTO, SportDTO } from '@/lib/server/dto';
 import onb from '@/components/onboarding.module.css';
 import profileStyles from '../../profile.module.css';
 import styles from './page.module.css';
 
 const SAVE_ERRORS = ['invalid_profile', 'invalid_upload'] as const;
 
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
 /** A labelled block; not a <label>, since the editors inside hold several controls. */
+/** A blank field is "not set" (null), anything else is read as a number. */
+const optionalNumber = (v: string) => (v.trim() === '' ? null : Number(v));
+
 function Group({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div className={`stack ${onb.group}`}>
@@ -55,6 +52,8 @@ export default function CoachProfilePage() {
   const [sports, setSports] = useState<SportDTO[]>([]);
   const [certs, setCerts] = useState<Certification[]>([]);
   const [photo, setPhoto] = useState<{ path: string; url: string } | null>(null);
+  const [privatePrice, setPrivatePrice] = useState('');
+  const [privateDuration, setPrivateDuration] = useState('');
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
@@ -68,6 +67,8 @@ export default function CoachProfilePage() {
     setLinks(c.links.map(({ id, label, url }) => ({ key: id, label, url })));
     setSports(c.sports);
     setCerts(c.certifications);
+    setPrivatePrice(c.privatePrice === null ? '' : String(c.privatePrice));
+    setPrivateDuration(c.privateDuration === null ? '' : String(c.privateDuration));
   };
 
   useEffect(() => {
@@ -86,7 +87,12 @@ export default function CoachProfilePage() {
 
   async function save() {
     if (!profile) return;
+    const price = optionalNumber(privatePrice);
+    const duration = optionalNumber(privateDuration);
+    if (!privateSettingsOk(price, duration)) return setError(t('privateRules'));
     const res = await saveProfile(profile.id, {
+      privatePrice: price,
+      privateDuration: duration,
       name,
       city,
       bio,
@@ -103,6 +109,7 @@ export default function CoachProfilePage() {
     setSaved(true);
   }
 
+  const privateOk = privateSettingsOk(optionalNumber(privatePrice), optionalNumber(privateDuration));
   const photoUrl = photo?.url ?? profile?.photoUrl ?? null;
   const line = [sports.map((s) => sportName(s, locale)).join(' · '), city.trim()].filter(Boolean).join(' · ');
 
@@ -116,7 +123,7 @@ export default function CoachProfilePage() {
               // eslint-disable-next-line @next/next/no-img-element -- a local preview or a small Blob image
               <img src={photoUrl} alt='' className={`${onb.photo} ${onb.photoSm}`} />
             ) : (
-              <Avatar initials={initials(name)} size={64} accent />
+              <Avatar initials={initialsOf(name)} size={64} accent />
             )}
             <div className={styles.headText}>
               <div dir='auto' className={profileStyles.name}>
@@ -131,7 +138,7 @@ export default function CoachProfilePage() {
           </div>
           <div className={`fields ${profileStyles.fields}`}>
             <Field label={t('displayName')}>
-              <input className='input' dir='auto' value={name} onChange={(e) => edit(setName)(e.target.value)} />
+              <input className='input' dir='auto' maxLength={NAME_MAX} value={name} onChange={(e) => edit(setName)(e.target.value)} />
             </Field>
             <Field label={t('location')}>
               <input className='input' dir='auto' maxLength={CITY_MAX} value={city} onChange={(e) => edit(setCity)(e.target.value)} />
@@ -166,6 +173,29 @@ export default function CoachProfilePage() {
           </Group>
           <Group label={to('certifications')}>
             <CertificationList coachId={profile.id} items={certs} onChange={setCerts} />
+          </Group>
+          <Group label={t('private')}>
+            <div className='muted'>{t('privateHint')}</div>
+            <div className='fields'>
+              <Field label={t('privatePrice')}>
+                <input className='input' inputMode='numeric' dir='ltr' value={privatePrice} onChange={(e) => edit(setPrivatePrice)(e.target.value)} />
+              </Field>
+              <Field label={t('privateDuration')}>
+                <input
+                  className='input'
+                  inputMode='numeric'
+                  dir='ltr'
+                  value={privateDuration}
+                  onChange={(e) => edit(setPrivateDuration)(e.target.value)}
+                />
+              </Field>
+            </div>
+            <div className={privateOk ? `muted ${onb.hint}` : onb.error}>
+              {t('privateRules')}
+            </div>
+          </Group>
+          <Group label={t('venues')}>
+            <VenueEditor />
           </Group>
         </div>
       )}

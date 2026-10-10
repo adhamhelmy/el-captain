@@ -1,41 +1,64 @@
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
-import { isolate } from '@/i18n/locale'
-import { Avatar, SectionHead, Stats } from '@/components/ui'
-import { clientsOfCoach, coach, fill, ME, sessionsOfCoach } from '@/lib/mock'
-import { useSessionText } from '@/lib/session-text'
-import styles from './page.module.css'
+'use client';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
+import { Avatar, initialsOf, SectionHead, Stats } from '@/components/ui';
+import { isolate } from '@/i18n/locale';
+import { coachClients, coachStats, type CoachStats } from '@/lib/client/insights-api';
+import { mySessions } from '@/lib/client/session-api';
+import { useSessionLabels } from '@/lib/client/session-labels';
+import type { CoachClientDTO, SessionDTO } from '@/lib/server/dto';
+import styles from './page.module.css';
 
 export default function CoachDashboard() {
-  const t = useTranslations('coachDashboard')
-  const ts = useTranslations('schedule')
-  const x = useSessionText()
-  const me = coach(ME.coach)!
-  const nextUp = sessionsOfCoach(me.id).filter(s => s.status === 'upcoming').slice(0, 3)
-  const recent = clientsOfCoach(me.id).slice(0, 3)
+  const t = useTranslations('coachDashboard');
+  const ts = useTranslations('schedule');
+  const l = useSessionLabels();
+  const name = useSession().data?.user.name ?? '';
+  const [stats, setStats] = useState<CoachStats | null>(null);
+  const [next, setNext] = useState<SessionDTO[]>([]);
+  const [clients, setClients] = useState<CoachClientDTO[]>([]);
+
+  useEffect(() => {
+    coachStats().then((r) => r.ok && setStats(r.data));
+    mySessions('upcoming').then((r) => r.ok && setNext(r.data.filter((s) => s.status === 'SCHEDULED').slice(0, 3)));
+    coachClients().then((r) => r.ok && setClients(r.data.slice(0, 3)));
+  }, []);
 
   return (
     <div className={`page stack ${styles.page}`}>
       <div className='between'>
         <div>
           <div className={`muted ${styles.welcome}`}>{t('welcome')}</div>
-          <div className='title'>{t('title', { name: isolate(x.name(me).split(' ')[0].toUpperCase()) })}</div>
+          <div className='title'>{t('title', { name: isolate(name.split(' ')[0].toUpperCase()) })}</div>
         </div>
-        <Link href='/coach/sessions/me?add=1' className='btn'>{ts('add')}</Link>
+        <Link href='/coach/sessions/me?add=1' className='btn'>
+          {ts('add')}
+        </Link>
       </div>
-      {/* Mock until wired up: real weekly stats from the API */}
-      <Stats items={[['47', t('stats.bookings')], [x.price(46500), t('stats.revenue')], ['4.9', t('stats.rating')], ['82%', t('stats.fill')]]} />
+      {stats && (
+        <Stats
+          items={[
+            [stats.bookingsNext7, t('stats.bookings')],
+            [l.price(stats.earnings30), t('stats.revenue')],
+            [stats.fillRate === null ? '—' : `${stats.fillRate}%`, t('stats.fill')],
+          ]}
+        />
+      )}
       <div className={`grid-2 ${styles.columns}`}>
         <div>
           <SectionHead title={t('comingUp')} href='/coach/sessions/me' link={t('schedule')} />
           <div className={`stack ${styles.list}`}>
-            {nextUp.map(s => (
+            {next.map((s) => (
               <Link key={s.id} href={`/coach/sessions/${s.id}`} className={`row ${styles.session}`}>
                 <div>
-                  <div dir='auto' className={styles.sessionTitle}>{s.title}</div>
-                  <div className={`muted ${styles.when}`}>{x.when(s)}</div>
+                  <div dir='auto' className={styles.sessionTitle}>
+                    {l.title(s)}
+                  </div>
+                  <div className={`muted ${styles.when}`}>{l.when(s.startsAt)}</div>
                 </div>
-                <span className={`muted ${styles.fill}`}>{fill(s)}</span>
+                <span className={`muted ${styles.fill}`}>{l.fill(s)}</span>
               </Link>
             ))}
           </div>
@@ -43,11 +66,13 @@ export default function CoachDashboard() {
         <div>
           <SectionHead title={t('recentClients')} href='/coach/users/me' link={t('allClients')} />
           <div className={`stack ${styles.list}`}>
-            {recent.map(c => (
-              <Link key={c.id} href={`/coach/users/${c.id}`} className={`row ${styles.client}`}>
-                <Avatar initials={c.initials} size={36} />
+            {clients.map((c) => (
+              <Link key={c.member.id} href={`/coach/users/${c.member.id}`} className={`row ${styles.client}`}>
+                <Avatar initials={initialsOf(c.member.name)} size={36} />
                 <div className={styles.clientText}>
-                  <div dir='auto' className={styles.clientName}>{c.name}</div>
+                  <div dir='auto' className={styles.clientName}>
+                    {c.member.name}
+                  </div>
                   <div className={`muted ${styles.clientSub}`}>{t('withYou', { count: c.count })}</div>
                 </div>
               </Link>
@@ -56,5 +81,5 @@ export default function CoachDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { assertAllowed, assertFound, assertNoConflict, assertValid, protect, type AuthContext } from '@/lib/api';
-import { canTransition, missingFields } from '@/lib/coach-rules';
-import { sendCoachSubmittedEmail } from '@/lib/coach-emails';
-import { draftOf } from '@/lib/dto';
-import { ERROR_CODES } from '@/lib/error-codes';
-import { requestLocale } from '@/lib/mail';
+import { assertAllowed, assertFound, assertNoConflict, assertValid, protect, type AuthContext } from '@/lib/server/api';
+import { canTransition, missingFields } from '@/lib/shared/coach-rules';
+import { sendCoachSubmittedEmail } from '@/lib/email/coach-emails';
+import { draftOf } from '@/lib/server/dto';
+import { ERROR_CODES } from '@/lib/shared/error-codes';
+import { requestLocale } from '@/lib/email/mail';
 import { findCoach } from '@/prisma/models/coach-profile';
 import { setCoachStatus } from '@/prisma/models/coach-status';
 import { listAdminEmails } from '@/prisma/models/user';

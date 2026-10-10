@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import { call, signInAs } from '@/test/api'
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }))
-vi.mock('@/lib/auth', () => ({ authOptions: {} }))
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }))
 vi.mock('@/prisma/models/user', () => ({ findUserById: vi.fn(), updatePasswordHash: vi.fn() }))
 
 import { POST } from './route'

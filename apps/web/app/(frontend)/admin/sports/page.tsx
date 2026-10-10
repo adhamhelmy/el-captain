@@ -1,9 +1,9 @@
 'use client';
-import { sportName } from '@/lib/coach-rules';
+import { sportName } from '@/lib/shared/coach-rules';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Field, Tag } from '@/components/ui';
-import { adminAddSport, adminEditSport, adminListSports, adminMergeSport, type AdminSport, type Result } from '@/lib/coach-api';
+import { adminAddSport, adminEditSport, adminListSports, adminMergeSport, type AdminSport, type Result } from '@/lib/client/coach-api';
 import styles from './page.module.css';
 
 const KNOWN_ERRORS = ['sport_exists', 'invalid_profile'] as const;

@@ -5,9 +5,9 @@ import { useTranslations } from 'next-intl';
 import { loginLink } from '@/components/rich';
 import { Field } from '@/components/ui';
 import type { Messages } from '@/i18n/messages';
-import { register } from '@/lib/auth-api';
-import { isStrongPassword, isValidEmail, normalizeEmail } from '@/lib/auth-rules';
-import { pickError, REGISTER_ERRORS } from '@/lib/error-codes';
+import { register } from '@/lib/client/auth-api';
+import { isStrongPassword, isValidEmail, normalizeEmail } from '@/lib/shared/auth-rules';
+import { pickError, REGISTER_ERRORS } from '@/lib/shared/error-codes';
 import { ResendVerification } from '../ResendVerification';
 import styles from '../auth.module.css';
 
@@ -65,7 +65,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <form onSubmit={submit} className={`stack ${styles.form}`}>
+    <form method='post' onSubmit={submit} className={`stack ${styles.form}`}>
       <div>
         <div className='auth-title'>{t('title')}</div>
         <div className={`muted ${styles.sub}`}>

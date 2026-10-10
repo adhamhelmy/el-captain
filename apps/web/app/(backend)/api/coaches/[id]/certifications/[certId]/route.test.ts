@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
-vi.mock('@/lib/auth', () => ({ authOptions: {} }));
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoach: vi.fn() }));
 vi.mock('@/prisma/models/certification', () => ({ findCertification: vi.fn(), deleteCertification: vi.fn() }));
-vi.mock('@/lib/blob', () => ({ deleteBlob: vi.fn() }));
+vi.mock('@/lib/server/blob', () => ({ deleteBlob: vi.fn() }));
 
 import { DELETE } from './route';
 import { findCoach } from '@/prisma/models/coach-profile';
 import { deleteCertification, findCertification } from '@/prisma/models/certification';
-import { deleteBlob } from '@/lib/blob';
+import { deleteBlob } from '@/lib/server/blob';
 import { call, signInAs } from '@/test/api';
 
 const params = { id: 'k1', certId: 'c1' };

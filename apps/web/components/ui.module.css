@@ -32,3 +32,4 @@
 
 .sectionHead { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; }
 .sectionLink { font-size: 14px; font-weight: 600; }
+.photo { object-fit: cover; padding: 0; }

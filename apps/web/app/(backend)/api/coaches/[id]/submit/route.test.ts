@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
-vi.mock('@/lib/auth', () => ({ authOptions: {} }));
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoach: vi.fn() }));
 vi.mock('@/prisma/models/coach-status', () => ({ setCoachStatus: vi.fn() }));
 vi.mock('@/prisma/models/user', () => ({ listAdminEmails: vi.fn() }));
-vi.mock('@/lib/coach-emails', () => ({ sendCoachSubmittedEmail: vi.fn() }));
+vi.mock('@/lib/email/coach-emails', () => ({ sendCoachSubmittedEmail: vi.fn() }));
 
 import { POST } from './route';
 import { findCoach } from '@/prisma/models/coach-profile';
 import { setCoachStatus } from '@/prisma/models/coach-status';
 import { listAdminEmails } from '@/prisma/models/user';
-import { sendCoachSubmittedEmail } from '@/lib/coach-emails';
+import { sendCoachSubmittedEmail } from '@/lib/email/coach-emails';
 import { call, signInAs } from '@/test/api';
 
 const params = { id: 'k1' };

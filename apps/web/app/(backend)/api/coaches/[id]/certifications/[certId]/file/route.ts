@@ -1,5 +1,5 @@
-import { assertAllowed, assertFound, protect, type AuthContext } from '@/lib/api';
-import { readBlob } from '@/lib/blob';
+import { assertAllowed, assertFound, protect, type AuthContext } from '@/lib/server/api';
+import { readBlob } from '@/lib/server/blob';
 import { findCertification } from '@/prisma/models/certification';
 
 /** The certificate file, for its coach and admins only. The storage URL never reaches the browser. */

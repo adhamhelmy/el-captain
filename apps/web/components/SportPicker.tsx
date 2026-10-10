@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { addSport, searchSports } from '@/lib/coach-api';
-import { MAX_SPORTS, sportKey, sportName } from '@/lib/coach-rules';
-import type { SportDTO } from '@/lib/dto';
+import { addSport, searchSports } from '@/lib/client/coach-api';
+import { MAX_SPORTS, sportKey, sportName } from '@/lib/shared/coach-rules';
+import type { SportDTO } from '@/lib/server/dto';
 import styles from './onboarding.module.css';
 
 /** Search and pick sports; offers to add one that isn't listed, and catches duplicates. */

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { assertAllowed, assertFound, assertNoConflict, assertValid, protect, type AuthContext } from '@/lib/api';
-import { blobInfo } from '@/lib/blob';
-import { CERT_TITLE_MAX, MAX_CERTS, ownsUpload, UPLOAD_RULES } from '@/lib/coach-rules';
-import { toCertificationDTO } from '@/lib/dto';
-import { ERROR_CODES } from '@/lib/error-codes';
+import { assertAllowed, assertFound, assertNoConflict, assertValid, protect, type AuthContext } from '@/lib/server/api';
+import { blobInfo } from '@/lib/server/blob';
+import { CERT_TITLE_MAX, MAX_CERTS, ownsUpload, UPLOAD_RULES } from '@/lib/shared/coach-rules';
+import { toCertificationDTO } from '@/lib/server/dto';
+import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { createCertification } from '@/prisma/models/certification';
 import { findCoach } from '@/prisma/models/coach-profile';
 

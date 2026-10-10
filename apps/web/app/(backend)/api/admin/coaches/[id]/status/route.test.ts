@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
-vi.mock('@/lib/auth', () => ({ authOptions: {} }));
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoach: vi.fn() }));
 vi.mock('@/prisma/models/coach-status', () => ({ setCoachStatus: vi.fn() }));
-vi.mock('@/lib/coach-emails', () => ({ sendCoachDecisionEmail: vi.fn() }));
+vi.mock('@/lib/email/coach-emails', () => ({ sendCoachDecisionEmail: vi.fn() }));
 
 import { POST } from './route';
 import { findCoach } from '@/prisma/models/coach-profile';
 import { setCoachStatus } from '@/prisma/models/coach-status';
-import { sendCoachDecisionEmail } from '@/lib/coach-emails';
+import { sendCoachDecisionEmail } from '@/lib/email/coach-emails';
 import { call, signInAs } from '@/test/api';
 
 const params = { id: 'k1' };

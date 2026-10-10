@@ -1,12 +1,12 @@
 'use client';
-import { sportName } from '@/lib/coach-rules';
+import { sportName } from '@/lib/shared/coach-rules';
 import { useCallback, useEffect, useState } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { CertificationList } from '@/components/CertificationList';
-import { Avatar, Back, Field, Tag } from '@/components/ui';
-import { adminGetCoach, adminSetStatus } from '@/lib/coach-api';
-import type { AdminCoachDTO } from '@/lib/dto';
+import { Avatar, Back, Field, initialsOf, Tag } from '@/components/ui';
+import { adminGetCoach, adminSetStatus } from '@/lib/client/coach-api';
+import type { AdminCoachDTO } from '@/lib/server/dto';
 import onb from '@/components/onboarding.module.css';
 import detail from '../../../detail.module.css';
 import styles from './page.module.css';
@@ -65,7 +65,7 @@ export default function AdminCoachPage() {
           // eslint-disable-next-line @next/next/no-img-element -- a small Blob image
           <img src={c.photoUrl} alt='' className={onb.photo} />
         ) : (
-          <Avatar initials={c.coachName.slice(0, 2).toUpperCase()} size={80} accent />
+          <Avatar initials={initialsOf(c.coachName)} size={80} accent />
         )}
         <div className={detail.profileText}>
           <div className={detail.nameRow}>

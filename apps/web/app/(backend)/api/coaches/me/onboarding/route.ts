@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { assertFound, protect, type AuthContext } from '@/lib/api';
-import { missingFields } from '@/lib/coach-rules';
-import { draftOf, toCoachDTO } from '@/lib/dto';
+import { assertFound, protect, type AuthContext } from '@/lib/server/api';
+import { missingFields } from '@/lib/shared/coach-rules';
+import { draftOf, toCoachDTO } from '@/lib/server/dto';
 import { findCoach } from '@/prisma/models/coach-profile';
 import { lastStatusEvent } from '@/prisma/models/coach-status';
 

@@ -5,9 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Field } from '@/components/ui';
 import type { Messages } from '@/i18n/messages';
-import { resetPassword } from '@/lib/auth-api';
-import { isStrongPassword } from '@/lib/auth-rules';
-import { ERROR_CODES, pickError, RESET_PASSWORD_ERRORS } from '@/lib/error-codes';
+import { resetPassword } from '@/lib/client/auth-api';
+import { isStrongPassword } from '@/lib/shared/auth-rules';
+import { ERROR_CODES, pickError, RESET_PASSWORD_ERRORS } from '@/lib/shared/error-codes';
 import styles from '../auth.module.css';
 
 /** Opened from the reset email: /reset-password?token=… */
@@ -45,7 +45,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <form onSubmit={submit} className={`stack ${styles.form}`}>
+    <form method='post' onSubmit={submit} className={`stack ${styles.form}`}>
       <div>
         <div className='auth-title'>{t('title')}</div>
         <div className={`muted ${styles.sub}`}>

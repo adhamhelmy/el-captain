@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { call } from '@/test/api'
 
 vi.mock('@/prisma/models/user', () => ({ findUserByEmail: vi.fn() }))
-vi.mock('@/lib/auth-emails', () => ({ sendResetEmail: vi.fn() }))
+vi.mock('@/lib/email/auth-emails', () => ({ sendResetEmail: vi.fn() }))
 
 import { POST } from './route'
 import { findUserByEmail } from '@/prisma/models/user'
-import { sendResetEmail } from '@/lib/auth-emails'
+import { sendResetEmail } from '@/lib/email/auth-emails'
 
 describe('POST /api/auth/forgot-password', () => {
   beforeEach(() => vi.clearAllMocks())

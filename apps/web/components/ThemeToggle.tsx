@@ -1,7 +1,7 @@
 'use client';
 import { useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
-import { getTheme, setTheme, subscribeTheme } from '@/lib/theme';
+import { getTheme, setTheme, subscribeTheme } from '@/lib/client/theme';
 import styles from './settings.module.css';
 
 const Sun = () => (

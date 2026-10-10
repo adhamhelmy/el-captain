@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
-import { assertValid, protect, type AuthContext } from '@/lib/api';
-import { ownsUpload, UPLOAD_RULES, type UploadKind } from '@/lib/coach-rules';
-import { ERROR_CODES } from '@/lib/error-codes';
+import { assertValid, protect, type AuthContext } from '@/lib/server/api';
+import { ownsUpload, UPLOAD_RULES, type UploadKind } from '@/lib/shared/coach-rules';
+import { ERROR_CODES } from '@/lib/shared/error-codes';
 
 /**
  * Hands the browser a short-lived token to upload one file straight to Blob.

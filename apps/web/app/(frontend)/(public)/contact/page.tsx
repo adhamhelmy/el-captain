@@ -12,21 +12,15 @@ export default function ContactPage() {
     <section className={`site-section ${styles.page}`}>
       <div>
         <div className='eyebrow'>{t('eyebrow')}</div>
-        <h1 className={`display lh-90 ${styles.title}`}>
-          {t('title')}
-        </h1>
-        <p className={`muted ${styles.intro}`}>
-          {t('intro')}
-        </p>
+        <h1 className={`display lh-90 ${styles.title}`}>{t('title')}</h1>
+        <p className={`muted ${styles.intro}`}>{t('intro')}</p>
         <div className={`stack ${styles.emails}`}>
           {[
             [t('emailLabel'), 'support@el-captain.app'],
             [t('coachesLabel'), 'coaches@el-captain.app'],
           ].map(([label, email]) => (
             <div key={label}>
-              <div className='dim overline'>
-                {label}
-              </div>
+              <div className='dim overline'>{label}</div>
               <a href={`mailto:${email}`} dir='ltr'>
                 {email}
               </a>
@@ -37,22 +31,15 @@ export default function ContactPage() {
       <div className='card'>
         {sent ? (
           <div className={styles.sent}>
-            <div className={`display ${styles.sentTitle}`}>
-              {t('sentTitle')}
-            </div>
-            <div className={`muted ${styles.sentText}`}>
-              {t('sentText')}
-            </div>
-            <button
-              type='button'
-              className={`btn-ghost ${styles.again}`}
-              onClick={() => setSent(false)}
-            >
+            <div className={`display ${styles.sentTitle}`}>{t('sentTitle')}</div>
+            <div className={`muted ${styles.sentText}`}>{t('sentText')}</div>
+            <button type='button' className={`btn-ghost ${styles.again}`} onClick={() => setSent(false)}>
               {t('sendAnother')}
             </button>
           </div>
         ) : (
           <form
+            method='post'
             className={`stack ${styles.form}`}
             onSubmit={(e) => {
               e.preventDefault();

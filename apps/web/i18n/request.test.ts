@@ -25,7 +25,7 @@ describe('request config', () => {
     const config = await resolve()
     expect(config.locale).toBe('ar-EG-u-nu-latn')
     expect(config.messages.meta.title).toBe('الكابتن')
-    expect(config.timeZone).toBe('America/Denver')
+    expect(config.timeZone).toBe('Africa/Cairo')
   })
 
   it('falls back to the browser language, then English', async () => {

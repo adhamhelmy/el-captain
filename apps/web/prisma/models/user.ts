@@ -15,6 +15,12 @@ export function findUserByEmail(email: string) {
   return prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } });
 }
 
+/** What decides where a signed-in user may go: whether they're suspended and, for coaches, their review status. */
+export async function findAccess(id: string) {
+  const user = await prisma.user.findUnique({ where: { id }, select: { suspendedAt: true, coachProfile: { select: { status: true } } } });
+  return { suspended: !!user?.suspendedAt, coachStatus: user?.coachProfile?.status ?? null };
+}
+
 export function findUserById(id: string) {
   return prisma.user.findUnique({ where: { id } });
 }

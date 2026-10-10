@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
-vi.mock('@/lib/auth', () => ({ authOptions: {} }));
+vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoach: vi.fn(), findActiveCoach: vi.fn(), updateCoach: vi.fn() }));
 vi.mock('@/prisma/models/sport', () => ({ countSports: vi.fn() }));
-vi.mock('@/lib/blob', () => ({ blobInfo: vi.fn(), deleteBlob: vi.fn(), blobUrlOrNull: (p: string | null) => (p ? `https://b/${p}` : null) }));
+vi.mock('@/lib/server/blob', () => ({ blobInfo: vi.fn(), deleteBlob: vi.fn(), blobUrlOrNull: (p: string | null) => (p ? `https://b/${p}` : null) }));
 
 import { GET, PATCH } from './route';
 import { findActiveCoach, findCoach, updateCoach } from '@/prisma/models/coach-profile';
 import { countSports } from '@/prisma/models/sport';
-import { blobInfo, deleteBlob } from '@/lib/blob';
+import { blobInfo, deleteBlob } from '@/lib/server/blob';
 import { call, signInAs } from '@/test/api';
 
 const profile = {
@@ -20,6 +20,8 @@ const profile = {
   bio: 'Boxing',
   city: null,
   phone: null,
+  privatePrice: null,
+  privateDuration: null,
   locale: null,
   photoPath: 'coaches/k1/photo/old.jpg',
   instagram: null,
@@ -28,7 +30,7 @@ const profile = {
   certifications: [],
   sports: [],
 };
-const coach = { id: 'k1', name: 'Mona', coachProfile: profile };
+const coach = { id: 'k1', name: 'Mona', coachProfile: profile, venues: [] };
 const params = { id: 'k1' };
 
 beforeEach(() => {
@@ -38,12 +40,11 @@ beforeEach(() => {
 });
 
 describe('GET /api/coaches/[id]', () => {
-  it('returns an active coach without storage paths', async () => {
-    vi.mocked(findActiveCoach).mockResolvedValue({ ...coach, coachProfile: { ...profile, status: 'ACTIVE' } } as any);
+  it('returns an active coach without storage paths or private details', async () => {
+    vi.mocked(findActiveCoach).mockResolvedValue({ ...coach, coachProfile: { ...profile, status: 'ACTIVE', phone: '+20100' } } as any);
     const json = await (await call(GET, { params })).json();
-    expect(json).toMatchObject({ id: 'k1', userId: 'k1', coachName: 'Mona', bio: 'Boxing', photoUrl: 'https://b/coaches/k1/photo/old.jpg' });
-    expect(json).not.toHaveProperty('photoPath');
-    expect(json).not.toHaveProperty('locale');
+    expect(json).toMatchObject({ id: 'k1', name: 'Mona', bio: 'Boxing', photoUrl: 'https://b/coaches/k1/photo/old.jpg' });
+    for (const key of ['photoPath', 'locale', 'phone', 'status', 'submittedAt', 'certifications']) expect(json).not.toHaveProperty(key);
   });
 
   it('only shows sports an admin has approved', async () => {
@@ -59,6 +60,17 @@ describe('GET /api/coaches/[id]', () => {
   it('returns 404 for an unknown or not yet active coach', async () => {
     vi.mocked(findActiveCoach).mockResolvedValue(null);
     expect((await call(GET, { params })).status).toBe(404);
+  });
+
+  it('shows the private-session settings and active venues', async () => {
+    const venues = [{ id: 'v1', name: 'Club', address: 'St', city: 'Cairo', mapUrl: null, archivedAt: null }];
+    vi.mocked(findActiveCoach).mockResolvedValue({
+      ...coach,
+      venues,
+      coachProfile: { ...profile, status: 'ACTIVE', privatePrice: 800, privateDuration: 60 },
+    } as any);
+    const json = await (await call(GET, { params })).json();
+    expect(json).toMatchObject({ privatePrice: 800, privateDuration: 60, venues: [{ id: 'v1', archived: false }] });
   });
 });
 
@@ -166,5 +178,24 @@ describe('PATCH /api/coaches/[id]', () => {
     signInAs('k1', 'COACH');
     vi.mocked(blobInfo).mockResolvedValue({ contentType: 'application/pdf', size: 10 });
     expect((await call(PATCH, { params, body: { photoPath: 'coaches/k1/photo/new.pdf' } })).status).toBe(400);
+  });
+
+  it('saves the private-session price and length together', async () => {
+    signInAs('k1', 'COACH');
+    await call(PATCH, { params, body: { privatePrice: 800, privateDuration: 60 } });
+    expect(updateCoach).toHaveBeenCalledWith('k1', { privatePrice: 800, privateDuration: 60 });
+  });
+
+  it('turns private requests off when both are cleared', async () => {
+    signInAs('k1', 'COACH');
+    await call(PATCH, { params, body: { privatePrice: null, privateDuration: null } });
+    expect(updateCoach).toHaveBeenCalledWith('k1', { privatePrice: null, privateDuration: null });
+  });
+
+  it('rejects a price without a length', async () => {
+    signInAs('k1', 'COACH');
+    const res = await call(PATCH, { params, body: { privatePrice: 800 } });
+    expect(res.status).toBe(400);
+    expect(updateCoach).not.toHaveBeenCalled();
   });
 });

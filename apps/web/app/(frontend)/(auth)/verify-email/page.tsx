@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { verifyEmail } from '@/lib/auth-api';
+import { verifyEmail } from '@/lib/client/auth-api';
 import styles from '../auth.module.css';
 
 /** Opened from the confirmation email: /verify-email?token=… */

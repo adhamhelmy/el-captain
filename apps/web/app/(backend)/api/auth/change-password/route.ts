@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { assertFound, assertValid, protect, type AuthContext } from '@/lib/api'
-import { ERROR_CODES } from '@/lib/error-codes'
-import { isStrongPassword } from '@/lib/auth-rules'
-import { checkPassword, hashPassword } from '@/lib/password'
+import { assertFound, assertValid, protect, type AuthContext } from '@/lib/server/api'
+import { ERROR_CODES } from '@/lib/shared/error-codes'
+import { isStrongPassword } from '@/lib/shared/auth-rules'
+import { checkPassword, hashPassword } from '@/lib/server/password'
 import { findUserById, updatePasswordHash } from '@/prisma/models/user'
 
 /** A signed-in user changes their password, proving they know the current one. */
