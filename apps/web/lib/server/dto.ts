@@ -22,6 +22,8 @@ export type SportDTO = ReturnType<typeof toSportDTO>;
 
 export const toVenueDTO = ({ id, name, address, city, mapUrl, archivedAt }: Venue) => ({ id, name, address, city, mapUrl, archived: !!archivedAt });
 export type VenueDTO = ReturnType<typeof toVenueDTO>;
+/** A venue in the coach's own list, with its count of upcoming scheduled sessions. */
+export type CoachVenueDTO = VenueDTO & { upcoming: number };
 
 /** A session with its sport, venue, the coach's name and photo, and `booked` (confirmed bookings). */
 export const toSessionDTO = ({ coach, sport, venue, _count, ...s }: SessionWithDetails) => ({
@@ -128,12 +130,14 @@ export const toPublicCoachDTO = ({ id, name, coachProfile: p, venues }: Coach) =
 export type PublicCoachDTO = ReturnType<typeof toPublicCoachDTO>;
 
 /** The parts of a profile the submit check looks at. */
-export const draftOf = ({ coachProfile: p }: Coach): Draft => ({
+export const draftOf = ({ coachProfile: p, venues }: Coach): Draft => ({
   photoPath: p?.photoPath ?? null,
+  city: p?.city ?? null,
   bio: p?.bio ?? null,
   instagram: p?.instagram ?? null,
   tiktok: p?.tiktok ?? null,
   sportCount: p?.sports.length ?? 0,
+  venueCount: venues.length,
 });
 
 export const toClientDTO = ({ id, name, clientProfile }: Client) => ({
@@ -193,14 +197,17 @@ export const toCoachClientDTO = ({
   member,
   count,
   lastVisit,
+  since,
 }: {
   member: { id: string; name: string; email: string };
   count: number;
   lastVisit: Date | null;
+  since: Date;
 }) => ({
   member,
   count,
   lastVisit,
+  since,
 });
 export type CoachClientDTO = ReturnType<typeof toCoachClientDTO>;
 

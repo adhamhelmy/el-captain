@@ -35,6 +35,11 @@ export async function hasPendingRequest(memberId: string, coachId: string, now =
   return (await prisma.privateRequest.count({ where: { memberId, coachId, status: 'PENDING', startsAt: { gt: now } } })) > 0;
 }
 
+/** Requests still waiting on the coach's answer: pending and not yet started. */
+export function countPendingRequests(coachId: string, now = new Date()) {
+  return prisma.privateRequest.count({ where: { coachId, status: 'PENDING', startsAt: { gt: now } } });
+}
+
 const RECENT = 100;
 
 export function listMemberRequests(memberId: string) {

@@ -1,12 +1,10 @@
 import { Suspense } from 'react';
-import { useTranslations } from 'next-intl';
 import { LocaleToggle } from '@/components/LocaleToggle';
-import { accent, br } from '@/components/rich';
 import { Logo } from '@/components/ui';
+import { BrandTitle } from './BrandTitle';
 import styles from './layout.module.css';
 
 export default function AuthLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const t = useTranslations('authBrand');
   return (
     <div className='auth'>
       <div className='auth-brand'>
@@ -14,14 +12,9 @@ export default function AuthLayout({ children }: Readonly<{ children: React.Reac
           <Logo />
           <LocaleToggle />
         </div>
-        <div>
-          <div className={`display lh-88 ${styles.title}`}>
-            {t.rich('title', { br, accent })}
-          </div>
-          <div className={`muted ${styles.tagline}`}>
-            {t('tagline')}
-          </div>
-        </div>
+        <Suspense>
+          <BrandTitle />
+        </Suspense>
       </div>
       <div className='auth-form'>
         <Suspense>{children}</Suspense>

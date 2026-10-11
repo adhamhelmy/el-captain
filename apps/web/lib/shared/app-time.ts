@@ -44,3 +44,18 @@ export function addWeeks(at: Date, weeks: number): Date | null {
   day.setUTCDate(day.getUTCDate() + 7 * weeks);
   return fromWallClock({ date: day.toISOString().slice(0, 10), time: w.time });
 }
+
+/**
+ * The seven Cairo dates ('YYYY-MM-DD') of a week, Saturday to Friday. Offset 0 is the week holding `now`,
+ * 1 the week after it. Weeks start on Saturday across the app.
+ */
+export function weekDates(offset = 0, now = new Date()): string[] {
+  const today = new Date(`${wallClock(now).date}T12:00:00Z`);
+  const sinceSaturday = (today.getUTCDay() + 1) % 7;
+  today.setUTCDate(today.getUTCDate() - sinceSaturday + 7 * offset);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() + i);
+    return d.toISOString().slice(0, 10);
+  });
+}

@@ -36,7 +36,7 @@ describe('coachStats', () => {
 });
 
 describe('listCoachClients', () => {
-  it('groups bookings by member with a count and the last past visit, most recent first', async () => {
+  it('groups bookings by member with a count, the first session and the last past visit, most recent first', async () => {
     const ali = { id: 'u1', name: 'Ali', email: 'a@x.com' };
     const mona = { id: 'u2', name: 'Mona', email: 'm@x.com' };
     vi.mocked(prisma.booking.findMany).mockResolvedValue([
@@ -45,8 +45,8 @@ describe('listCoachClients', () => {
       { member: mona, session: { startsAt: new Date(now.getTime() - day) } },
     ] as any);
     expect(await listCoachClients('k1', now)).toEqual([
-      { member: mona, count: 1, lastVisit: new Date(now.getTime() - day) },
-      { member: ali, count: 2, lastVisit: new Date(now.getTime() - 3 * day) },
+      { member: mona, count: 1, lastVisit: new Date(now.getTime() - day), since: new Date(now.getTime() - day) },
+      { member: ali, count: 2, lastVisit: new Date(now.getTime() - 3 * day), since: new Date(now.getTime() - 3 * day) },
     ]);
   });
 });

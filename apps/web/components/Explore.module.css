@@ -1,0 +1,11 @@
+.filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.chips { margin-bottom: 32px; }
+.section { margin-bottom: 40px; }
+.more { margin-top: 16px; }
+.empty { padding: 32px 0; }
+/* Coach card, matching the session card's type sizes. */
+.cardTitle { font-size: 18px; font-weight: 700; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.place { justify-content: flex-start; align-items: center; gap: 4px; }
+.star { margin-inline-end: 4px; vertical-align: -1px; fill: currentColor; }
+.starEmpty { margin-inline-end: 4px; vertical-align: -1px; }

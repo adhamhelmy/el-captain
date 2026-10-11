@@ -6,7 +6,7 @@ import { listActiveCoaches } from '@/prisma/models/coach-profile';
 
 const FILTER = { sportId: text('sport'), q: search() };
 
-/** Approved coaches for members and guests, optionally for one sport (?sport=) or matching a name (?q=). */
+/** Approved coaches for members and guests, optionally for one sport (?sport=) or matching a name or sport (?q=). */
 async function list({ query, page }: RequestContext) {
   const coaches = await listActiveCoaches(readFilter(query, FILTER), page);
   return NextResponse.json(coaches.map(toPublicCoachDTO));

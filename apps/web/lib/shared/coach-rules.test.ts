@@ -3,6 +3,8 @@ import {
   canTransition,
   cleanSportName,
   COACH_STATUSES,
+  doneSteps,
+  socialHandle,
   firstIncompleteStep,
   isCoachStatus,
   isValidLinkUrl,
@@ -108,24 +110,52 @@ describe('ownsUpload', () => {
 });
 
 describe('missingFields', () => {
-  const full = { photoPath: 'p', bio: 'x'.repeat(50), instagram: 'i', tiktok: 't', sportCount: 1 };
+  const full = { photoPath: 'p', city: 'Zamalek, Cairo', bio: 'x'.repeat(50), instagram: 'i', tiktok: 't', sportCount: 1, venueCount: 1 };
   it('is empty for a complete draft', () => expect(missingFields(full)).toEqual([]));
   it('lists every missing piece in step order; socials are optional', () => {
-    expect(missingFields({ photoPath: null, bio: null, instagram: null, tiktok: null, sportCount: 0 })).toEqual(['photo', 'bio', 'sports']);
+    expect(missingFields({ photoPath: null, city: null, bio: null, instagram: null, tiktok: null, sportCount: 0, venueCount: 0 })).toEqual([
+      'photo',
+      'address',
+      'bio',
+      'sports',
+      'locations',
+    ]);
   });
   it('accepts a bio of any length but not an empty or blank one', () => {
     expect(missingFields({ ...full, bio: 'Hi' })).toEqual([]);
     expect(missingFields({ ...full, bio: '   ' })).toEqual(['bio']);
     expect(missingFields({ ...full, bio: '' })).toEqual(['bio']);
   });
+  it('needs an address within the limit', () => {
+    expect(missingFields({ ...full, city: '  ' })).toEqual(['address']);
+    expect(missingFields({ ...full, city: 'x'.repeat(81) })).toEqual(['address']);
+  });
   it('flags more than 10 sports', () => expect(missingFields({ ...full, sportCount: 11 })).toEqual(['sports']));
 });
 
 describe('firstIncompleteStep', () => {
-  it('opens the step of the first missing field, or the last step when done', () => {
+  it('opens the step of the first missing field, or review when done', () => {
     expect(firstIncompleteStep(['sports'])).toBe(3);
-    expect(firstIncompleteStep(['bio', 'sports'])).toBe(1);
-    expect(firstIncompleteStep([])).toBe(4);
+    expect(firstIncompleteStep(['locations'])).toBe(4);
+    expect(firstIncompleteStep(['address', 'sports'])).toBe(1);
+    expect(firstIncompleteStep([])).toBe(6);
+  });
+});
+
+describe('doneSteps', () => {
+  it('ticks required steps once complete, and optional ones once they hold something', () => {
+    expect([...doneSteps(['sports'], new Set())].sort()).toEqual([1, 4]);
+    expect([...doneSteps([], new Set([2, 5]))].sort()).toEqual([1, 2, 3, 4, 5]);
+    expect(doneSteps(['photo', 'locations'], new Set([1, 2])).has(1)).toBe(false);
+  });
+});
+
+describe('socialHandle', () => {
+  it('reads the handle out of a saved link, a typed @handle or a bare one', () => {
+    expect(socialHandle('instagram', 'https://www.instagram.com/mona.fit')).toBe('mona.fit');
+    expect(socialHandle('tiktok', 'https://www.tiktok.com/@mona')).toBe('mona');
+    expect(socialHandle('instagram', '@mona')).toBe('mona');
+    expect(socialHandle('instagram', null)).toBe('');
   });
 });
 

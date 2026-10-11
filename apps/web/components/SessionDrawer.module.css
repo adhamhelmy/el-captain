@@ -1,0 +1,28 @@
+.group { display: flex; flex-direction: column; gap: 14px; }
+.groupLabel { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-3); }
+:lang(ar) .groupLabel { letter-spacing: 0; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.when { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr) 72px; grid-template-areas: 'date start minutes'; gap: 10px; align-items: start; }
+.dateField { grid-area: date; }
+.startField { grid-area: start; }
+.minutesField { grid-area: minutes; }
+.timeRow { display: flex; gap: 6px; }
+.timeRow input { flex: 1; min-width: 0; padding-inline: 10px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.labelRow { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.linkBtn { background: none; border: none; padding: 0; color: var(--accent-text); font-size: 13px; font-weight: 600; }
+.rule { font-size: 12px; color: var(--text-3); }
+.summary { font-size: 13px; color: var(--text-2); }
+.actions { display: flex; gap: 10px; }
+.publish { flex: 1; }
+.labelRow :global(.label) { margin-bottom: 0; }
+.field :global(.label) { margin-bottom: 0; }
+/* AM/PM beside the time input: the app's pill switch, as tall as the input. */
+.period { flex: 0 0 auto; display: flex; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: 100px; background: var(--surface-2); }
+.period button { padding: 0 9px; border: none; border-radius: 100px; background: none; color: var(--text-2); font-size: 12px; font-weight: 700; }
+.period button:disabled { cursor: default; opacity: 0.6; }
+.period .periodOn { background: var(--accent); color: var(--on-accent); opacity: 1; }
+@media (max-width: 759px) {
+  /* Too narrow for three across: date and minutes share a row, the start time gets its own. */
+  .when { grid-template-columns: minmax(0, 1fr) 72px; grid-template-areas: 'date minutes' 'start start'; row-gap: 14px; }
+}

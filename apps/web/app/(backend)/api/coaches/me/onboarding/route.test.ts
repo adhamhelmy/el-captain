@@ -38,11 +38,11 @@ describe('GET /api/coaches/me/onboarding', () => {
 
   it('returns the draft, what is missing and the latest reason', async () => {
     signInAs('k1', 'COACH');
-    vi.mocked(findCoach).mockResolvedValue({ id: 'k1', name: 'Mona', coachProfile: profile } as any);
+    vi.mocked(findCoach).mockResolvedValue({ id: 'k1', name: 'Mona', coachProfile: profile, venues: [] } as any);
     vi.mocked(lastStatusEvent).mockResolvedValue({ to: 'REJECTED', reason: 'Blurry photo' } as any);
     const json = await (await call(GET)).json();
     expect(json.coach).toMatchObject({ id: 'k1', status: 'REJECTED' });
-    expect(json.missing).toEqual(['photo', 'bio', 'sports']);
+    expect(json.missing).toEqual(['photo', 'address', 'bio', 'sports', 'locations']);
     expect(json.reason).toBe('Blurry photo');
     expect(findCoach).toHaveBeenCalledWith('k1');
   });

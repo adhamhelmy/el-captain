@@ -18,9 +18,9 @@ beforeEach(() => {
 
 describe('GET /api/venues/me', () => {
   it("lists the coach's venues", async () => {
-    vi.mocked(listVenues).mockResolvedValue([venue] as any);
+    vi.mocked(listVenues).mockResolvedValue([{ ...venue, _count: { sessions: 5 } }] as any);
     expect(await (await call(GET)).json()).toEqual([
-      { id: 'v1', name: 'Zamalek Club', address: '26 July St', city: 'Cairo', mapUrl: null, archived: false },
+      { id: 'v1', name: 'Zamalek Club', address: '26 July St', city: 'Cairo', mapUrl: null, archived: false, upcoming: 5 },
     ]);
     expect(listVenues).toHaveBeenCalledWith('k1');
   });

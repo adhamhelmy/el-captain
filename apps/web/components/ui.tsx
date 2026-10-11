@@ -32,7 +32,7 @@ export function Tag({ kind, children }: Readonly<{ kind: string; children: React
   return <span className={`tag tag-${TAG_VARIANT[kind] ?? 'past'}`}>{children}</span>;
 }
 
-type AvatarSize = 32 | 34 | 36 | 48 | 52 | 64 | 80 | 96;
+type AvatarSize = 32 | 34 | 36 | 48 | 52 | 64 | 72 | 80 | 96;
 
 /** Up to two initials: the first letter of the first two words ("Ahmed Ali" → "AA"). */
 export const initialsOf = (name: string) =>

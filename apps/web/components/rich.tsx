@@ -6,9 +6,7 @@ import styles from './rich.module.css';
 
 export const br = () => <br />;
 
-export const accent = (chunks: ReactNode) => (
-  <span className={styles.accent}>{chunks}</span>
-);
+export const accent = (chunks: ReactNode) => <span className={styles.accent}>{chunks}</span>;
 
 const linkTo = (href: string) => {
   const render = (chunks: ReactNode) => <Link href={href}>{chunks}</Link>;
@@ -17,4 +15,18 @@ const linkTo = (href: string) => {
 
 export const loginLink = linkTo('/login');
 export const registerLink = linkTo('/register');
-export const browseLink = linkTo('/user/sessions');
+export const exploreLink = linkTo('/user/explore');
+export const contactLink = linkTo('/contact');
+
+/** Emphasised user data inside a sentence, e.g. the email address a link went to. */
+export const strong = (chunks: ReactNode) => <bdi className={styles.strong}>{chunks}</bdi>;
+
+/** A sentence's link that runs an action instead of navigating ("Start again", "Add a session"). */
+export const actionLink = (onClick: () => void) => {
+  const render = (chunks: ReactNode) => (
+    <button type='button' className={styles.action} onClick={onClick}>
+      {chunks}
+    </button>
+  );
+  return render;
+};

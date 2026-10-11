@@ -40,3 +40,28 @@ export function LocaleSetting() {
     </div>
   );
 }
+
+/** English / العربية as a segmented control; each name is shown in its own language. */
+export function LocaleChoiceControl() {
+  const t = useTranslations('locale');
+  const current = appLocale(useLocale());
+  const [pending, start] = useTransition();
+  return (
+    <div className='seg inset' role='radiogroup' aria-label={t('setting')}>
+      {(['en', 'ar'] as const).map((l) => (
+        <button
+          key={l}
+          type='button'
+          role='radio'
+          aria-checked={current === l}
+          lang={l}
+          disabled={pending}
+          className={current === l ? 'on' : ''}
+          onClick={() => current !== l && start(() => setLocale(l))}
+        >
+          {t(`name.${l}`)}
+        </button>
+      ))}
+    </div>
+  );
+}

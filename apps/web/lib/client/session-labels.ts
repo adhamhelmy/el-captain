@@ -21,6 +21,7 @@ export function buildSessionLabels(t: DataT, f: Formatter, lang: AppLocale) {
   const l = {
     day: (at: At) => f.dateTime(d(at), 'weekday'),
     dayMonth: (at: At) => f.dateTime(d(at), 'dayMonth'),
+    dayNum: (at: At) => f.dateTime(d(at), { day: 'numeric' }),
     time: (at: At) => f.dateTime(d(at), 'time'),
     monthYear: (at: At) => f.dateTime(d(at), 'monthYear'),
     ago: (at: At, now = new Date()) => f.relativeTime(d(at), now),

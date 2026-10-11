@@ -22,16 +22,17 @@ export async function coachStats(coachId: string, now = new Date()) {
   return { bookingsNext7, earnings30, fillRate: seats ? Math.round((taken / seats) * 100) : null };
 }
 
-/** Members who booked this coach, with how many sessions and their last past visit; most recent visit first. */
+/** Members who booked this coach, with how many sessions, their first session and their last past visit; most recent visit first. */
 export async function listCoachClients(coachId: string, now = new Date()) {
   const rows = await prisma.booking.findMany({
     where: { ...confirmed, session: { coachId } },
     select: { member: { select: { id: true, name: true, email: true } }, session: { select: { startsAt: true } } },
   });
-  const byMember = new Map<string, { member: (typeof rows)[number]['member']; count: number; lastVisit: Date | null }>();
+  const byMember = new Map<string, { member: (typeof rows)[number]['member']; count: number; lastVisit: Date | null; since: Date }>();
   for (const { member, session } of rows) {
-    const entry = byMember.get(member.id) ?? { member, count: 0, lastVisit: null };
+    const entry = byMember.get(member.id) ?? { member, count: 0, lastVisit: null, since: session.startsAt };
     entry.count++;
+    if (session.startsAt < entry.since) entry.since = session.startsAt;
     if (session.startsAt < now && (!entry.lastVisit || session.startsAt > entry.lastVisit)) entry.lastVisit = session.startsAt;
     byMember.set(member.id, entry);
   }

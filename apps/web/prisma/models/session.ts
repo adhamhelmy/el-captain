@@ -18,7 +18,7 @@ export type SessionFilter = { sportId?: string; q?: string; coachId?: string; fr
 
 const insensitive = (q: string) => ({ contains: q, mode: 'insensitive' as const });
 
-/** Upcoming group sessions of active coaches, soonest first. Private sessions are never listed. */
+/** Upcoming group sessions of active coaches, soonest first. Private sessions are never listed. `q` matches the title, coach or sport. */
 export function listOpenSessions({ sportId, q, coachId, from, to }: SessionFilter, { take, skip }: Page, now = new Date()) {
   return prisma.session.findMany({
     where: {
@@ -28,7 +28,14 @@ export function listOpenSessions({ sportId, q, coachId, from, to }: SessionFilte
       coach: { coachProfile: { status: 'ACTIVE' } },
       ...(sportId && { sportId }),
       ...(coachId && { coachId }),
-      ...(q && { OR: [{ title: insensitive(q) }, { coach: { name: insensitive(q) } }] }),
+      ...(q && {
+        OR: [
+          { title: insensitive(q) },
+          { coach: { name: insensitive(q) } },
+          { sport: { nameEn: insensitive(q) } },
+          { sport: { nameAr: insensitive(q) } },
+        ],
+      }),
     },
     include: withDetails,
     orderBy: { startsAt: 'asc' },
@@ -85,6 +92,20 @@ export function cancelSession(id: string, by: 'COACH' | 'ADMIN', reason: string 
     });
     await tx.booking.updateMany({ where: { sessionId: id, status: 'CONFIRMED' }, data: { status: 'CANCELLED', cancelledAt: now, cancelledBy: by } });
     return booked.map((b) => b.member);
+  });
+}
+
+/** Longest range the week view may ask for in one go. */
+export const MAX_RANGE_DAYS = 31;
+const RANGE_CAP = 500;
+
+/** Every session of the coach (any status) starting in [from, to), in order: what the week view draws. */
+export function listCoachSessionsBetween(coachId: string, from: Date, to: Date) {
+  return prisma.session.findMany({
+    where: { coachId, startsAt: { gte: from, lt: to } },
+    include: withDetails,
+    orderBy: { startsAt: 'asc' },
+    take: RANGE_CAP,
   });
 }
 

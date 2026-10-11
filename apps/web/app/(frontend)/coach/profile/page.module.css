@@ -1,3 +1,38 @@
-.page { max-width: 760px; }
-.head { flex-wrap: wrap; }
-.headText { flex: 1; }
+.page { max-width: 1040px; display: flex; flex-direction: column; gap: 28px; }
+.layout { display: flex; gap: 40px; align-items: flex-start; }
+.nav { flex: 0 0 180px; position: sticky; top: 32px; display: flex; flex-direction: column; gap: 2px; }
+.nav a { padding: 9px 12px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-2); }
+.nav a:hover { background: var(--surface-2); color: var(--text); }
+.sections { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.section { scroll-margin-top: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: clamp(20px, 3vw, 28px); display: flex; flex-direction: column; gap: 18px; }
+.sectionHead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.sectionTitle { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 24px; letter-spacing: 1px; }
+:lang(ar) .sectionTitle { letter-spacing: 0; font-weight: 800; font-size: 20px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.labelRow { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--text-2); }
+.counter { color: var(--text-3); font-variant-numeric: tabular-nums; }
+.multiline { line-height: 1.6; resize: vertical; }
+.hint { font-size: 13px; color: var(--text-2); }
+.rule { font-size: 12px; color: var(--text-3); }
+.error { font-size: 12px; color: var(--warn); }
+.venues { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.settingRow { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.settingLabel { font-weight: 600; }
+
+/* Inverted bar pinned to the bottom while there are unsaved changes. */
+.saveBar {
+  position: sticky; bottom: 16px; z-index: 20;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding-block: 12px; padding-inline: 20px 12px; border-radius: 14px;
+  background: var(--text); color: var(--bg); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+.saveText { font-weight: 600; }
+.saveActions { display: flex; gap: 8px; }
+.discard { background: none; border: none; color: inherit; padding: 10px 14px; font-weight: 600; font-size: 14px; opacity: 0.7; }
+.discard:hover { opacity: 1; }
+.toast { position: fixed; bottom: 24px; inset-inline-start: 50%; transform: translateX(-50%); z-index: 30; padding: 12px 20px; border-radius: 12px; background: var(--text); color: var(--bg); font-weight: 600; }
+:dir(rtl) .toast { transform: translateX(50%); }
+
+@media (max-width: 999px) {
+  .nav { display: none; }
+}

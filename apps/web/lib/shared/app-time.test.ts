@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addWeeks, fromWallClock, wallClock } from './app-time';
+import { addWeeks, fromWallClock, wallClock, weekDates } from './app-time';
 
 describe('wallClock / fromWallClock (Africa/Cairo)', () => {
   it('reads a UTC instant as Cairo wall-clock time', () => {
@@ -31,5 +31,35 @@ describe('addWeeks', () => {
 
   it('crosses a month end', () => {
     expect(wallClock(addWeeks(new Date('2026-12-28T08:00:00Z'), 1)!)).toEqual({ date: '2027-01-04', time: '10:00' });
+  });
+});
+
+describe('weekDates', () => {
+  it('starts on the Saturday on or before today, in Cairo', () => {
+    // Wed 21 Oct 2026, 23:30 UTC is already Thursday 22 Oct in Cairo.
+    expect(weekDates(0, new Date('2026-10-21T23:30:00Z'))).toEqual([
+      '2026-10-17',
+      '2026-10-18',
+      '2026-10-19',
+      '2026-10-20',
+      '2026-10-21',
+      '2026-10-22',
+      '2026-10-23',
+    ]);
+  });
+  it('treats Saturday as the first day and Friday as the last', () => {
+    expect(weekDates(0, new Date('2026-10-17T10:00:00Z'))[0]).toBe('2026-10-17');
+    expect(weekDates(0, new Date('2026-10-23T10:00:00Z'))[0]).toBe('2026-10-17');
+  });
+  it('steps a week per offset, across months', () => {
+    expect(weekDates(2, new Date('2026-10-21T10:00:00Z'))).toEqual([
+      '2026-10-31',
+      '2026-11-01',
+      '2026-11-02',
+      '2026-11-03',
+      '2026-11-04',
+      '2026-11-05',
+      '2026-11-06',
+    ]);
   });
 });

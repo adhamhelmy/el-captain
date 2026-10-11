@@ -44,3 +44,20 @@ export function subscribeTheme(listener: () => void) {
     media.removeEventListener('change', listener);
   };
 }
+
+/** What the user picked: a fixed theme, or "system" to follow the device. */
+export type ThemeChoice = Theme | 'system';
+
+export const getThemeChoice = (): ThemeChoice => saved() ?? 'system';
+
+/** "system" forgets the saved theme, so the CSS goes back to following prefers-color-scheme. */
+export function setThemeChoice(choice: ThemeChoice) {
+  if (choice !== 'system') return setTheme(choice);
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    // Storage blocked: nothing was saved anyway.
+  }
+  delete document.documentElement.dataset.theme;
+  listeners.forEach((l) => l());
+}

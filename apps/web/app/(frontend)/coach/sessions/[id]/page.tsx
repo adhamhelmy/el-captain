@@ -4,21 +4,22 @@ import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
-import { SessionForm } from '@/components/SessionForm';
+import { SessionDrawer } from '@/components/SessionDrawer';
 import { PhaseTag, TypeTag } from '@/components/sessions';
-import { Avatar, Back, Field, initialsOf, Stats } from '@/components/ui';
+import { Avatar, Back, Field, initialsOf, Tag } from '@/components/ui';
 import { getOnboarding } from '@/lib/client/coach-api';
+import { cssVars } from '@/lib/client/css-vars';
 import { cancelSession, getSession, listAttendees, listVenues } from '@/lib/client/session-api';
 import { useSessionLabels } from '@/lib/client/session-labels';
 import type { AttendeeDTO, SessionDetailDTO, SportDTO, VenueDTO } from '@/lib/server/dto';
-import { sessionPhase } from '@/lib/shared/session-rules';
+import { endsAt, sessionPhase } from '@/lib/shared/session-rules';
 import onb from '@/components/onboarding.module.css';
-import detail from '../../../detail.module.css';
 import styles from './page.module.css';
 
 export default function CoachSessionPage() {
   const t = useTranslations('coachSession');
   const tl = useTranslations('session');
+  const tv = useTranslations('venues');
   const te = useTranslations('errors');
   const l = useSessionLabels();
   const { id } = useParams<{ id: string }>();
@@ -26,8 +27,8 @@ export default function CoachSessionPage() {
   const [s, setS] = useState<SessionDetailDTO | null | undefined>(undefined);
   const [roster, setRoster] = useState<AttendeeDTO[]>([]);
   const [editing, setEditing] = useState(false);
-  const [sports, setSports] = useState<SportDTO[]>([]);
-  const [venues, setVenues] = useState<VenueDTO[]>([]);
+  const [sports, setSports] = useState<SportDTO[] | null>(null);
+  const [venues, setVenues] = useState<VenueDTO[] | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
@@ -48,8 +49,12 @@ export default function CoachSessionPage() {
 
   useEffect(() => {
     if (!editing) return;
-    getOnboarding().then((r) => r.ok && setSports(r.data.coach.sports.filter((x) => x.status === 'APPROVED')));
-    listVenues().then((r) => r.ok && setVenues(r.data.filter((v) => !v.archived)));
+    getOnboarding()
+      .then((r) => setSports(r.ok ? r.data.coach.sports.filter((x) => x.status === 'APPROVED') : []))
+      .catch(() => setSports([]));
+    listVenues()
+      .then((r) => setVenues(r.ok ? r.data.filter((v) => !v.archived) : []))
+      .catch(() => setVenues([]));
   }, [editing]);
 
   if (s === null) notFound();
@@ -65,26 +70,57 @@ export default function CoachSessionPage() {
     setCancelling(false);
   }
 
+  let levelLabel = s.level ? l.level(s.level) : '—';
+  if (s.type === 'PRIVATE') levelLabel = l.oneToOne();
+
+  const info: [string, React.ReactNode, React.ReactNode][] = [
+    [
+      t('when'),
+      `${l.day(s.startsAt)} ${l.dayMonth(s.startsAt)}`,
+      t('timeRange', { start: l.time(s.startsAt), end: l.time(endsAt(s.startsAt, s.durationMin)) }),
+    ],
+    [
+      t('where'),
+      <bdi key='v'>{s.venue.name}</bdi>,
+      <>
+        <bdi>{tv('line', { address: s.venue.address, city: s.venue.city })}</bdi>
+        {s.venue.mapUrl && (
+          <>
+            {' · '}
+            <a href={s.venue.mapUrl} target='_blank' rel='noopener noreferrer'>
+              {tv('map')}
+            </a>
+          </>
+        )}
+      </>,
+    ],
+    [t('level'), levelLabel, l.minutes(s.durationMin)],
+    [t('price'), l.price(s.price), t('paidAtSession')],
+  ];
+
   return (
-    <div className={`page detail ${styles.page}`}>
-      <Back href={own ? '/coach/sessions/me' : '/coach/sessions'}>{t('back')}</Back>
-      <div className={`hero between ${detail.hero} ${styles.hero}`}>
-        <div>
-          <div className={detail.tags}>
+    <div className={`page ${styles.page}`}>
+      <Back href={own ? '/coach/sessions/me' : '/coach/sessions'}>{own ? t('backToMine') : t('back')}</Back>
+
+      <div className={styles.hero}>
+        <div className={styles.heroText}>
+          <div className={styles.tags}>
             <TypeTag type={s.type} />
-            <PhaseTag s={s} />
+            {phase === 'cancelled' ? <PhaseTag s={s} /> : <Tag kind='past'>{l.sport(s.sport)}</Tag>}
           </div>
-          <div className={`display ${detail.title}`} dir='auto'>
-            {l.title(s)}
-          </div>
-          <div className={`muted ${detail.sub}`}>
-            <bdi>{s.coach.name}</bdi> · {l.when(s.startsAt)} · <bdi>{s.venue.name}</bdi>
-          </div>
+          <h1 className={styles.title}>
+            <bdi>{l.title(s)}</bdi>
+          </h1>
+          {!own && (
+            <div className='muted'>
+              <bdi>{s.coach.name}</bdi>
+            </div>
+          )}
         </div>
         {own && phase === 'upcoming' && (
-          <div className={detail.actions}>
+          <div className={styles.actions}>
             {s.type === 'GROUP' && (
-              <button type='button' className='btn-ghost' onClick={() => setEditing(!editing)}>
+              <button type='button' className='btn-ghost' onClick={() => setEditing(true)}>
                 {t('edit')}
               </button>
             )}
@@ -94,11 +130,13 @@ export default function CoachSessionPage() {
           </div>
         )}
       </div>
+
       {phase === 'cancelled' && s.cancelReason && (
         <div dir='auto' className='muted'>
           {tl('reason', { reason: s.cancelReason })}
         </div>
       )}
+
       {cancelling && (
         <div className='card stack'>
           <div className='h3'>{t('cancelTitle')}</div>
@@ -116,8 +154,52 @@ export default function CoachSessionPage() {
           </div>
         </div>
       )}
-      {editing && (
-        <SessionForm
+      {error && <div className={onb.error}>{error}</div>}
+
+      <div className={styles.strip}>
+        {info.map(([label, value, sub]) => (
+          <div key={label} className={styles.cell}>
+            <div className={styles.cellLabel}>{label}</div>
+            <div className={styles.cellValue}>{value}</div>
+            <div className={styles.cellSub}>{sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {s.description && (
+        <div dir='auto' className={`muted ${styles.description}`}>
+          {s.description}
+        </div>
+      )}
+
+      {own ? (
+        <div className={styles.booked}>
+          <div className={styles.bookedHead}>
+            <h2 className={styles.bookedTitle}>{t('bookedOf', { booked: s.booked, capacity: s.capacity })}</h2>
+            {s.type === 'GROUP' && phase === 'upcoming' && <span className={styles.left}>{l.spots(s)}</span>}
+          </div>
+          <div className={styles.track}>
+            <div className={styles.trackFill} ref={cssVars({ fill: s.capacity ? Math.min(s.booked / s.capacity, 1) : 0 })} />
+          </div>
+          {roster.length === 0 && <div className='muted'>{t('noBookings')}</div>}
+          <div className={styles.attendees}>
+            {roster.map((a) => (
+              <Link key={a.bookingId} href={`/coach/users/${a.memberId}`} className={styles.attendee}>
+                <Avatar initials={initialsOf(a.name)} size={34} />
+                <span className={styles.attendeeText}>
+                  <bdi className={styles.attendeeName}>{a.name}</bdi>
+                  <span className={styles.attendeeSub}>{t('bookedOn', { date: l.dayMonth(a.bookedAt) })}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className={`card muted ${styles.notYours}`}>{t('notYours')}</div>
+      )}
+
+      {editing && sports && venues && (
+        <SessionDrawer
           session={s}
           sports={sports}
           venues={venues}
@@ -128,47 +210,6 @@ export default function CoachSessionPage() {
           }}
         />
       )}
-      {error && <div className={onb.error}>{error}</div>}
-      <div className={styles.stats}>
-        <Stats
-          small
-          items={[
-            [s.type === 'PRIVATE' ? l.oneToOne() : l.fill(s), t('booked')],
-            [l.price(s.price), t('price')],
-            [l.minutes(s.durationMin), t('duration')],
-            own ? [l.price(s.price * s.booked), t('earnings')] : [s.level ? l.level(s.level) : '—', t('level')],
-          ]}
-        />
-      </div>
-      <div className={`grid-2 ${styles.columns}`}>
-        <div>
-          <div className={`h3 ${detail.headingSm}`}>{t('description')}</div>
-          <div className={`muted ${detail.description}`} dir='auto'>
-            {s.description || '—'}
-          </div>
-        </div>
-        {own ? (
-          <div>
-            <div className={`h3 ${detail.headingSm}`}>{t('roster')}</div>
-            <div className={`stack ${detail.list}`}>
-              {roster.map((a) => (
-                <Link key={a.bookingId} href={`/coach/users/${a.memberId}`} className={`row ${detail.attendee}`}>
-                  <Avatar initials={initialsOf(a.name)} size={32} />
-                  <div dir='auto' className={detail.attendeeName}>
-                    {a.name}
-                  </div>
-                  <span className={`muted ${detail.email}`} dir='ltr'>
-                    {a.email}
-                  </span>
-                </Link>
-              ))}
-              {roster.length === 0 && <div className={`muted ${detail.empty}`}>{t('noBookings')}</div>}
-            </div>
-          </div>
-        ) : (
-          <div className={`card muted ${styles.notYours}`}>{t('notYours')}</div>
-        )}
-      </div>
     </div>
   );
 }

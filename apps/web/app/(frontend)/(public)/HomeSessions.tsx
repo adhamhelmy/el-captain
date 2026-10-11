@@ -21,7 +21,7 @@ export function HomeSports() {
   return (
     <div className={`chips ${styles.categories}`}>
       {sports.map((s) => (
-        <Link key={s.id} href={`/sessions?sport=${s.id}`} className={`chip ${styles.category}`}>
+        <Link key={s.id} href={`/explore?sport=${s.id}`} className={`chip ${styles.category}`}>
           {sportName(s, locale)}
         </Link>
       ))}

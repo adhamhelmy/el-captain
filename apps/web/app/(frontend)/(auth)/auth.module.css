@@ -1,6 +1,6 @@
 /* Shared by the auth pages. */
 .form { gap: 18px; }
-.done { gap: 14px; }
+.done { gap: 20px; }
 .sub { font-size: 15px; margin-top: 6px; }
 .text { font-size: 15px; line-height: 1.6; }
 .doneText { font-size: 15px; }
@@ -14,10 +14,14 @@
 /* Register: account type picker. */
 .roles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .role { text-align: start; padding: 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); }
-.role.on { border-color: var(--hover-border); background: var(--accent-tint); color: var(--accent-text); }
+.role.on { border: 1.5px solid var(--accent-text); background: var(--accent-tint); color: var(--text); }
 .roleTitle { font-weight: 700; font-size: 15px; }
-.roleSub { font-size: 12px; margin-top: 4px; opacity: 0.75; }
-.notice { background: var(--pending-tint); border: 1px solid var(--pending-border); color: var(--pending); font-size: 13px; line-height: 1.5; padding: 12px 14px; border-radius: 8px; }
+.roleSub { font-size: 12px; margin-top: 2px; color: var(--text-2); }
+.notice { background: var(--surface-2); color: var(--text-2); font-size: 13px; line-height: 1.5; padding: 12px 14px; border-radius: 10px; }
+.passwords { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
 
-/* Resend confirmation email link-button. */
-.resend { align-self: center; }
+/* Check your inbox */
+.mark { border-radius: 11px; }
+.doneActions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.sent { font-size: 14px; }
+.startAgain { font-size: 13px; color: var(--text-3); }
