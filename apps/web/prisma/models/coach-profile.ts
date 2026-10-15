@@ -1,4 +1,4 @@
-import type { CoachStatus, Prisma } from '@prisma/client';
+import type { CoachStatus, Gender, Prisma } from '@prisma/client';
 
 export type { CoachStatus };
 import type { Page } from '@/lib/server/api';
@@ -29,6 +29,9 @@ export type ProfileUpdate = {
   privateDuration?: number | null;
   links?: { label: string; url: string }[];
   sportIds?: string[];
+  languages?: string[];
+  birthDate?: Date | null;
+  gender?: Gender | null;
 };
 
 /** A coach user with their full profile, whatever their status, or null when the id is not a coach. */
@@ -78,9 +81,9 @@ export async function findCoachStatus(userId: string) {
 }
 
 /** Saves the given parts of the profile in one transaction. */
-export function updateCoach(id: string, { name, links, sportIds, ...fields }: ProfileUpdate) {
+export function updateCoach(id: string, { name, birthDate, gender, links, sportIds, ...fields }: ProfileUpdate) {
   return prisma.$transaction(async (tx) => {
-    if (name) await tx.user.update({ where: { id }, data: { name } });
+    if (name || birthDate !== undefined || gender !== undefined) await tx.user.update({ where: { id }, data: { name, birthDate, gender } });
     const profile = await tx.coachProfile.upsert({ where: { userId: id }, create: { userId: id, ...fields }, update: fields });
     if (links) {
       await tx.coachLink.deleteMany({ where: { coachProfileId: profile.id } });

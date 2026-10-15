@@ -1,9 +1,11 @@
 /** Browser calls to the member profile API and the admin's member pages. Pages use these instead of calling fetch themselves. */
 import type { AdminMemberDTO, MemberDTO } from '@/lib/server/dto';
 import { request } from '@/lib/client/coach-api';
+import type { Gender } from '@/lib/shared/profile-rules';
 
 export const getMe = () => request<MemberDTO>('/api/users/me');
-export const saveMe = (body: { name?: string; phone?: string | null; sportIds?: string[] }) => request<MemberDTO>('/api/users/me', 'PATCH', body);
+export const saveMe = (body: { name?: string; phone?: string | null; birthDate?: string | null; gender?: Gender | null; sportIds?: string[] }) =>
+  request<MemberDTO>('/api/users/me', 'PATCH', body);
 
 export const adminListMembers = (q?: string) => {
   const query = new URLSearchParams({ limit: '50', ...(q && { q }) });

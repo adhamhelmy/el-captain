@@ -32,7 +32,11 @@
     "minutes": "{count} min",
     "when": "{day} · {date} · {time}",
     "oneOnOneShort": "One to one",
-    "privateTitle": "One to one · {sport}"
+    "privateTitle": "One to one · {sport}",
+    "gender": {
+      "MALE": "Male",
+      "FEMALE": "Female"
+    }
   },
   "common": {
     "logIn": "Log in",
@@ -241,7 +245,11 @@
     "send": "Send request",
     "sent": "Request sent. You'll get an email when the coach answers. Track it under My sessions → Requests.",
     "pickFuture": "Pick a date and time in the future.",
-    "fix": "Check the highlighted fields."
+    "fix": "Check the highlighted fields.",
+    "age": "{age} years old",
+    "languages": "LANGUAGES",
+    "privateTitle": "PRIVATE SESSIONS",
+    "privateNone": "Group sessions only."
   },
   "errors": {
     "missing_fields": "Missing required fields",
@@ -353,7 +361,7 @@
     "requests": "Requests"
   },
   "userCoaches": {
-    "none": "No coaches yet. Check back soon.",
+    "none": "Book a session and your coaches will show up here. <link>Explore sessions</link>",
     "mineTitle": "MY COACHES",
     "mineSub": "Coaches you’ve trained with before.",
     "together": "{count, plural, one {# session together} other {# sessions together}}"
@@ -374,7 +382,14 @@
     "passwordHint": "Update the password you log in with",
     "currentPassword": "Current password",
     "updatePassword": "Update password",
-    "passwordUpdated": "Password updated."
+    "passwordUpdated": "Password updated.",
+    "birthDate": "Date of birth",
+    "birthDateRule": "Pick a date that makes you between {min} and {max} years old.",
+    "gender": "Gender",
+    "genderUnset": "Prefer not to say",
+    "personalHintMember": "Optional. Coaches and other members don't see these.",
+    "personalHintCoach": "Optional. Your public profile shows your age, never the date.",
+    "languages": "Languages you speak"
   },
   "status": {
     "active": "Active",
@@ -522,10 +537,9 @@
   "coachEdit": {
     "displayName": "Display name",
     "bio": "Bio",
-    "privateHint": "Set both to let members request one to one sessions with you. Clear both to stop requests.",
     "privatePrice": "Price per session (EGP)",
     "privateDuration": "Length (minutes)",
-    "privateRules": "Set both or neither. Price 0–100,000 EGP, length 15–240 minutes.",
+    "privateRules": "Price 0–100,000 EGP, length 15–240 minutes.",
     "viewPublic": "View public profile",
     "sections": "Profile sections",
     "section": {
@@ -540,7 +554,17 @@
     "language": "Language",
     "unsaved": "Unsaved changes",
     "discard": "Discard",
-    "saveChanges": "Save changes"
+    "saveChanges": "Save changes",
+    "privateOffer": "Offer private sessions?",
+    "privateYes": "Yes",
+    "privateNo": "No",
+    "privateOn": "On",
+    "privateOff": "Off",
+    "privateOnLine": "Members can request one to one sessions with you: {price} · {minutes}.",
+    "privateOffLine": "Members can only book your group sessions.",
+    "privatePendingOff": "Turns off when you save.",
+    "privatePendingOn": "Turns on when you save.",
+    "privatePendingChange": "New price and length apply when you save."
   },
   "admin": {
     "overview": "Platform overview",
@@ -691,6 +715,7 @@
       "sports": "Sports",
       "locations": "Locations",
       "certifications": "Certifications",
+      "private": "Private sessions",
       "review": "Review"
     },
     "back": "Back",
@@ -744,6 +769,7 @@
       "sports": "YOUR SPORTS",
       "locations": "WHERE YOU COACH",
       "certifications": "CERTIFICATIONS",
+      "private": "PRIVATE SESSIONS",
       "review": "REVIEW & SUBMIT"
     },
     "stepIntro": {
@@ -752,6 +778,7 @@
       "sports": "Pick up to {max}. Can't find yours? Type it and add it.",
       "locations": "Add the places you run sessions. You need at least one; you can add more later.",
       "certifications": "Optional, but members trust coaches who show them. Admins see these files; members only see that you have them.",
+      "private": "Optional. Choose whether members can request one to one sessions with you. You can change this any time from your profile.",
       "review": "Check everything once more. We review every coach before they go live, usually within two business days."
     },
     "railTitle": "Coach profile",

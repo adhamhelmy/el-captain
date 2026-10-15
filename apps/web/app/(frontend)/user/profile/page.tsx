@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { LocaleSetting } from '@/components/LocaleToggle';
 import { PasswordSetting } from '@/components/PasswordSetting';
+import { birthDateInvalid, PersonalFields } from '@/components/PersonalFields';
 import { ThemeSetting } from '@/components/ThemeToggle';
 import { Avatar, Field, initialsOf } from '@/components/ui';
 import { searchSports } from '@/lib/client/coach-api';
@@ -10,9 +11,12 @@ import { getMe, saveMe } from '@/lib/client/member-api';
 import type { MemberDTO, SportDTO } from '@/lib/server/dto';
 import { NAME_MAX, sportName } from '@/lib/shared/coach-rules';
 import { cleanPhone, MAX_FAVOURITE_SPORTS } from '@/lib/shared/member-rules';
+import type { Gender } from '@/lib/shared/profile-rules';
 import onb from '@/components/onboarding.module.css';
 import profile from '../../profile.module.css';
 import styles from './page.module.css';
+
+const formOf = (m: MemberDTO) => ({ name: m.name, phone: m.phone ?? '', birthDate: m.birthDate ?? '', gender: m.gender ?? ('' as Gender | '') });
 
 export default function UserProfilePage() {
   const t = useTranslations('profile');
@@ -22,7 +26,7 @@ export default function UserProfilePage() {
   const locale = useLocale();
   const [me, setMe] = useState<MemberDTO | null>(null);
   const [sports, setSports] = useState<SportDTO[]>([]);
-  const [form, setForm] = useState({ name: '', phone: '' });
+  const [form, setForm] = useState({ name: '', phone: '', birthDate: '', gender: '' as Gender | '' });
   const [favs, setFavs] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
@@ -33,7 +37,7 @@ export default function UserProfilePage() {
       .then((r) => {
         if (!r.ok) return setError(te('generic'));
         setMe(r.data);
-        setForm({ name: r.data.name, phone: r.data.phone ?? '' });
+        setForm(formOf(r.data));
         setFavs(r.data.sports.map((s) => s.id));
       })
       .catch(() => setError(te('generic')));
@@ -58,14 +62,20 @@ export default function UserProfilePage() {
 
   async function save() {
     setSaved(false);
-    if (nameMissing || phoneInvalid) return setError(t('fixFields'));
+    if (nameMissing || phoneInvalid || birthDateInvalid(form.birthDate)) return setError(t('fixFields'));
     setBusy(true);
     setError('');
-    const res = await saveMe({ name: form.name.trim(), phone: form.phone.trim() || null, sportIds: favs });
+    const res = await saveMe({
+      name: form.name.trim(),
+      phone: form.phone.trim() || null,
+      birthDate: form.birthDate || null,
+      gender: form.gender || null,
+      sportIds: favs,
+    });
     setBusy(false);
     if (!res.ok) return setError(te(res.code === 'invalid_profile' ? 'invalid_profile' : 'generic'));
     setMe(res.data);
-    setForm({ name: res.data.name, phone: res.data.phone ?? '' });
+    setForm(formOf(res.data));
     setSaved(true);
   }
 
@@ -116,6 +126,7 @@ export default function UserProfilePage() {
             <div className={phoneInvalid ? onb.error : `muted ${onb.hint}`}>{phoneInvalid ? t('phoneInvalid') : t('phoneHint')}</div>
           </Field>
         </div>
+        <PersonalFields value={form} onChange={({ birthDate, gender }) => edit({ birthDate, gender })} hint={t('personalHintMember')} />
         <div>
           <div className={`label ${styles.favouritesLabel}`}>
             {t('favourites')} <span className='muted'>{t('favouritesCount', { count: favs.length, max: MAX_FAVOURITE_SPORTS })}</span>

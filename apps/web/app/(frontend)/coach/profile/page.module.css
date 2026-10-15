@@ -12,9 +12,6 @@
 .labelRow { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--text-2); }
 .counter { color: var(--text-3); font-variant-numeric: tabular-nums; }
 .multiline { line-height: 1.6; resize: vertical; }
-.hint { font-size: 13px; color: var(--text-2); }
-.rule { font-size: 12px; color: var(--text-3); }
-.error { font-size: 12px; color: var(--warn); }
 .venues { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .settingRow { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .settingLabel { font-weight: 600; }

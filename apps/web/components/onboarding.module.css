@@ -43,3 +43,6 @@
 @media (max-width: 560px) {
   .linkRow { grid-template-columns: minmax(0, 1fr); }
 }
+.private { display: flex; flex-direction: column; gap: 18px; }
+.privateStatus { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+.pending { color: var(--pending); font-weight: 600; }

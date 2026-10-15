@@ -5,11 +5,15 @@ const form: Form = {
   photoUrl: 'https://blob/x.jpg',
   address: 'Zamalek, Cairo',
   bio: 'Ten years of boxing.',
+  birthDate: '',
+  gender: '',
+  languages: [],
   instagram: 'mona',
   tiktok: '',
   links: [],
   sports: [{ id: 's1', nameEn: 'Boxing', nameAr: null, status: 'APPROVED' }],
   certifications: [],
+  private: { on: false, price: '', duration: '' },
 };
 
 describe('leaveStep', () => {
@@ -18,7 +22,7 @@ describe('leaveStep', () => {
     const save = vi.fn(async () => true);
     const edited = { ...form, bio: 'Twelve years of boxing.' };
     expect(await leaveStep(1, edited, saved, save)).toBe(true);
-    expect(save).toHaveBeenCalledWith({ city: 'Zamalek, Cairo', bio: 'Twelve years of boxing.' });
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({ city: 'Zamalek, Cairo', bio: 'Twelve years of boxing.' }));
   });
 
   it("doesn't save an untouched step again", async () => {
@@ -43,7 +47,7 @@ describe('leaveStep', () => {
 
   it('has nothing to save on locations, certifications and review', async () => {
     const save = vi.fn(async () => true);
-    for (const s of [4, 5, 6] as const) expect(await leaveStep(s, form, {}, save)).toBe(true);
+    for (const s of [4, 5, 7] as const) expect(await leaveStep(s, form, {}, save)).toBe(true);
     expect(save).not.toHaveBeenCalled();
   });
 });
@@ -51,6 +55,31 @@ describe('leaveStep', () => {
 describe('bodyFor', () => {
   it('sends a newly uploaded photo with the first step', () => {
     expect(bodyFor(1, { ...form, photoPath: 'coaches/k1/photo/a.jpg' })).toMatchObject({ photoPath: 'coaches/k1/photo/a.jpg' });
+  });
+});
+
+describe('the about you step', () => {
+  it('saves the optional birth date, gender and languages, sending blanks as cleared', () => {
+    expect(bodyFor(1, { ...form, birthDate: '1990-01-15', gender: 'MALE', languages: ['ar', 'en'] })).toMatchObject({
+      birthDate: '1990-01-15',
+      gender: 'MALE',
+      languages: ['ar', 'en'],
+    });
+    expect(bodyFor(1, form)).toMatchObject({ birthDate: null, gender: null, languages: [] });
+  });
+});
+
+describe('the private sessions step', () => {
+  const on = { on: true, price: '600', duration: '60' };
+
+  it('saves price and length as numbers when on, and clears both when off', () => {
+    expect(bodyFor(6, { ...form, private: on })).toEqual({ privatePrice: 600, privateDuration: 60 });
+    expect(bodyFor(6, { ...form, private: { ...on, on: false } })).toEqual({ privatePrice: null, privateDuration: null });
+  });
+
+  it('ticks in the rail once switched on', () => {
+    expect(filledSteps(form).has(6)).toBe(false);
+    expect(filledSteps({ ...form, private: on }).has(6)).toBe(true);
   });
 });
 
@@ -72,9 +101,9 @@ describe('formOf', () => {
 
 describe('submitBlocked', () => {
   it('disables Submit on the review step while anything required is missing', () => {
-    expect(submitBlocked(6, ['photo'])).toBe(true);
-    expect(submitBlocked(6, ['address', 'locations'])).toBe(true);
-    expect(submitBlocked(6, [])).toBe(false);
+    expect(submitBlocked(7, ['photo'])).toBe(true);
+    expect(submitBlocked(7, ['address', 'locations'])).toBe(true);
+    expect(submitBlocked(7, [])).toBe(false);
   });
   it('never blocks Continue on the other steps', () => {
     expect(submitBlocked(1, ['photo', 'bio'])).toBe(false);

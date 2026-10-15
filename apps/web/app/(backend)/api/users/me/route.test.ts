@@ -53,6 +53,22 @@ describe('PATCH /api/users/me', () => {
     expect(updateMember).not.toHaveBeenCalled();
   });
 
+  it('saves a birth date and gender, and clears them when blank', async () => {
+    await call(PATCH, { body: { birthDate: '1995-04-30', gender: 'FEMALE' } });
+    expect(updateMember).toHaveBeenLastCalledWith('u1', expect.objectContaining({ birthDate: new Date('1995-04-30T00:00:00Z'), gender: 'FEMALE' }));
+    await call(PATCH, { body: { birthDate: '', gender: null } });
+    expect(updateMember).toHaveBeenLastCalledWith('u1', expect.objectContaining({ birthDate: null, gender: null }));
+  });
+
+  it.each([[{ birthDate: '1995-02-30' }], [{ birthDate: '30/04/1995' }], [{ birthDate: '1900-01-01' }], [{ gender: 'OTHER' }]])(
+    'rejects personal details %j',
+    async (body) => {
+      const res = await call(PATCH, { body });
+      expect(res.status).toBe(400);
+      expect(updateMember).not.toHaveBeenCalled();
+    },
+  );
+
   it('rejects unknown sports', async () => {
     vi.mocked(countSports).mockResolvedValue(0);
     expect((await call(PATCH, { body: { sportIds: ['nope'] } })).status).toBe(400);

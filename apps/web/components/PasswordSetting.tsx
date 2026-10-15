@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { signIn, useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { Field } from '@/components/ui';
 import type { Messages } from '@/i18n/messages';
@@ -17,6 +18,7 @@ export function PasswordSetting() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<keyof Messages['errors'] | ''>('');
   const [done, setDone] = useState(false);
+  const email = useSession().data?.user.email;
 
   async function submit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,6 +28,8 @@ export function PasswordSetting() {
     if (form.newPassword !== form.confirmPassword) return setError('passwordsDontMatch');
     const res = await changePassword(form.currentPassword, form.newPassword);
     if (!res.ok) return setError(pickError(CHANGE_PASSWORD_ERRORS, res.code));
+    // The change signs out every session that started before it, this one too; signing in again keeps this device in.
+    if (email) await signIn('credentials', { email, password: form.newPassword, redirect: false });
     formEl.reset();
     setOpen(false);
     setDone(true);

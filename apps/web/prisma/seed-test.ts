@@ -57,6 +57,16 @@ async function seedMembers(passwordHash: string) {
   return members;
 }
 
+/** A member with no bookings, for the empty states (no coaches yet, no sessions yet). */
+async function seedNewcomer(passwordHash: string) {
+  const email = 'newcomer@test.elcaptain.com';
+  await prisma.user.upsert({
+    where: { email },
+    update: {},
+    create: { email, name: 'Salma Newcomer', passwordHash, emailVerified: new Date(), role: 'USER' },
+  });
+}
+
 /** The review history that explains each status, written once. */
 async function seedStatusEvents(c: TestCoach, profileId: string, userId: string, adminId: string) {
   if (c.status === 'INCOMPLETE' || (await prisma.coachStatusEvent.count({ where: { coachProfileId: profileId } })) > 0) return;
@@ -256,6 +266,7 @@ async function main() {
   const sports = { yoga, circuit, strength, spin };
 
   const members = await seedMembers(passwordHash);
+  await seedNewcomer(passwordHash);
   for (const c of COACHES) await seedCoach(c, passwordHash, admin.id, sports);
   const sessions = await seedCalendar(members, sports);
   console.log(`Test data ready: ${members.length} members, ${COACHES.length} coaches, ${sessions} new sessions. Password: ${PASSWORD}`);

@@ -109,6 +109,26 @@ describe('jwt callback account status', () => {
     expect(token.coachStatus).toBeUndefined();
   });
 
+  it('stamps the sign-in time on a new session', async () => {
+    access(null);
+    const token = await jwt({ token: {}, user: { id: 'u1', role: 'USER' } });
+    expect(token.signedInAt).toBeCloseTo(Date.now(), -3);
+  });
+
+  it('ends a session that signed in before the last password change, at the next check', async () => {
+    const stale = Date.now() - 5 * 60 * 1000 - 1;
+    vi.mocked(findAccess).mockResolvedValue({ suspended: false, coachStatus: null, passwordChangedAt: Date.now() - 1000 });
+    await expect(jwt({ token: { id: 'u1', role: 'USER', signedInAt: Date.now() - 60_000, statusCheckedAt: stale } })).rejects.toThrow();
+    // Sessions from before this field existed have no sign-in time, so they end too.
+    await expect(jwt({ token: { id: 'u1', role: 'USER', statusCheckedAt: stale } })).rejects.toThrow();
+  });
+
+  it('keeps a session that signed in after the last password change', async () => {
+    vi.mocked(findAccess).mockResolvedValue({ suspended: false, coachStatus: null, passwordChangedAt: Date.now() - 60_000 });
+    const token = await jwt({ token: { id: 'u1', role: 'USER', signedInAt: Date.now() - 1000, statusCheckedAt: 0 } });
+    expect(token.id).toBe('u1');
+  });
+
   it('exposes the status on the session', async () => {
     const s = await session({ session: { user: {} }, token: { id: 'k1', role: 'COACH', coachStatus: 'PENDING', suspended: true } });
     expect(s.user).toMatchObject({ id: 'k1', role: 'COACH', coachStatus: 'PENDING', suspended: true });

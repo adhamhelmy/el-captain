@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { exploreLink } from '@/components/rich';
 import { CoachCard, initialsOf } from '@/components/ui';
 import { myCoaches } from '@/lib/client/insights-api';
 import type { MemberCoachDTO } from '@/lib/server/dto';
@@ -30,7 +31,7 @@ export default function MyCoachesPage() {
           />
         ))}
       </div>
-      {list?.length === 0 && <div className='muted'>{t('none')}</div>}
+      {list?.length === 0 && <div className='empty'>{t.rich('none', { link: exploreLink })}</div>}
     </div>
   );
 }

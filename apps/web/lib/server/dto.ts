@@ -11,6 +11,7 @@ import type { SessionWithDetails } from '@/prisma/models/session';
 import type { AttendeeRow } from '@/prisma/models/booking';
 import type { RequestWithDetails } from '@/prisma/models/private-request';
 import type { RecentBooking } from '@/prisma/models/insights';
+import { ageOn, dateOnly } from '@/lib/shared/profile-rules';
 import { requestState } from '@/lib/shared/session-rules';
 
 // API response shapes. Each mapper keeps the record's own columns and only flattens its relations;
@@ -90,10 +91,13 @@ export const toCertificationDTO = ({ id, title, fileName, contentType, size, cre
  * Storage paths never leave the server: the photo becomes a URL, certificates are fetched through their own route.
  * Fields are listed explicitly so new columns don't leak by accident.
  */
-export const toCoachDTO = ({ id, name, coachProfile: p }: Coach) => ({
+export const toCoachDTO = ({ id, name, birthDate, gender, coachProfile: p }: Coach) => ({
   id,
   userId: id,
   coachName: name,
+  birthDate: dateOnly(birthDate),
+  gender,
+  languages: p!.languages,
   status: p!.status,
   submittedAt: p!.submittedAt,
   bio: p!.bio,
@@ -112,9 +116,12 @@ export const toCoachDTO = ({ id, name, coachProfile: p }: Coach) => ({
 export type CoachDTO = ReturnType<typeof toCoachDTO>;
 
 /** What members and guests see of an approved coach: no phone, review details or certificate files, and only approved sports. */
-export const toPublicCoachDTO = ({ id, name, coachProfile: p, venues }: Coach) => ({
+export const toPublicCoachDTO = ({ id, name, birthDate, gender, coachProfile: p, venues }: Coach) => ({
   id,
   name,
+  age: birthDate && ageOn(dateOnly(birthDate)!),
+  gender,
+  languages: p!.languages,
   bio: p!.bio,
   city: p!.city,
   instagram: p!.instagram,
@@ -173,11 +180,13 @@ export type AdminCoachDTO = ReturnType<typeof toAdminCoachDTO>;
 export type AdminCoachRowDTO = ReturnType<typeof toAdminCoachRowDTO>;
 
 /** A member's own profile. */
-export const toMemberDTO = ({ id, name, email, phone, createdAt, favouriteSports }: Member) => ({
+export const toMemberDTO = ({ id, name, email, phone, birthDate, gender, createdAt, favouriteSports }: Member) => ({
   id,
   name,
   email,
   phone,
+  birthDate: dateOnly(birthDate),
+  gender,
   createdAt,
   sports: favouriteSports.map(({ sport }) => toSportDTO(sport)),
 });

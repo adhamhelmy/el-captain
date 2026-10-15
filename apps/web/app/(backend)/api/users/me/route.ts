@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { assertFound, assertValid, protect, type AuthContext } from '@/lib/server/api';
 import { toMemberDTO } from '@/lib/server/dto';
+import { readPersonal } from '@/lib/server/profile-input';
 import { NAME_MAX } from '@/lib/shared/coach-rules';
 import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { cleanPhone, MAX_FAVOURITE_SPORTS } from '@/lib/shared/member-rules';
@@ -44,7 +45,12 @@ async function get({ user }: AuthContext) {
 async function update({ req, user }: AuthContext) {
   const body = await req.json();
   invalid(body && typeof body === 'object', 'Invalid body');
-  const changes: MemberUpdate = { name: name(body.name), phone: phone(body.phone), sportIds: await sportIds(body.sportIds) };
+  const changes: MemberUpdate = {
+    name: name(body.name),
+    phone: phone(body.phone),
+    ...readPersonal(body),
+    sportIds: await sportIds(body.sportIds),
+  };
   const updated = await updateMember(user.id, changes);
   return NextResponse.json(toMemberDTO(updated));
 }

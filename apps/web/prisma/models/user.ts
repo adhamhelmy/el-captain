@@ -17,8 +17,15 @@ export function findUserByEmail(email: string) {
 
 /** What decides where a signed-in user may go: whether they're suspended and, for coaches, their review status. */
 export async function findAccess(id: string) {
-  const user = await prisma.user.findUnique({ where: { id }, select: { suspendedAt: true, coachProfile: { select: { status: true } } } });
-  return { suspended: !!user?.suspendedAt, coachStatus: user?.coachProfile?.status ?? null };
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: { suspendedAt: true, passwordChangedAt: true, coachProfile: { select: { status: true } } },
+  });
+  return {
+    suspended: !!user?.suspendedAt,
+    coachStatus: user?.coachProfile?.status ?? null,
+    passwordChangedAt: user?.passwordChangedAt?.getTime() ?? null,
+  };
 }
 
 export function findUserById(id: string) {
@@ -54,7 +61,7 @@ export function markEmailVerified(id: string) {
 }
 
 export function updatePasswordHash(id: string, passwordHash: string) {
-  return prisma.user.update({ where: { id }, data: { passwordHash } });
+  return prisma.user.update({ where: { id }, data: { passwordHash, passwordChangedAt: new Date() } });
 }
 
 /** Where "new coach to review" emails go. */

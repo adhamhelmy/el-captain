@@ -21,5 +21,6 @@ declare module 'next-auth/jwt' {
     coachStatus?: CoachStatus;
     suspended?: boolean;
     statusCheckedAt?: number;
+    signedInAt?: number;
   }
 }

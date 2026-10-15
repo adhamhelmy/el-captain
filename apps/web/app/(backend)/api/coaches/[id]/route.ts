@@ -23,6 +23,7 @@ import {
   UPLOAD_RULES,
 } from '@/lib/shared/coach-rules';
 import { toCoachDTO, toPublicCoachDTO } from '@/lib/server/dto';
+import { readLanguages, readPersonal } from '@/lib/server/profile-input';
 import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { findActiveCoach, findCoach, updateCoach, type ProfileUpdate } from '@/prisma/models/coach-profile';
 import { countSports } from '@/prisma/models/sport';
@@ -129,6 +130,8 @@ async function updateCoachProfile({ req, user, params: { id } }: AuthContext<{ i
     links: links(body.links),
     sportIds: await sportIds(body.sportIds),
     photoPath: await photoPath(id, body.photoPath),
+    languages: readLanguages(body.languages),
+    ...readPersonal(body),
     ...privateSettings(body),
   };
   const changes = Object.fromEntries(Object.entries(update).filter(([, v]) => v !== undefined)) as ProfileUpdate;

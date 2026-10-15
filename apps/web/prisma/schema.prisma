@@ -9,30 +9,40 @@ datasource db {
 }
 
 model User {
-  id               String           @id @default(cuid())
-  email            String           @unique
-  passwordHash     String
+  id                String           @id @default(cuid())
+  email             String           @unique
+  passwordHash      String
   /// Set once the user follows the link in their verification email. Sign-in needs it.
-  emailVerified    DateTime?
-  name             String
+  emailVerified     DateTime?
+  name              String
   /// Members only; coaches keep theirs on the coach profile.
-  phone            String?
-  role             Role             @default(USER)
+  phone             String?
+  role              Role             @default(USER)
   /// Set by an admin. A suspended user can't sign in, and open sessions stop working at the next status check.
-  suspendedAt      DateTime?
-  favouriteSports  FavouriteSport[]
-  authTokens       AuthToken[]
-  clientProfile    ClientProfile?
-  coachProfile     CoachProfile?
+  suspendedAt       DateTime?
+  /// Set on every password change or reset. Sessions signed in before it stop working at the next status check.
+  passwordChangedAt DateTime?
+  /// Optional. A coach's public profile shows the age worked out from it, never the date.
+  birthDate         DateTime?        @db.Date
+  gender            Gender?
+  favouriteSports   FavouriteSport[]
+  authTokens        AuthToken[]
+  clientProfile     ClientProfile?
+  coachProfile      CoachProfile?
   /// Language for member emails, saved from the request each time a member books or sends a request.
-  locale           String?
-  venues           Venue[]
-  coachedSessions  Session[]        @relation("CoachSessions")
-  bookings         Booking[]
-  sentRequests     PrivateRequest[] @relation("PrivateRequestsSent")
-  receivedRequests PrivateRequest[] @relation("PrivateRequestsReceived")
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  locale            String?
+  venues            Venue[]
+  coachedSessions   Session[]        @relation("CoachSessions")
+  bookings          Booking[]
+  sentRequests      PrivateRequest[] @relation("PrivateRequestsSent")
+  receivedRequests  PrivateRequest[] @relation("PrivateRequestsReceived")
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+enum Gender {
+  MALE
+  FEMALE
 }
 
 enum Role {
@@ -87,6 +97,8 @@ model CoachProfile {
   /// Price (EGP) and length (minutes) of one private session. Members can request one only when both are set.
   privatePrice    Int?
   privateDuration Int?
+  /// Codes from SPOKEN_LANGUAGES, e.g. "ar", "en".
+  languages       String[]           @default([])
   userId          String             @unique
   user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   links           CoachLink[]
