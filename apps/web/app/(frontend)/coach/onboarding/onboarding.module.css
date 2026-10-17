@@ -41,7 +41,7 @@
 .mobileProgressText { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--text-2); }
 .progressTrack { height: 4px; border-radius: 100px; background: var(--border); overflow: hidden; }
 .progressFill { height: 100%; background: var(--accent); transition: width 0.2s; }
-.p1 { width: calc(100% / 6); } .p2 { width: calc(200% / 6); } .p3 { width: 50%; } .p4 { width: calc(400% / 6); } .p5 { width: calc(500% / 6); } .p6 { width: 100%; }
+.p1 { width: calc(100% / 7); } .p2 { width: calc(200% / 7); } .p3 { width: calc(300% / 7); } .p4 { width: calc(400% / 7); } .p5 { width: calc(500% / 7); } .p6 { width: calc(600% / 7); } .p7 { width: 100%; }
 
 /* Rejected banner */
 .rejected { padding: 18px 20px; border-radius: 14px; background: var(--warn-tint); display: flex; flex-direction: column; gap: 10px; font-size: 14px; }

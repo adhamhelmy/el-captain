@@ -138,7 +138,7 @@ describe('firstIncompleteStep', () => {
     expect(firstIncompleteStep(['sports'])).toBe(3);
     expect(firstIncompleteStep(['locations'])).toBe(4);
     expect(firstIncompleteStep(['address', 'sports'])).toBe(1);
-    expect(firstIncompleteStep([])).toBe(6);
+    expect(firstIncompleteStep([])).toBe(7);
   });
 });
 

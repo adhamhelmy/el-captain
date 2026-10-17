@@ -57,6 +57,15 @@ describe('GET /api/coaches/[id]', () => {
     expect(json.sports.map((s: { id: string }) => s.id)).toEqual(['s1']);
   });
 
+  it('shows the age, never the birth date', async () => {
+    const birthDate = new Date(Date.UTC(new Date().getUTCFullYear() - 30, 0, 1));
+    const active = { ...coach, birthDate, gender: 'FEMALE', coachProfile: { ...profile, status: 'ACTIVE', languages: ['ar'] } };
+    vi.mocked(findActiveCoach).mockResolvedValue(active as any);
+    const json = await (await call(GET, { params })).json();
+    expect(json).toMatchObject({ age: 30, gender: 'FEMALE', languages: ['ar'] });
+    expect(json).not.toHaveProperty('birthDate');
+  });
+
   it('returns 404 for an unknown or not yet active coach', async () => {
     vi.mocked(findActiveCoach).mockResolvedValue(null);
     expect((await call(GET, { params })).status).toBe(404);
@@ -190,6 +199,18 @@ describe('PATCH /api/coaches/[id]', () => {
     signInAs('k1', 'COACH');
     await call(PATCH, { params, body: { privatePrice: null, privateDuration: null } });
     expect(updateCoach).toHaveBeenCalledWith('k1', { privatePrice: null, privateDuration: null });
+  });
+
+  it('saves spoken languages in a fixed order, with the birth date and gender', async () => {
+    signInAs('k1', 'COACH');
+    await call(PATCH, { params, body: { languages: ['en', 'ar'], birthDate: '1990-01-15', gender: 'MALE' } });
+    expect(updateCoach).toHaveBeenCalledWith('k1', { languages: ['ar', 'en'], birthDate: new Date('1990-01-15T00:00:00Z'), gender: 'MALE' });
+  });
+
+  it('rejects an unknown language', async () => {
+    signInAs('k1', 'COACH');
+    expect((await call(PATCH, { params, body: { languages: ['xx'] } })).status).toBe(400);
+    expect(updateCoach).not.toHaveBeenCalled();
   });
 
   it('rejects a price without a length', async () => {

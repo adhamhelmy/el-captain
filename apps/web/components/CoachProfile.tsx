@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
+import { useLanguageName } from '@/components/PersonalFields';
 import { PrivateRequestForm } from '@/components/PrivateRequestForm';
 import { SessionCard } from '@/components/sessions';
-import { Avatar, Back, initialsOf } from '@/components/ui';
+import { Avatar, Back, Chips, initialsOf } from '@/components/ui';
 import { getCoach } from '@/lib/client/coach-api';
+import { useSessionLabels } from '@/lib/client/session-labels';
 import { listSessions } from '@/lib/client/session-api';
 import type { PublicCoachDTO, SessionDTO } from '@/lib/server/dto';
 import { sportName } from '@/lib/shared/coach-rules';
@@ -16,11 +18,15 @@ import styles from './CoachProfile.module.css';
 /** An approved coach's public profile; `area` is '' for guests and '/user' for members. Anyone else is a 404. */
 export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/user' }>) {
   const t = useTranslations('coachProfile');
+  const td = useTranslations('data');
   const locale = useLocale();
   const [c, setC] = useState<PublicCoachDTO | null | undefined>(undefined);
   const [sessions, setSessions] = useState<SessionDTO[]>([]);
   const [asking, setAsking] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sport, setSport] = useState('all');
+  const languageName = useLanguageName();
+  const l = useSessionLabels();
 
   useEffect(() => {
     getCoach(id)
@@ -29,15 +35,21 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
   }, [id]);
 
   useEffect(() => {
-    listSessions({ coach: id, limit: 12 })
-      .then((r) => r.ok && setSessions(r.data))
-      .catch(() => setSessions([]));
-  }, [id]);
+    // Switching sports quickly must not let an older, slower answer win.
+    let current = true;
+    listSessions({ coach: id, limit: 12, ...(sport !== 'all' && { sport }) })
+      .then((r) => current && r.ok && setSessions(r.data))
+      .catch(() => current && setSessions([]));
+    return () => {
+      current = false;
+    };
+  }, [id, sport]);
 
   if (c === null) notFound();
   if (!c) return null;
 
   const sports = c.sports.map((s) => sportName(s, locale));
+  const about = [c.age !== null && t('age', { age: c.age }), c.gender && td(`gender.${c.gender}`)].filter(Boolean).join(' · ');
   const links = [['Instagram', c.instagram], ['TikTok', c.tiktok], ...c.links.map((l) => [l.label, l.url])].filter(
     (l): l is [string, string] => !!l[1],
   );
@@ -57,6 +69,7 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
               <bdi>{c.city}</bdi>
             </div>
           )}
+          {about && <div className={`muted ${styles.line}`}>{about}</div>}
         </div>
         {takesRequests &&
           (area ? (
@@ -96,6 +109,24 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
           </div>
         </section>
       )}
+      {c.languages.length > 0 && (
+        <section>
+          <div className={`h3 ${styles.heading}`}>{t('languages')}</div>
+          <div className={onb.chips}>
+            {c.languages.map((code) => (
+              <span key={code} className={onb.chip}>
+                {languageName(code)}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+      <section>
+        <div className={`h3 ${styles.heading}`}>{t('privateTitle')}</div>
+        <div className='muted'>
+          {takesRequests ? t('requestLine', { minutes: c.privateDuration!, price: l.price(c.privatePrice!) }) : t('privateNone')}
+        </div>
+      </section>
       {links.length > 0 && (
         <section className={`stack ${styles.links}`}>
           <div className={`h3 ${styles.heading}`}>{t('links')}</div>
@@ -108,6 +139,13 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
       )}
       <section className={`stack ${styles.sessions}`}>
         <div className={`h3 ${styles.heading}`}>{t('upcoming')}</div>
+        {c.sports.length > 1 && (
+          <Chips
+            options={[[td('all'), 'all'], ...c.sports.map((s): [string, string] => [sportName(s, locale), s.id])]}
+            value={sport}
+            onChange={setSport}
+          />
+        )}
         {sessions.length ? (
           <div className='grid-cards'>
             {sessions.map((s) => (

@@ -40,6 +40,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
+        token.signedInAt = Date.now();
       }
       // Routing and protect() read suspension and coach status from here, re-read every few minutes to catch a suspension.
       // Waiting coaches are re-read every time so an approval shows up at once.
@@ -47,6 +48,8 @@ export const authOptions: NextAuthOptions = {
       const waitingCoach = token.role === 'COACH' && token.coachStatus !== 'ACTIVE';
       if (stale || waitingCoach) {
         const access = await findAccess(token.id);
+        // A password change or reset signs out every session that started before it; throwing makes next-auth clear the cookie.
+        if (access.passwordChangedAt && access.passwordChangedAt > (token.signedInAt ?? 0)) throw new Error('Password changed');
         token.suspended = access.suspended;
         if (token.role === 'COACH') token.coachStatus = access.coachStatus ?? 'INCOMPLETE';
         token.statusCheckedAt = Date.now();

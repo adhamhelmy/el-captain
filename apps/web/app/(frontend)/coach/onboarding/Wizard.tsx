@@ -3,11 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { CertificationList } from '@/components/CertificationList';
 import { LinksEditor } from '@/components/LinksEditor';
+import { birthDateInvalid, LanguagePicker, PersonalFields } from '@/components/PersonalFields';
 import { PhotoUpload } from '@/components/PhotoUpload';
+import { privateDraftOk, PrivateSessionSettings } from '@/components/PrivateSessionSettings';
 import { SportPicker } from '@/components/SportPicker';
 import { VenueDrawer, type VenueSaved } from '@/components/VenueDrawer';
 import { saveProfile, submitProfile, type Onboarding } from '@/lib/client/coach-api';
 import { archiveVenue, listVenues } from '@/lib/client/session-api';
+import { useSessionLabels } from '@/lib/client/session-labels';
 import type { VenueDTO } from '@/lib/server/dto';
 import {
   BIO_MAX,
@@ -36,6 +39,7 @@ const SUB: Record<(typeof WIZARD_STEPS)[number], 'required' | 'optional' | 'atLe
   sports: 'required',
   locations: 'atLeastOne',
   certifications: 'optional',
+  private: 'optional',
   review: 'submit',
 };
 const CHECKLIST: MissingField[] = ['photo', 'bio', 'address', 'sports', 'locations'];
@@ -92,11 +96,14 @@ function primaryKey(last: boolean, rejected: boolean, busy: boolean) {
 
 type Props = Readonly<{ data: Onboarding; onSubmitted(): Promise<void> }>;
 
-/** The six-step profile wizard. Every way out of a step saves it first; the rail shows what's done. */
+/** The seven-step profile wizard. Every way out of a step saves it first; the rail shows what's done. */
 export function Wizard({ data, onSubmitted }: Props) {
   const t = useTranslations('onboarding');
   const te = useTranslations('errors');
   const tv = useTranslations('venues');
+  const tce = useTranslations('coachEdit');
+  const tp = useTranslations('profile');
+  const l = useSessionLabels();
   const locale = useLocale();
   const id = data.coach.id;
   const rejected = data.coach.status === 'REJECTED';
@@ -158,15 +165,21 @@ export function Wizard({ data, onSubmitted }: Props) {
   }
 
   /** Every way to another step (Continue, Back, the rail, Edit and "Add now") goes through here. */
+  /**
+   * A step whose fields can't be saved keeps the coach on it; the rule under the field is already red to say why:
+   * an out-of-range birth date on step 1, or half-filled private settings on step 6.
+   */
+  const stepBlocked = () => (step === 1 && birthDateInvalid(form.birthDate)) || (step === 6 && !privateDraftOk(form.private));
+
   async function go(next: WizardStep) {
-    if (busy || next === step) return;
+    if (busy || next === step || stepBlocked()) return;
     if (!(await leaveStep(step, form, saved.current, (body) => save(step, body)))) return;
     setStep(next);
     top.current?.scrollIntoView({ block: 'start' });
   }
 
   async function submit() {
-    if (busy || missing.length) return;
+    if (busy || missing.length || stepBlocked()) return;
     if (!(await leaveStep(step, form, saved.current, (body) => save(step, body)))) return;
     setBusy(true);
     setError('');
@@ -219,6 +232,13 @@ export function Wizard({ data, onSubmitted }: Props) {
     [t('steps.sports'), form.sports.map((s) => sportName(s, locale)).join(' · ') || none, 3],
     [t('steps.locations'), venues.map((v) => v.name).join(' · ') || none, 4],
     [t('steps.certifications'), form.certifications.length ? t('files', { count: form.certifications.length }) : none, 5],
+    [
+      t('steps.private'),
+      form.private.on && privateDraftOk(form.private)
+        ? `${l.price(Number(form.private.price))} · ${l.minutes(Number(form.private.duration))}`
+        : tce('privateOff'),
+      6,
+    ],
   ];
 
   return (
@@ -290,6 +310,11 @@ export function Wizard({ data, onSubmitted }: Props) {
                 />
                 <span className={styles.fieldHint}>{t('bioHint')}</span>
               </label>
+              <PersonalFields value={form} onChange={({ birthDate, gender }) => set({ birthDate, gender })} hint={tp('personalHintCoach')} />
+              <div className={styles.field}>
+                <span className={styles.labelRow}>{tp('languages')}</span>
+                <LanguagePicker selected={form.languages} onChange={(languages) => set({ languages })} />
+              </div>
             </div>
           )}
 
@@ -363,6 +388,18 @@ export function Wizard({ data, onSubmitted }: Props) {
           {step === 5 && <CertificationList coachId={id} items={form.certifications} onChange={(certifications) => set({ certifications })} />}
 
           {step === 6 && (
+            <PrivateSessionSettings
+              value={form.private}
+              onChange={(p) => set({ private: p })}
+              active={
+                form.private.on && privateDraftOk(form.private)
+                  ? { price: Number(form.private.price), duration: Number(form.private.duration) }
+                  : null
+              }
+            />
+          )}
+
+          {last && (
             <div className={styles.review}>
               <div className={styles.checklist}>
                 {CHECKLIST.map((m) => {

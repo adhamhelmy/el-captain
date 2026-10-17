@@ -140,9 +140,9 @@ export function missingFields(d: Draft): MissingField[] {
 }
 
 /** The wizard's steps, in order. Review is the last one and holds the submit button. */
-export const WIZARD_STEPS = ['you', 'socials', 'sports', 'locations', 'certifications', 'review'] as const;
-export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
-export const REVIEW_STEP: WizardStep = 6;
+export const WIZARD_STEPS = ['you', 'socials', 'sports', 'locations', 'certifications', 'private', 'review'] as const;
+export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export const REVIEW_STEP: WizardStep = 7;
 
 /** The wizard step each field lives on. */
 export const STEP_OF: Record<MissingField, WizardStep> = { photo: 1, address: 1, bio: 1, sports: 3, locations: 4 };

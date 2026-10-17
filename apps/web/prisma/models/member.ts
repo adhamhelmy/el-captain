@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { Gender, Prisma } from '@prisma/client';
 import type { Page } from '@/lib/server/api';
 import { prisma } from '../client';
 
@@ -9,16 +9,16 @@ const withFavourites = {
 export type Member = Prisma.UserGetPayload<{ include: typeof withFavourites }>;
 
 /** What a member's profile save may change. Undefined fields are left as they are; sportIds replaces the whole list. */
-export type MemberUpdate = { name?: string; phone?: string | null; sportIds?: string[] };
+export type MemberUpdate = { name?: string; phone?: string | null; birthDate?: Date | null; gender?: Gender | null; sportIds?: string[] };
 
 /** A member (role USER) with their favourite sports, or null when the id is not a member. */
 export function findMember(id: string) {
   return prisma.user.findUnique({ where: { id, role: 'USER' }, include: withFavourites });
 }
 
-export function updateMember(id: string, { name, phone, sportIds }: MemberUpdate) {
+export function updateMember(id: string, { sportIds, ...fields }: MemberUpdate) {
   return prisma.$transaction(async (tx) => {
-    await tx.user.update({ where: { id }, data: { name, phone } });
+    await tx.user.update({ where: { id }, data: fields });
     if (sportIds) {
       await tx.favouriteSport.deleteMany({ where: { userId: id } });
       await tx.favouriteSport.createMany({ data: sportIds.map((sportId) => ({ userId: id, sportId })) });

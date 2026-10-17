@@ -7,14 +7,16 @@ import { CertificationList } from '@/components/CertificationList';
 import { LinksEditor, toLinks, type LinkDraft } from '@/components/LinksEditor';
 import { LocaleChoiceControl } from '@/components/LocaleToggle';
 import { PasswordSetting } from '@/components/PasswordSetting';
+import { birthDateInvalid, LanguagePicker, PersonalFields } from '@/components/PersonalFields';
 import { PhotoUpload } from '@/components/PhotoUpload';
+import { privateBody, privateDraftOf, privateDraftOk, PrivateSessionSettings, type PrivateDraft } from '@/components/PrivateSessionSettings';
 import { SportPicker } from '@/components/SportPicker';
 import { ThemeChoiceControl } from '@/components/ThemeToggle';
 import { Field } from '@/components/ui';
 import { getOnboarding, saveProfile, type Certification } from '@/lib/client/coach-api';
 import { listVenues } from '@/lib/client/session-api';
 import { BIO_MAX, CITY_MAX, MAX_LINKS, NAME_MAX, socialHandle } from '@/lib/shared/coach-rules';
-import { privateSettingsOk } from '@/lib/shared/session-rules';
+import type { Gender } from '@/lib/shared/profile-rules';
 import type { CoachDTO, SportDTO } from '@/lib/server/dto';
 import styles from './page.module.css';
 
@@ -31,8 +33,10 @@ type Form = {
   links: LinkDraft[];
   sports: SportDTO[];
   photo: { path: string; url: string } | null;
-  privatePrice: string;
-  privateDuration: string;
+  private: PrivateDraft;
+  birthDate: string;
+  gender: Gender | '';
+  languages: string[];
 };
 
 const formOf = (c: CoachDTO): Form => ({
@@ -44,16 +48,15 @@ const formOf = (c: CoachDTO): Form => ({
   links: c.links.map(({ id, label, url }) => ({ key: id, label, url })),
   sports: c.sports,
   photo: null,
-  privatePrice: c.privatePrice === null ? '' : String(c.privatePrice),
-  privateDuration: c.privateDuration === null ? '' : String(c.privateDuration),
+  private: privateDraftOf(c.privatePrice, c.privateDuration),
+  birthDate: c.birthDate ?? '',
+  gender: c.gender ?? '',
+  languages: c.languages,
 });
 
 /** Compared to spot unsaved changes; row keys and sport details don't count. */
 const snapshot = (f: Form) =>
   JSON.stringify({ ...f, links: f.links.map(({ label, url }) => [label, url]), sports: f.sports.map((s) => s.id), photo: f.photo?.path ?? null });
-
-/** A blank field is "not set" (null), anything else is read as a number. */
-const optionalNumber = (v: string) => (v.trim() === '' ? null : Number(v));
 
 function Section({ id, title, aside, children }: Readonly<{ id: string; title: string; aside?: React.ReactNode; children: React.ReactNode }>) {
   return (
@@ -125,17 +128,14 @@ export default function CoachProfilePage() {
     setError('');
   };
   const dirty = snapshot(form) !== snapshot(formOf(profile));
-  const privateOk = privateSettingsOk(optionalNumber(form.privatePrice), optionalNumber(form.privateDuration));
 
   async function save() {
     if (!profile || !form) return;
-    const price = optionalNumber(form.privatePrice);
-    const duration = optionalNumber(form.privateDuration);
-    if (!privateSettingsOk(price, duration)) return setError(t('privateRules'));
+    if (!privateDraftOk(form.private)) return setError(t('privateRules'));
+    if (birthDateInvalid(form.birthDate)) return setError(tp('fixFields'));
     setBusy(true);
     const res = await saveProfile(profile.id, {
-      privatePrice: price,
-      privateDuration: duration,
+      ...privateBody(form.private),
       name: form.name,
       city: form.city,
       bio: form.bio,
@@ -143,6 +143,9 @@ export default function CoachProfilePage() {
       tiktok: form.tiktok,
       links: toLinks(form.links),
       sportIds: form.sports.map((s) => s.id),
+      birthDate: form.birthDate || null,
+      gender: form.gender || null,
+      languages: form.languages,
       ...(form.photo && { photoPath: form.photo.path }),
     });
     setBusy(false);
@@ -204,6 +207,11 @@ export default function CoachProfilePage() {
                 onChange={(e) => set({ bio: e.target.value })}
               />
             </div>
+            <PersonalFields value={form} onChange={({ birthDate, gender }) => set({ birthDate, gender })} hint={tp('personalHintCoach')} />
+            <div className={styles.field}>
+              <span className={styles.labelRow}>{tp('languages')}</span>
+              <LanguagePicker selected={form.languages} onChange={(languages) => set({ languages })} />
+            </div>
             <div className='fields'>
               <Field label={to('instagram')}>
                 <input
@@ -244,30 +252,11 @@ export default function CoachProfilePage() {
           </Section>
 
           <Section id='private' title={t('section.private')}>
-            <div className={styles.hint}>{t('privateHint')}</div>
-            <div className='fields'>
-              <Field label={t('privatePrice')}>
-                <input
-                  className='input'
-                  inputMode='numeric'
-                  dir='ltr'
-                  placeholder='600'
-                  value={form.privatePrice}
-                  onChange={(e) => set({ privatePrice: e.target.value })}
-                />
-              </Field>
-              <Field label={t('privateDuration')}>
-                <input
-                  className='input'
-                  inputMode='numeric'
-                  dir='ltr'
-                  placeholder='60'
-                  value={form.privateDuration}
-                  onChange={(e) => set({ privateDuration: e.target.value })}
-                />
-              </Field>
-            </div>
-            <div className={privateOk ? styles.rule : styles.error}>{t('privateRules')}</div>
+            <PrivateSessionSettings
+              value={form.private}
+              onChange={(p) => set({ private: p })}
+              active={profile.privatePrice !== null && profile.privateDuration !== null ? { price: profile.privatePrice, duration: profile.privateDuration } : null}
+            />
           </Section>
 
           <Section id='locations' title={t('section.locations')}>
