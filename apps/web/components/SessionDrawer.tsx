@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { Drawer } from '@/components/Drawer';
+import { SessionCoverField, type CoverChoice } from '@/components/SessionCoverField';
 import { Field } from '@/components/ui';
 import { VenueDrawer } from '@/components/VenueDrawer';
 import { REPEAT_OPTIONS, summaryValues } from '@/lib/client/repeat-summary';
@@ -117,6 +119,9 @@ export function SessionDrawer({ session, sports: activeSports, venues: initialVe
   const sports = withOwn(activeSports, session?.sport);
   const [d, setD] = useState<Draft>(() => (session ? fromSession(session) : blank(activeSports, initialVenues)));
   const [addingVenue, setAddingVenue] = useState(false);
+  // Null until the coach touches the cover, so an edit leaves it alone.
+  const [cover, setCover] = useState<CoverChoice | null>(null);
+  const coachId = useSession().data?.user.id ?? '';
   const [tried, setTried] = useState(false);
   const [serverBad, setServerBad] = useState<string[]>([]);
   const [error, setError] = useState('');
@@ -161,6 +166,7 @@ export function SessionDrawer({ session, sports: activeSports, venues: initialVe
       durationMin: draft.durationMin,
       price: draft.price,
       capacity: draft.capacity,
+      ...cover?.body,
     };
     const r = session ? await updateSession(session.id, body) : await createSession({ ...body, repeatWeeks: draft.repeatWeeks });
     setBusy(false);
@@ -195,6 +201,7 @@ export function SessionDrawer({ session, sports: activeSports, venues: initialVe
         {locked && <div className={styles.rule}>{t('lockedHint')}</div>}
         <section className={styles.group}>
           <div className={styles.groupLabel}>{t('groupWhat')}</div>
+          <SessionCoverField coachId={coachId} url={cover ? cover.url : (session?.coverUrl ?? null)} onChange={setCover} />
           <Field label={t('fieldTitle')}>
             <input
               className={cls('title', d.title)}

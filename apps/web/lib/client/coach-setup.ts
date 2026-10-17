@@ -20,3 +20,6 @@ export function setupSteps(d: {
     { key: 'pricing', done: d.privatePrice !== null && d.privateDuration !== null, href: '/coach/profile#private' },
   ];
 }
+
+/** Whether every step is done; the card then stays away without the coach having to hide it. */
+export const setupComplete = (steps: SetupStep[]) => steps.every((s) => s.done);

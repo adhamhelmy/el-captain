@@ -11,6 +11,8 @@ export const MIN_SPORTS = 1;
 export const MAX_SPORTS = 10;
 export const MAX_CERTS = 10;
 export const CERT_TITLE_MAX = 80;
+export const MAX_MEDIA = 24;
+export const MEDIA_CAPTION_MAX = 120;
 export const SPORT_NAME_MIN = 2;
 export const SPORT_NAME_MAX = 40;
 /** Longest admin search kept; the rest is dropped. */
@@ -92,13 +94,26 @@ export const isValidSportName = (n: string) => n.length >= SPORT_NAME_MIN && n.l
 /** The sport's name in the reader's language (an Intl locale such as "ar-EG-u-nu-latn"), English when there's no Arabic yet. */
 export const sportName = (s: { nameEn: string; nameAr: string | null }, locale: string) => (locale.startsWith('ar') && s.nameAr) || s.nameEn;
 
-export type UploadKind = 'photo' | 'certificate';
+export type UploadKind = 'photo' | 'cover' | 'sessionCover' | 'certificate' | 'mediaPhoto' | 'mediaVideo';
 
 const IMAGES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+const VIDEOS = ['video/mp4', 'video/webm', 'video/quicktime'] as const;
 export const UPLOAD_RULES: Record<UploadKind, { types: readonly string[]; maxBytes: number; folder: string }> = {
   photo: { types: IMAGES, maxBytes: 5 * 1024 * 1024, folder: 'photo' },
+  cover: { types: IMAGES, maxBytes: 10 * 1024 * 1024, folder: 'cover' },
+  sessionCover: { types: IMAGES, maxBytes: 10 * 1024 * 1024, folder: 'sessions' },
   certificate: { types: [...IMAGES, 'application/pdf'], maxBytes: 10 * 1024 * 1024, folder: 'certs' },
+  // Profile photos and videos share one folder; the type picks the kind and its size limit.
+  mediaPhoto: { types: IMAGES, maxBytes: 10 * 1024 * 1024, folder: 'media' },
+  mediaVideo: { types: VIDEOS, maxBytes: 100 * 1024 * 1024, folder: 'media' },
 };
+
+/** Which media upload a file is, from its type; null when it is neither an allowed image nor video. */
+export function mediaKindOf(contentType: string): 'mediaPhoto' | 'mediaVideo' | null {
+  if (UPLOAD_RULES.mediaPhoto.types.includes(contentType)) return 'mediaPhoto';
+  if (UPLOAD_RULES.mediaVideo.types.includes(contentType)) return 'mediaVideo';
+  return null;
+}
 
 export const uploadPrefix = (userId: string, kind: UploadKind) => `coaches/${userId}/${UPLOAD_RULES[kind].folder}/`;
 

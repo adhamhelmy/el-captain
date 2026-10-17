@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { CertificationList } from '@/components/CertificationList';
+import { CoverUpload } from '@/components/CoverUpload';
 import { LinksEditor, toLinks, type LinkDraft } from '@/components/LinksEditor';
 import { LocaleChoiceControl } from '@/components/LocaleToggle';
+import { MediaList } from '@/components/MediaList';
 import { PasswordSetting } from '@/components/PasswordSetting';
 import { birthDateInvalid, LanguagePicker, PersonalFields } from '@/components/PersonalFields';
 import { PhotoUpload } from '@/components/PhotoUpload';
@@ -13,7 +15,7 @@ import { privateBody, privateDraftOf, privateDraftOk, PrivateSessionSettings, ty
 import { SportPicker } from '@/components/SportPicker';
 import { ThemeChoiceControl } from '@/components/ThemeToggle';
 import { Field } from '@/components/ui';
-import { getOnboarding, saveProfile, type Certification } from '@/lib/client/coach-api';
+import { getOnboarding, saveProfile, type Certification, type Media } from '@/lib/client/coach-api';
 import { listVenues } from '@/lib/client/session-api';
 import { BIO_MAX, CITY_MAX, MAX_LINKS, NAME_MAX, socialHandle } from '@/lib/shared/coach-rules';
 import type { Gender } from '@/lib/shared/profile-rules';
@@ -21,9 +23,9 @@ import type { CoachDTO, SportDTO } from '@/lib/server/dto';
 import styles from './page.module.css';
 
 const SAVE_ERRORS = ['invalid_profile', 'invalid_upload'] as const;
-const SECTIONS = ['public', 'sports', 'certifications', 'private', 'locations', 'account'] as const;
+const SECTIONS = ['public', 'sports', 'media', 'certifications', 'private', 'locations', 'account'] as const;
 
-/** Everything the save bar tracks; certificates save on their own as each file is added. */
+/** Everything the save bar tracks; certificates, photos and videos save on their own as each file is added. */
 type Form = {
   name: string;
   city: string;
@@ -33,6 +35,7 @@ type Form = {
   links: LinkDraft[];
   sports: SportDTO[];
   photo: { path: string; url: string } | null;
+  cover: { path: string; url: string } | null;
   private: PrivateDraft;
   birthDate: string;
   gender: Gender | '';
@@ -48,6 +51,7 @@ const formOf = (c: CoachDTO): Form => ({
   links: c.links.map(({ id, label, url }) => ({ key: id, label, url })),
   sports: c.sports,
   photo: null,
+  cover: null,
   private: privateDraftOf(c.privatePrice, c.privateDuration),
   birthDate: c.birthDate ?? '',
   gender: c.gender ?? '',
@@ -56,7 +60,7 @@ const formOf = (c: CoachDTO): Form => ({
 
 /** Compared to spot unsaved changes; row keys and sport details don't count. */
 const snapshot = (f: Form) =>
-  JSON.stringify({ ...f, links: f.links.map(({ label, url }) => [label, url]), sports: f.sports.map((s) => s.id), photo: f.photo?.path ?? null });
+  JSON.stringify({ ...f, links: f.links.map(({ label, url }) => [label, url]), sports: f.sports.map((s) => s.id), photo: f.photo?.path ?? null, cover: f.cover?.path ?? null });
 
 function Section({ id, title, aside, children }: Readonly<{ id: string; title: string; aside?: React.ReactNode; children: React.ReactNode }>) {
   return (
@@ -99,6 +103,7 @@ export default function CoachProfilePage() {
   const [profile, setProfile] = useState<CoachDTO | null>(null);
   const [form, setForm] = useState<Form | null>(null);
   const [certs, setCerts] = useState<Certification[]>([]);
+  const [media, setMedia] = useState<Media[]>([]);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(false);
   const [error, setError] = useState('');
@@ -107,6 +112,7 @@ export default function CoachProfilePage() {
     setProfile(c);
     setForm(formOf(c));
     setCerts(c.certifications);
+    setMedia(c.media);
   };
 
   useEffect(() => {
@@ -147,6 +153,7 @@ export default function CoachProfilePage() {
       gender: form.gender || null,
       languages: form.languages,
       ...(form.photo && { photoPath: form.photo.path }),
+      ...(form.cover && { coverPath: form.cover.path }),
     });
     setBusy(false);
     if (!res.ok) return setError(te(SAVE_ERRORS.find((c) => c === res.code) ?? 'generic'));
@@ -155,6 +162,7 @@ export default function CoachProfilePage() {
   }
 
   const photoUrl = form.photo?.url ?? profile.photoUrl;
+  const coverUrl = form.cover?.url ?? profile.coverUrl;
 
   return (
     <div className={`page ${styles.page}`}>
@@ -176,7 +184,12 @@ export default function CoachProfilePage() {
 
         <div className={styles.sections}>
           <Section id='public' title={t('section.public')}>
-            <PhotoUpload userId={profile.id} url={photoUrl} onUploaded={(path, url) => set({ photo: { path, url } })} />
+            <div className={styles.header}>
+              <CoverUpload userId={profile.id} url={coverUrl} onUploaded={(path, url) => set({ cover: { path, url } })} />
+              <div className={styles.headerPhoto}>
+                <PhotoUpload userId={profile.id} url={photoUrl} large ring onUploaded={(path, url) => set({ photo: { path, url } })} />
+              </div>
+            </div>
             <div className='fields'>
               <Field label={t('displayName')}>
                 <input className='input' dir='auto' maxLength={NAME_MAX} value={form.name} onChange={(e) => set({ name: e.target.value })} />
@@ -245,6 +258,10 @@ export default function CoachProfilePage() {
 
           <Section id='sports' title={t('section.sports')}>
             <SportPicker selected={form.sports} onChange={(sports) => set({ sports })} />
+          </Section>
+
+          <Section id='media' title={t('section.media')}>
+            <MediaList coachId={profile.id} items={media} sports={profile.sports} onChange={setMedia} />
           </Section>
 
           <Section id='certifications' title={t('section.certifications')}>

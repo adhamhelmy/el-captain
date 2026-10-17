@@ -1,0 +1,33 @@
+.row { display: flex; align-items: flex-end; gap: 16px 20px; flex-wrap: wrap; }
+
+/* `.target` is the clickable-image behaviour (overlay, badge, focus), shared with CoverUpload; `.photo` is the round shape. */
+.target { position: relative; padding: 0; cursor: pointer; }
+.photo { flex-shrink: 0; width: 96px; height: 96px; border-radius: 50%; border: none; background: var(--surface-2); overflow: visible; }
+.large { width: 112px; height: 112px; }
+.image { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+.empty { border: 1.5px dashed var(--border); color: var(--text-3); }
+.warn { border-color: var(--warn); }
+.ring { box-shadow: 0 0 0 5px var(--surface); }
+.plus { font-size: 28px; line-height: 1; }
+.busy { cursor: progress; }
+
+/* What a click does, shown over the photo on hover and keyboard focus. Dark scrim in both themes, since it sits on a photo. */
+.overlay {
+  position: absolute; inset: 0; border-radius: inherit; display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: 12px; background: rgba(14, 18, 0, 0.6); color: #f4f5f0; font-size: 12px; font-weight: 700; line-height: 1.25;
+  opacity: 0; transition: opacity 0.15s;
+}
+.target:hover .overlay, .target:focus-visible .overlay, .busy .overlay { opacity: 1; }
+.target:focus-visible { outline: 2px solid var(--focus-border); outline-offset: 3px; }
+
+/* Touch screens have no hover: a small pencil on the edge says the photo can be changed. */
+.badge {
+  position: absolute; inset-inline-end: 2px; bottom: 2px; width: 30px; height: 30px; border-radius: 50%;
+  display: none; align-items: center; justify-content: center;
+  background: var(--accent); color: var(--on-accent); border: 3px solid var(--surface);
+}
+@media (hover: none) {
+  .badge { display: flex; }
+  .overlay { display: none; }
+  .busy .overlay { display: flex; }
+}

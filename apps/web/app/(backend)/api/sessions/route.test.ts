@@ -2,16 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
 vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
-vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p }));
+vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p, blobInfo: vi.fn() }));
 vi.mock('@/lib/server/coach-guard', () => ({ assertActiveCoach: vi.fn() }));
 vi.mock('@/prisma/models/session', () => ({ listOpenSessions: vi.fn(), createGroupSessions: vi.fn() }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoach: vi.fn() }));
+vi.mock('@/prisma/models/media', () => ({ findMedia: vi.fn() }));
 
 import { GET, POST } from './route';
 import { assertActiveCoach } from '@/lib/server/coach-guard';
 import { HttpError } from '@/lib/server/api';
+import { blobInfo } from '@/lib/server/blob';
 import { findCoach } from '@/prisma/models/coach-profile';
 import { createGroupSessions, listOpenSessions } from '@/prisma/models/session';
+import { findMedia } from '@/prisma/models/media';
 import { call, signInAs } from '@/test/api';
 import { sessionRow } from '@/test/sessions';
 
@@ -55,6 +58,32 @@ describe('GET /api/sessions', () => {
 describe('POST /api/sessions', () => {
   beforeEach(() => signInAs('k1', 'COACH'));
 
+  it('saves a cover the coach uploaded for sessions', async () => {
+    vi.mocked(blobInfo).mockResolvedValue({ contentType: 'image/jpeg', size: 10 });
+    expect((await call(POST, { body: { ...body, coverPath: 'coaches/k1/sessions/sunrise.jpg' } })).status).toBe(201);
+    expect(vi.mocked(createGroupSessions).mock.lastCall![0]).toMatchObject({ coverPath: 'coaches/k1/sessions/sunrise.jpg' });
+  });
+
+  it('uses the file of a photo picked from the coach’s own gallery', async () => {
+    vi.mocked(findMedia).mockResolvedValue({ id: 'm1', kind: 'PHOTO', filePath: 'coaches/k1/media/bag.jpg' } as any);
+    expect((await call(POST, { body: { ...body, coverMediaId: 'm1' } })).status).toBe(201);
+    expect(findMedia).toHaveBeenCalledWith('m1', 'k1');
+    expect(vi.mocked(createGroupSessions).mock.lastCall![0]).toMatchObject({ coverPath: 'coaches/k1/media/bag.jpg' });
+  });
+
+  it('refuses a cover from another coach or folder, a non-image, a video, or someone else’s photo', async () => {
+    vi.mocked(blobInfo).mockResolvedValue({ contentType: 'image/jpeg', size: 10 });
+    expect((await call(POST, { body: { ...body, coverPath: 'coaches/k2/sessions/x.jpg' } })).status).toBe(400);
+    expect((await call(POST, { body: { ...body, coverPath: 'coaches/k1/media/x.jpg' } })).status).toBe(400);
+    vi.mocked(blobInfo).mockResolvedValue({ contentType: 'application/pdf', size: 10 });
+    expect((await call(POST, { body: { ...body, coverPath: 'coaches/k1/sessions/x.pdf' } })).status).toBe(400);
+    vi.mocked(findMedia).mockResolvedValue({ id: 'm2', kind: 'VIDEO', filePath: 'coaches/k1/media/clip.mp4' } as any);
+    expect((await call(POST, { body: { ...body, coverMediaId: 'm2' } })).status).toBe(400);
+    vi.mocked(findMedia).mockResolvedValue(null);
+    expect((await call(POST, { body: { ...body, coverMediaId: 'other' } })).status).toBe(400);
+    expect(createGroupSessions).not.toHaveBeenCalled();
+  });
+
   it('creates one session', async () => {
     const res = await call(POST, { body });
     expect(res.status).toBe(201);
@@ -66,6 +95,7 @@ describe('POST /api/sessions', () => {
         level: 'ALL_LEVELS',
         title: 'Sunrise Flow',
         description: null,
+        coverPath: null,
         durationMin: 60,
         price: 350,
         capacity: 12,

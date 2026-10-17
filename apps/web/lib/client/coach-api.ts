@@ -30,6 +30,12 @@ export const addCertification = (id: string, body: { title: string; filePath: st
   request<Certification>(`/api/coaches/${id}/certifications`, 'POST', body);
 export const removeCertification = (id: string, certId: string) => request<null>(`/api/coaches/${id}/certifications/${certId}`, 'DELETE');
 export const certificationFileUrl = (id: string, certId: string) => `/api/coaches/${id}/certifications/${certId}/file`;
+export type Media = CoachDTO['media'][number];
+export type MediaDetails = { caption: string; sportId: string };
+export const addMedia = (id: string, body: MediaDetails & { filePath: string; durationSec: number | null }) =>
+  request<Media>(`/api/coaches/${id}/media`, 'POST', body);
+export const editMedia = (id: string, mediaId: string, body: MediaDetails) => request<Media>(`/api/coaches/${id}/media/${mediaId}`, 'PATCH', body);
+export const removeMedia = (id: string, mediaId: string) => request<null>(`/api/coaches/${id}/media/${mediaId}`, 'DELETE');
 
 /** Approved coaches, for members and guests. */
 export const listCoaches = ({ sport, q }: { sport?: string; q?: string } = {}) => {

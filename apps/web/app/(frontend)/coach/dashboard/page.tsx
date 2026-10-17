@@ -9,7 +9,7 @@ import { StatRow } from '@/components/StatRow';
 import { SectionHead } from '@/components/ui';
 import { isolate } from '@/i18n/locale';
 import { getOnboarding } from '@/lib/client/coach-api';
-import { setupHiddenKey, setupSteps } from '@/lib/client/coach-setup';
+import { setupComplete, setupHiddenKey, setupSteps } from '@/lib/client/coach-setup';
 import { coachStats, type CoachStats } from '@/lib/client/insights-api';
 import { acceptRequest, listVenues, myRequests, mySessions, rejectRequest, REQUESTS_CHANGED } from '@/lib/client/session-api';
 import { useSessionLabels } from '@/lib/client/session-labels';
@@ -103,7 +103,8 @@ export default function CoachDashboard() {
 
       {notice && <Notice onClose={() => setNotice('')}>{notice}</Notice>}
 
-      {steps && !hidden && (
+      {/* Shown until the coach hides it or finishes every step. */}
+      {steps && !hidden && !setupComplete(steps) && (
         <div className={styles.setup}>
           <div className={styles.setupHead}>
             <div>

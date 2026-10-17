@@ -14,6 +14,10 @@ export type SessionBody = {
   price?: number;
   capacity?: number;
   repeatWeeks?: number;
+  /** A new upload's path, or null to remove the cover. */
+  coverPath?: string | null;
+  /** One of the coach's gallery photos as the cover. */
+  coverMediaId?: string;
 };
 export type VenueBody = { name: string; address: string; city: string; mapUrl: string };
 

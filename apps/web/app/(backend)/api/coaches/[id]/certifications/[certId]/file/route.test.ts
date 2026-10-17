@@ -4,10 +4,12 @@ vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
 vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/prisma/models/certification', () => ({ findCertification: vi.fn() }));
 vi.mock('@/lib/server/blob', () => ({ readBlob: vi.fn() }));
+vi.mock('@/prisma/models/coach-profile', () => ({ findActiveCoach: vi.fn() }));
 
 import { GET } from './route';
 import { findCertification } from '@/prisma/models/certification';
 import { readBlob } from '@/lib/server/blob';
+import { findActiveCoach } from '@/prisma/models/coach-profile';
 import { call, signInAs } from '@/test/api';
 
 const params = { id: 'k1', certId: 'c1' };
@@ -21,6 +23,7 @@ beforeEach(() => {
     contentType: 'application/pdf',
   } as any);
   vi.mocked(readBlob).mockResolvedValue(new Response('PDF').body!);
+  vi.mocked(findActiveCoach).mockResolvedValue({ id: 'k1' } as any);
 });
 
 describe('GET /api/coaches/[id]/certifications/[certId]/file', () => {
@@ -40,11 +43,22 @@ describe('GET /api/coaches/[id]/certifications/[certId]/file', () => {
     expect((await call(GET, { params })).status).toBe(200);
   });
 
-  it('refuses other coaches and users', async () => {
+  it('refuses other coaches', async () => {
     signInAs('k2', 'COACH');
     expect((await call(GET, { params })).status).toBe(403);
+  });
+
+  it('lets a signed-in member read an approved coach’s certificate, but not one still in review', async () => {
     signInAs('u1', 'USER');
-    expect((await call(GET, { params })).status).toBe(403);
+    expect((await call(GET, { params })).status).toBe(200);
+    expect(findActiveCoach).toHaveBeenCalledWith('k1');
+    vi.mocked(findActiveCoach).mockResolvedValue(null);
+    expect((await call(GET, { params })).status).toBe(404);
+  });
+
+  it('refuses guests', async () => {
+    signInAs(null);
+    expect((await call(GET, { params })).status).toBe(401);
   });
 
   it('passes on a 502 when the store fails', async () => {

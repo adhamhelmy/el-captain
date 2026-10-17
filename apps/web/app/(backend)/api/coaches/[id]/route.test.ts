@@ -24,10 +24,12 @@ const profile = {
   privateDuration: null,
   locale: null,
   photoPath: 'coaches/k1/photo/old.jpg',
+  coverPath: 'coaches/k1/cover/old.jpg',
   instagram: null,
   tiktok: null,
   links: [],
   certifications: [],
+  media: [],
   sports: [],
 };
 const coach = { id: 'k1', name: 'Mona', coachProfile: profile, venues: [] };
@@ -43,8 +45,15 @@ describe('GET /api/coaches/[id]', () => {
   it('returns an active coach without storage paths or private details', async () => {
     vi.mocked(findActiveCoach).mockResolvedValue({ ...coach, coachProfile: { ...profile, status: 'ACTIVE', phone: '+20100' } } as any);
     const json = await (await call(GET, { params })).json();
-    expect(json).toMatchObject({ id: 'k1', name: 'Mona', bio: 'Boxing', photoUrl: 'https://b/coaches/k1/photo/old.jpg' });
-    for (const key of ['photoPath', 'locale', 'phone', 'status', 'submittedAt', 'certifications']) expect(json).not.toHaveProperty(key);
+    expect(json).toMatchObject({ id: 'k1', name: 'Mona', bio: 'Boxing', photoUrl: 'https://b/coaches/k1/photo/old.jpg', coverUrl: 'https://b/coaches/k1/cover/old.jpg' });
+    for (const key of ['photoPath', 'coverPath', 'locale', 'phone', 'status', 'submittedAt']) expect(json).not.toHaveProperty(key);
+  });
+
+  it('lists certificate names without their files', async () => {
+    const cert = { id: 'c1', title: 'RYT 200', filePath: 'coaches/k1/certs/ryt.pdf', fileName: 'ryt.pdf', contentType: 'application/pdf', size: 10 };
+    vi.mocked(findActiveCoach).mockResolvedValue({ ...coach, coachProfile: { ...profile, status: 'ACTIVE', certifications: [cert] } } as any);
+    const json = await (await call(GET, { params })).json();
+    expect(json.certifications).toEqual([{ id: 'c1', title: 'RYT 200', contentType: 'application/pdf' }]);
   });
 
   it('only shows sports an admin has approved', async () => {
@@ -181,6 +190,23 @@ describe('PATCH /api/coaches/[id]', () => {
     expect((await call(PATCH, { params, body: { photoPath: 'coaches/k1/photo/new.jpg' } })).status).toBe(200);
     expect(updateCoach).toHaveBeenCalledWith('k1', { photoPath: 'coaches/k1/photo/new.jpg' });
     expect(deleteBlob).toHaveBeenCalledWith('coaches/k1/photo/old.jpg');
+  });
+
+  it('accepts a new cover only from the coach’s cover folder, and deletes the old one', async () => {
+    signInAs('k1', 'COACH');
+    vi.mocked(blobInfo).mockResolvedValue({ contentType: 'image/jpeg', size: 10 });
+    expect((await call(PATCH, { params, body: { coverPath: 'coaches/k1/photo/new.jpg' } })).status).toBe(400);
+    expect((await call(PATCH, { params, body: { coverPath: 'coaches/k1/cover/new.jpg' } })).status).toBe(200);
+    expect(updateCoach).toHaveBeenCalledWith('k1', { coverPath: 'coaches/k1/cover/new.jpg' });
+    expect(deleteBlob).toHaveBeenCalledWith('coaches/k1/cover/old.jpg');
+  });
+
+  it('removes the cover, file included, when it is cleared', async () => {
+    signInAs('k1', 'COACH');
+    expect((await call(PATCH, { params, body: { coverPath: null } })).status).toBe(200);
+    expect(updateCoach).toHaveBeenCalledWith('k1', { coverPath: null });
+    expect(deleteBlob).toHaveBeenCalledWith('coaches/k1/cover/old.jpg');
+    expect(deleteBlob).not.toHaveBeenCalledWith('coaches/k1/photo/old.jpg');
   });
 
   it('refuses a stored photo that is not an image', async () => {

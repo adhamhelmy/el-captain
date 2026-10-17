@@ -12,7 +12,7 @@ import onb from './onboarding.module.css';
 
 type RequestField = 'venueId' | 'sportId' | 'startsAt' | 'message';
 
-/** A member asks this coach for a private session. Rules show beside each field; Send explains what's wrong instead of being disabled. */
+/** A member asks this coach for a private session; rendered inside a drawer, which carries the title. Rules show beside each field; Send explains what's wrong instead of being disabled. */
 export function PrivateRequestForm({ coach, onSent }: Readonly<{ coach: PublicCoachDTO; onSent: () => void }>) {
   const t = useTranslations('coachProfile');
   const te = useTranslations('errors');
@@ -51,8 +51,7 @@ export function PrivateRequestForm({ coach, onSent }: Readonly<{ coach: PublicCo
   const flag = (f: RequestField) => (bad.includes(f) ? 'input on-page invalid' : 'input on-page');
 
   return (
-    <div className='card stack'>
-      <div className='h3'>{t('formTitle')}</div>
+    <>
       <div className='muted'>{t('formHint')}</div>
       <div className='muted'>{t('requestLine', { minutes: coach.privateDuration!, price: l.price(coach.privatePrice!) })}</div>
       <div className='fields'>
@@ -101,6 +100,6 @@ export function PrivateRequestForm({ coach, onSent }: Readonly<{ coach: PublicCo
         </button>
       </div>
       {error && <div className={onb.error}>{error}</div>}
-    </div>
+    </>
   );
 }

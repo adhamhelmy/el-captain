@@ -119,7 +119,7 @@ function Search({ area }: Readonly<{ area: Area }>) {
         <SectionHead title={t('sessions')} />
         <div className='grid-cards'>
           {sessions?.map((s) => (
-            <SessionCard key={s.id} s={s} href={`${area}/sessions/${s.id}`} spots />
+            <SessionCard key={s.id} s={s} href={`${area}/sessions/${s.id}`} />
           ))}
         </div>
         {sessions?.length === 0 && <div className={`empty ${styles.empty}`}>{t('noSessions')}</div>}

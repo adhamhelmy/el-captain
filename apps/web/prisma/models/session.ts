@@ -55,6 +55,7 @@ export type GroupSessionBase = {
   level: SessionLevel;
   title: string;
   description: string | null;
+  coverPath?: string | null;
   durationMin: number;
   price: number;
   capacity: number;
@@ -66,6 +67,11 @@ export function createGroupSessions(base: GroupSessionBase, starts: Date[]) {
   return prisma.$transaction(
     starts.map((startsAt) => prisma.session.create({ data: { ...base, type: 'GROUP', startsAt, seriesId }, include: withDetails })),
   );
+}
+
+/** How many sessions use this file as their cover, so a gallery photo's file isn't deleted from under them. */
+export function countSessionsWithCover(coverPath: string) {
+  return prisma.session.count({ where: { coverPath } });
 }
 
 export type SessionUpdate = Partial<Omit<GroupSessionBase, 'coachId'> & { startsAt: Date }>;

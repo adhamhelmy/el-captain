@@ -3,7 +3,7 @@ import { assertValid, protect, publicRoute, type AuthContext, type RequestContex
 import { assertActiveCoach } from '@/lib/server/coach-guard';
 import { toSessionDTO } from '@/lib/server/dto';
 import { date, readFilter, search, text } from '@/lib/server/query-filter';
-import { assertCoachCanUse, assertSessionValid, EMPTY_DRAFT, readSessionDraft } from '@/lib/server/session-input';
+import { assertCoachCanUse, assertSessionValid, EMPTY_DRAFT, readCover, readSessionDraft } from '@/lib/server/session-input';
 import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { repeatStarts, type SessionLevel } from '@/lib/shared/session-rules';
 import { createGroupSessions, listOpenSessions } from '@/prisma/models/session';
@@ -18,8 +18,10 @@ async function list({ query, page }: RequestContext) {
 /** An approved coach publishes a group session, optionally repeated weekly. */
 async function create({ req, user }: AuthContext) {
   await assertActiveCoach(user);
-  const d = readSessionDraft(await req.json(), EMPTY_DRAFT);
+  const body = await req.json();
+  const d = readSessionDraft(body, EMPTY_DRAFT);
   assertSessionValid(d);
+  const coverPath = await readCover(user.id, body ?? {});
   await assertCoachCanUse(user.id, { sportId: d.sportId, venueId: d.venueId });
   const starts = repeatStarts(d.startsAt!, d.repeatWeeks);
   assertValid(starts, 'Invalid session', ERROR_CODES.INVALID_SESSION, { fields: ['startsAt'] });
@@ -31,6 +33,7 @@ async function create({ req, user }: AuthContext) {
       level: d.level as SessionLevel,
       title: d.title,
       description: d.description || null,
+      coverPath: coverPath ?? null,
       durationMin: d.durationMin,
       price: d.price,
       capacity: d.capacity,
