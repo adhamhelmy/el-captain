@@ -53,7 +53,6 @@ export default function AllSessionsPage() {
             key={s.id}
             s={s}
             href={`/coach/sessions/${s.id}`}
-            spots
             badge={s.coach.id === me ? <Tag kind='mine'>{tst('mine')}</Tag> : undefined}
           />
         ))}

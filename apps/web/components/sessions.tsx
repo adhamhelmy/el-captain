@@ -18,12 +18,22 @@ export function PhaseTag({ s }: Readonly<{ s: Pick<SessionDTO, 'status'> & { sta
   return <Tag kind={phase}>{tst(phase)}</Tag>;
 }
 
-/** A session in a grid: sport, type (or `badge`), title, coach, length, start and price; `spots` adds what's left. */
-export function SessionCard({ s, href, spots, badge }: Readonly<{ s: SessionDTO; href: string; spots?: boolean; badge?: React.ReactNode }>) {
+/** The session's cover photo as a wide banner on its page; nothing when it has none. */
+export function SessionCover({ url }: Readonly<{ url: string | null }>) {
+  // eslint-disable-next-line @next/next/no-img-element -- a Blob image
+  return url ? <img src={url} alt='' className='session-cover' /> : null;
+}
+
+/** A session in a grid: cover or stripes, sport, type (or `badge`), title, coach, location, start and price. */
+export function SessionCard({ s, href, badge }: Readonly<{ s: SessionDTO; href: string; badge?: React.ReactNode }>) {
   const l = useSessionLabels();
   return (
     <Link href={href} className='scard'>
-      <div className='scard-head'>
+      <div className={s.coverUrl ? 'scard-head has-cover' : 'scard-head'}>
+        {s.coverUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- a Blob image
+          <img src={s.coverUrl} alt='' loading='lazy' className='scard-cover' />
+        )}
         <span className='scard-cat'>{l.sport(s.sport)}</span>
         {badge ?? <TypeTag type={s.type} />}
       </div>
@@ -32,8 +42,7 @@ export function SessionCard({ s, href, spots, badge }: Readonly<{ s: SessionDTO;
           {l.title(s)}
         </div>
         <div className={`muted ${styles.cardMeta}`}>
-          <bdi>{s.coach.name}</bdi> · {l.minutes(s.durationMin)}
-          {spots && ` · ${l.spots(s)}`}
+          <bdi>{s.coach.name}</bdi> · <bdi>{s.venue.name}</bdi>
         </div>
         <div className='scard-foot'>
           <span>{l.when(s.startsAt)}</span>

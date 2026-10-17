@@ -9,6 +9,7 @@ const withProfile = {
     include: {
       links: { orderBy: { position: 'asc' } },
       certifications: { orderBy: { createdAt: 'asc' } },
+      media: { include: { sport: true }, orderBy: { createdAt: 'asc' } },
       sports: { include: { sport: true }, orderBy: { sport: { nameEn: 'asc' } } },
     },
   },
@@ -25,6 +26,7 @@ export type ProfileUpdate = {
   instagram?: string | null;
   tiktok?: string | null;
   photoPath?: string | null;
+  coverPath?: string | null;
   privatePrice?: number | null;
   privateDuration?: number | null;
   links?: { label: string; url: string }[];

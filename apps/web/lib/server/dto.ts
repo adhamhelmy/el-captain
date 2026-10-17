@@ -3,6 +3,7 @@ import type { Draft } from '@/lib/shared/coach-rules';
 import type { Client } from '@/prisma/models/client-profile';
 import type { Certification } from '@/prisma/models/certification';
 import type { Coach } from '@/prisma/models/coach-profile';
+import type { Media } from '@/prisma/models/media';
 import type { Member } from '@/prisma/models/member';
 import type { CoachStatusEvent } from '@/prisma/models/coach-status';
 import type { Sport } from '@/prisma/models/sport';
@@ -33,6 +34,7 @@ export const toSessionDTO = ({ coach, sport, venue, _count, ...s }: SessionWithD
   level: s.level,
   title: s.title,
   description: s.description,
+  coverUrl: blobUrlOrNull(s.coverPath),
   startsAt: s.startsAt,
   durationMin: s.durationMin,
   price: s.price,
@@ -77,6 +79,17 @@ export const toRequestDTO = (r: RequestWithDetails, now = new Date()) => ({
 });
 export type RequestDTO = ReturnType<typeof toRequestDTO>;
 
+/** A photo or video with its public URL. Members only see the sport once admins have approved it. */
+export const toMediaDTO = ({ id, kind, filePath, caption, sport, durationSec }: Media, forPublic = false) => ({
+  id,
+  kind,
+  url: blobUrlOrNull(filePath)!,
+  caption,
+  sport: sport && (!forPublic || sport.status === 'APPROVED') ? toSportDTO(sport) : null,
+  durationSec,
+});
+export type MediaDTO = ReturnType<typeof toMediaDTO>;
+
 /** A certificate without its storage path; the file is only reachable through the owner/admin route. */
 export const toCertificationDTO = ({ id, title, fileName, contentType, size, createdAt }: Certification) => ({
   id,
@@ -108,14 +121,16 @@ export const toCoachDTO = ({ id, name, birthDate, gender, coachProfile: p }: Coa
   privatePrice: p!.privatePrice,
   privateDuration: p!.privateDuration,
   photoUrl: blobUrlOrNull(p!.photoPath),
+  coverUrl: blobUrlOrNull(p!.coverPath),
   links: p!.links.map(({ id, label, url }) => ({ id, label, url })),
   sports: p!.sports.map(({ sport }) => toSportDTO(sport)),
   certifications: p!.certifications.map(toCertificationDTO),
+  media: p!.media.map((m) => toMediaDTO(m)),
 });
 
 export type CoachDTO = ReturnType<typeof toCoachDTO>;
 
-/** What members and guests see of an approved coach: no phone, review details or certificate files, and only approved sports. */
+/** What members and guests see of an approved coach: no phone, review details or certificate files (names only), and only approved sports. */
 export const toPublicCoachDTO = ({ id, name, birthDate, gender, coachProfile: p, venues }: Coach) => ({
   id,
   name,
@@ -127,11 +142,14 @@ export const toPublicCoachDTO = ({ id, name, birthDate, gender, coachProfile: p,
   instagram: p!.instagram,
   tiktok: p!.tiktok,
   photoUrl: blobUrlOrNull(p!.photoPath),
+  coverUrl: blobUrlOrNull(p!.coverPath),
   links: p!.links.map(({ id, label, url }) => ({ id, label, url })),
   sports: p!.sports.filter(({ sport }) => sport.status === 'APPROVED').map(({ sport }) => toSportDTO(sport)),
   privatePrice: p!.privatePrice,
   privateDuration: p!.privateDuration,
   venues: venues.map(toVenueDTO),
+  media: p!.media.map((m) => toMediaDTO(m, true)),
+  certifications: p!.certifications.map(({ id, title, contentType }) => ({ id, title, contentType })),
 });
 
 export type PublicCoachDTO = ReturnType<typeof toPublicCoachDTO>;

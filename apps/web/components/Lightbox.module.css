@@ -1,0 +1,39 @@
+/* Pop-up: a dark backdrop over the page, the media framed in the middle at its own shape, controls on its edges. */
+.lightbox {
+  margin: 0; padding: 0; border: none; max-width: none; max-height: none; width: 100vw; height: 100dvh;
+  background: transparent; display: flex; align-items: center; justify-content: center;
+}
+.lightbox::backdrop { background: rgba(8, 9, 11, 0.88); }
+.lightbox:focus { outline: none; }
+.frame { position: relative; display: flex; border-radius: 14px; overflow: hidden; background: #0b0c0e; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5); }
+.frame > img, .frame > video { display: block; max-width: min(1100px, 92vw); max-height: 86dvh; width: auto; height: auto; object-fit: contain; }
+/* Documents (PDFs) have no shape of their own, so they get a tall page-like frame. */
+.frame > iframe { display: block; width: min(900px, 92vw); height: min(86dvh, calc(100dvh - 120px)); border: none; background: #fff; }
+/* A document keeps its viewer's toolbar clear: the frame leaves room above it and close sits there. */
+.doc { overflow: visible; margin-top: 56px; background: none; box-shadow: none; }
+.doc > iframe { border-radius: 14px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5); }
+.doc > .close { top: -54px; inset-inline-end: 0; }
+/* Controls sit on the media, so they keep a dark scrim and light ink in both themes. */
+.control {
+  position: absolute; z-index: 1; width: 44px; height: 44px; border-radius: 50%; border: none; padding: 0;
+  display: flex; align-items: center; justify-content: center; background: rgba(14, 18, 0, 0.55); color: #f4f5f0; line-height: 1;
+  box-shadow: 0 0 0 1px rgba(244, 245, 240, 0.18);
+}
+.control:hover { background: rgba(14, 18, 0, 0.8); }
+.control:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.prev, .next { top: 50%; transform: translateY(-50%); font-size: 30px; }
+.prev { inset-inline-start: 12px; }
+.next { inset-inline-end: 12px; }
+.close { top: 12px; inset-inline-end: 12px; font-size: 24px; }
+.glyph { display: inline-block; margin-top: -3px; }
+
+@media (max-width: 759px) {
+  .frame { border-radius: 0; }
+  .frame > img, .frame > video { max-width: 100vw; }
+  .frame > iframe { width: 100vw; height: calc(100dvh - 64px); border-radius: 0; }
+  .doc { margin-top: 64px; }
+  .doc > .close { top: -54px; inset-inline-end: 8px; }
+  .prev { inset-inline-start: 8px; }
+  .next { inset-inline-end: 8px; }
+  .close { top: 8px; inset-inline-end: 8px; }
+}

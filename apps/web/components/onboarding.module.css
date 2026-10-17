@@ -1,11 +1,6 @@
 /* Pieces shared by the onboarding wizard, the coach profile page and admin review. */
 .group { gap: 10px; }
-.photoRow { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .photo { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; background: var(--surface-2); flex-shrink: 0; }
-.photoSm { width: 64px; height: 64px; }
-.photoEmpty { border: 1.5px dashed var(--border); color: var(--text-3); font-size: 28px; display: flex; align-items: center; justify-content: center; }
-.photoWarn { border-color: var(--warn); }
-.photoSide { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .photoHint { font-size: 12px; color: var(--text-3); }
 .hint { font-size: 13px; }
 .error { color: var(--warn); font-size: 14px; }

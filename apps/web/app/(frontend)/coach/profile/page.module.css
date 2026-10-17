@@ -8,6 +8,9 @@
 .sectionHead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .sectionTitle { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 24px; letter-spacing: 1px; }
 :lang(ar) .sectionTitle { letter-spacing: 0; font-weight: 800; font-size: 20px; }
+/* Public profile header: the cover with the photo overlapping its bottom edge. */
+.header { display: flex; flex-direction: column; }
+.headerPhoto { margin-top: -56px; padding-inline-start: 16px; position: relative; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .labelRow { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--text-2); }
 .counter { color: var(--text-3); font-variant-numeric: tabular-nums; }

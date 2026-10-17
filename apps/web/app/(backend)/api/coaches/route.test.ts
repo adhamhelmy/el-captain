@@ -18,6 +18,7 @@ const profile = {
   photoPath: null,
   links: [],
   certifications: [],
+  media: [],
   sports: [],
 };
 

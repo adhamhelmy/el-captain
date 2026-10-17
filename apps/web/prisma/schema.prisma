@@ -90,6 +90,8 @@ model CoachProfile {
   bio             String?
   city            String?
   photoPath       String?
+  /// Wide banner image at the top of the public profile.
+  coverPath       String?
   instagram       String?
   tiktok          String?
   phone           String?
@@ -103,6 +105,7 @@ model CoachProfile {
   user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   links           CoachLink[]
   certifications  Certification[]
+  media           CoachMedia[]
   sports          CoachSport[]
   statusEvents    CoachStatusEvent[]
 }
@@ -140,6 +143,30 @@ model Certification {
   @@index([coachProfileId])
 }
 
+enum MediaKind {
+  PHOTO
+  VIDEO
+}
+
+/// A photo or video on the coach's public profile, optionally tagged with one of their sports.
+model CoachMedia {
+  id             String       @id @default(cuid())
+  coachProfileId String
+  coachProfile   CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+  kind           MediaKind
+  filePath       String
+  contentType    String
+  size           Int
+  caption        String?
+  sportId        String?
+  sport          Sport?       @relation(fields: [sportId], references: [id], onDelete: SetNull)
+  /// Video length in whole seconds, read by the browser at upload; null for photos.
+  durationSec    Int?
+  createdAt      DateTime     @default(now())
+
+  @@index([coachProfileId])
+}
+
 enum SportStatus {
   PENDING
   APPROVED
@@ -156,6 +183,7 @@ model Sport {
   favouredBy      FavouriteSport[]
   sessions        Session[]
   privateRequests PrivateRequest[]
+  media           CoachMedia[]
   createdAt       DateTime         @default(now())
 }
 
@@ -258,6 +286,8 @@ model Session {
   level        SessionLevel?
   title        String
   description  String?
+  /// Banner image: one the coach uploaded for sessions, or one of their gallery photos. Weekly copies share it.
+  coverPath    String?
   startsAt     DateTime
   durationMin  Int
   price        Int

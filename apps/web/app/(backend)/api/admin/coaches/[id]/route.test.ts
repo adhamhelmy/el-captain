@@ -25,6 +25,7 @@ const profile = {
   tiktok: null,
   links: [],
   certifications: [],
+  media: [],
   sports: [],
 };
 

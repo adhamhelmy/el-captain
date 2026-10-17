@@ -2,11 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
 vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
-vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p }));
+vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p, blobInfo: vi.fn(), deleteBlob: vi.fn() }));
 vi.mock('@/lib/server/coach-guard', () => ({ assertActiveCoach: vi.fn() }));
-vi.mock('@/prisma/models/session', () => ({ findSession: vi.fn(), updateSession: vi.fn() }));
+vi.mock('@/prisma/models/session', () => ({ findSession: vi.fn(), updateSession: vi.fn(), countSessionsWithCover: vi.fn() }));
 vi.mock('@/prisma/models/booking', () => ({ findBooking: vi.fn() }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoach: vi.fn() }));
+vi.mock('@/prisma/models/media', () => ({ findMedia: vi.fn(), countMediaWithPath: vi.fn() }));
 
 import { GET, PATCH } from './route';
 import { findBooking } from '@/prisma/models/booking';
@@ -78,6 +79,36 @@ describe('PATCH /api/sessions/[id]', () => {
     const res = await call(PATCH, { params, body: { title: 'Evening Flow', price: 400 } });
     expect(res.status).toBe(200);
     expect(updateSession).toHaveBeenCalledWith('x1', { title: 'Evening Flow', price: 400 });
+  });
+
+  it('changes or removes the cover, even once members have booked', async () => {
+    const { blobInfo } = await import('@/lib/server/blob');
+    vi.mocked(blobInfo).mockResolvedValue({ contentType: 'image/png', size: 10 });
+    await call(PATCH, { params, body: { coverPath: 'coaches/k1/sessions/new.png' } });
+    expect(updateSession).toHaveBeenLastCalledWith('x1', { coverPath: 'coaches/k1/sessions/new.png' });
+    await call(PATCH, { params, body: { coverPath: null } });
+    expect(updateSession).toHaveBeenLastCalledWith('x1', { coverPath: null });
+  });
+
+  it('deletes the old cover file once nothing else uses it', async () => {
+    const { blobInfo, deleteBlob } = await import('@/lib/server/blob');
+    const { countSessionsWithCover } = await import('@/prisma/models/session');
+    const { countMediaWithPath } = await import('@/prisma/models/media');
+    vi.mocked(blobInfo).mockResolvedValue({ contentType: 'image/png', size: 10 });
+    vi.mocked(findSession).mockResolvedValue(sessionRow({ coverPath: 'coaches/k1/sessions/old.png' }) as any);
+    vi.mocked(countSessionsWithCover).mockResolvedValue(0);
+    vi.mocked(countMediaWithPath).mockResolvedValue(0);
+    await call(PATCH, { params, body: { coverPath: 'coaches/k1/sessions/new.png' } });
+    expect(deleteBlob).toHaveBeenCalledWith('coaches/k1/sessions/old.png');
+
+    vi.mocked(deleteBlob).mockClear();
+    vi.mocked(countMediaWithPath).mockResolvedValue(1);
+    await call(PATCH, { params, body: { coverPath: null } });
+    expect(deleteBlob).not.toHaveBeenCalled();
+
+    vi.mocked(countMediaWithPath).mockResolvedValue(0);
+    await call(PATCH, { params, body: { title: 'Evening Flow' } });
+    expect(deleteBlob).not.toHaveBeenCalled();
   });
 
   it('lets an unbooked session move to another time and venue', async () => {

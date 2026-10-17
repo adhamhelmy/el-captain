@@ -5,7 +5,7 @@ import { notFound, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { SessionDrawer } from '@/components/SessionDrawer';
-import { PhaseTag, TypeTag } from '@/components/sessions';
+import { PhaseTag, SessionCover, TypeTag } from '@/components/sessions';
 import { Avatar, Back, Field, initialsOf, Tag } from '@/components/ui';
 import { getOnboarding } from '@/lib/client/coach-api';
 import { cssVars } from '@/lib/client/css-vars';
@@ -101,6 +101,7 @@ export default function CoachSessionPage() {
   return (
     <div className={`page ${styles.page}`}>
       <Back href={own ? '/coach/sessions/me' : '/coach/sessions'}>{own ? t('backToMine') : t('back')}</Back>
+      <SessionCover url={s.coverUrl} />
 
       <div className={styles.hero}>
         <div className={styles.heroText}>

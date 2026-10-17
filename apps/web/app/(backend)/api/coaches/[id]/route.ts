@@ -89,11 +89,11 @@ async function sportIds(value: unknown) {
   return ids;
 }
 
-/** A new photo must be an image the coach uploaded into their own folder. */
-async function photoPath(id: string, value: unknown) {
+/** A new photo or cover must be an image the coach uploaded into that kind's folder; null removes it. */
+async function imagePath(id: string, kind: 'photo' | 'cover', value: unknown) {
   if (value === undefined || value === null) return value as undefined | null;
-  const info = ownsUpload(id, 'photo', value) ? await blobInfo(value) : null;
-  assertValid(info && UPLOAD_RULES.photo.types.includes(info.contentType), 'Invalid photo', ERROR_CODES.INVALID_UPLOAD);
+  const info = ownsUpload(id, kind, value) ? await blobInfo(value) : null;
+  assertValid(info && UPLOAD_RULES[kind].types.includes(info.contentType), `Invalid ${kind}`, ERROR_CODES.INVALID_UPLOAD);
   return value as string;
 }
 
@@ -106,8 +106,9 @@ function privateSettings(body: Record<string, unknown>): Pick<ProfileUpdate, 'pr
   return { privatePrice: price, privateDuration: duration };
 }
 
-function isNewPhoto(oldPath: string | null | undefined, newPath: string | null | undefined) {
-  return newPath && oldPath && newPath !== oldPath;
+/** Whether a stored file is being swapped for another or removed, so the old one can go. */
+function isReplaced(oldPath: string | null | undefined, newPath: string | null | undefined) {
+  return !!oldPath && newPath !== undefined && newPath !== oldPath;
 }
 
 /** The coach (or an admin) saves part of the profile. Coaches can't edit while it's under review. */
@@ -129,16 +130,18 @@ async function updateCoachProfile({ req, user, params: { id } }: AuthContext<{ i
     tiktok: social('tiktok', body.tiktok),
     links: links(body.links),
     sportIds: await sportIds(body.sportIds),
-    photoPath: await photoPath(id, body.photoPath),
+    photoPath: await imagePath(id, 'photo', body.photoPath),
+    coverPath: await imagePath(id, 'cover', body.coverPath),
     languages: readLanguages(body.languages),
     ...readPersonal(body),
     ...privateSettings(body),
   };
   const changes = Object.fromEntries(Object.entries(update).filter(([, v]) => v !== undefined)) as ProfileUpdate;
   const updated = await updateCoach(id, changes);
-  const oldPhoto = coach.coachProfile.photoPath;
+  const { photoPath: oldPhoto, coverPath: oldCover } = coach.coachProfile;
 
-  if (isNewPhoto(oldPhoto, changes.photoPath)) await deleteBlob(oldPhoto);
+  if (isReplaced(oldPhoto, changes.photoPath)) await deleteBlob(oldPhoto);
+  if (isReplaced(oldCover, changes.coverPath)) await deleteBlob(oldCover);
 
   return NextResponse.json(toCoachDTO(updated));
 }

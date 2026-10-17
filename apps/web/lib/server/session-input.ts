@@ -1,8 +1,11 @@
 import { assertFound, assertValid } from '@/lib/server/api';
+import { blobInfo, deleteBlob } from '@/lib/server/blob';
+import { ownsUpload, UPLOAD_RULES } from '@/lib/shared/coach-rules';
 import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { cleanText, sessionProblems, type SessionDraft, type SessionField } from '@/lib/shared/session-rules';
 import { findCoach } from '@/prisma/models/coach-profile';
-import type { SessionWithDetails } from '@/prisma/models/session';
+import { countMediaWithPath, findMedia } from '@/prisma/models/media';
+import { countSessionsWithCover, type SessionWithDetails } from '@/prisma/models/session';
 
 /** A blank draft: every required field fails until the body supplies it. */
 export const EMPTY_DRAFT: SessionDraft = {
@@ -57,6 +60,31 @@ export function readSessionDraft(body: unknown, base: SessionDraft): SessionDraf
     capacity: has('capacity') ? toNumber(b.capacity) : base.capacity,
     repeatWeeks: has('repeatWeeks') ? toNumber(b.repeatWeeks) : base.repeatWeeks,
   };
+}
+
+/**
+ * The cover from a request body. `coverMediaId` picks one of the coach's own gallery photos; `coverPath` is an image
+ * they uploaded for sessions; `coverPath: null` removes it; neither leaves it alone. 400 invalid_upload otherwise.
+ */
+export async function readCover(coachId: string, body: { coverPath?: unknown; coverMediaId?: unknown }) {
+  const bad = () => assertValid(false, 'Invalid cover', ERROR_CODES.INVALID_UPLOAD, { fields: ['coverPath'] });
+  if (body.coverMediaId !== undefined) {
+    const media = typeof body.coverMediaId === 'string' ? await findMedia(body.coverMediaId, coachId) : null;
+    if (media?.kind !== 'PHOTO') bad();
+    return media!.filePath;
+  }
+  const value = body.coverPath;
+  if (value === undefined || value === null) return value as undefined | null;
+  const info = ownsUpload(coachId, 'sessionCover', value) ? await blobInfo(value) : null;
+  if (!info || !UPLOAD_RULES.sessionCover.types.includes(info.contentType)) bad();
+  return value as string;
+}
+
+/** Deletes a cover a session no longer uses, unless another session or a gallery photo still keeps the file. */
+export async function releaseCover(path: string | null) {
+  if (!path) return;
+  const [sessions, media] = await Promise.all([countSessionsWithCover(path), countMediaWithPath(path)]);
+  if (sessions === 0 && media === 0) await deleteBlob(path);
 }
 
 const invalid = (fields: SessionField[]) => assertValid(fields.length === 0, 'Invalid session', ERROR_CODES.INVALID_SESSION, { fields });

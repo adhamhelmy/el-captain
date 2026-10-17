@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
-import { PhaseTag, TypeTag } from '@/components/sessions';
+import { PhaseTag, SessionCover, TypeTag } from '@/components/sessions';
 import { Avatar, Back, initialsOf } from '@/components/ui';
 import { isolate } from '@/i18n/locale';
 import { bookSession, getSession, unbookSession } from '@/lib/client/session-api';
@@ -52,6 +52,7 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
   return (
     <div className={`page detail ${styles.page}`}>
       <Back href={guest ? '/explore' : '/user/explore'}>{t('backToExplore')}</Back>
+      <SessionCover url={s.coverUrl} />
       <div className={`hero ${styles.hero}`}>
         <div className='chips'>
           <TypeTag type={s.type} />

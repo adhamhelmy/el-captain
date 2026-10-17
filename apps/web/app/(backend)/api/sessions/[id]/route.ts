@@ -13,9 +13,9 @@ import {
 import { authOptions } from '@/lib/server/auth';
 import { assertActiveCoach } from '@/lib/server/coach-guard';
 import { toSessionDTO } from '@/lib/server/dto';
-import { assertCoachCanUse, assertSessionValid, draftFromSession, readSessionDraft } from '@/lib/server/session-input';
+import { assertCoachCanUse, assertSessionValid, draftFromSession, readCover, readSessionDraft, releaseCover } from '@/lib/server/session-input';
 import { ERROR_CODES } from '@/lib/shared/error-codes';
-import { hasStarted, type SessionField, type SessionLevel } from '@/lib/shared/session-rules';
+import { hasStarted, type SessionDraft, type SessionField, type SessionLevel } from '@/lib/shared/session-rules';
 import { findBooking } from '@/prisma/models/booking';
 import { findSession, updateSession, type SessionUpdate } from '@/prisma/models/session';
 
@@ -37,6 +37,19 @@ async function get({ params: { id } }: RequestContext<{ id: string }>) {
 /** Fields that can't change once a member has booked: they'd turn up at the wrong time or place. */
 const LOCKED_WHEN_BOOKED = ['venueId', 'startsAt', 'durationMin'] as const;
 
+/** The changed draft fields as database values. Repeating only applies when a session is created. */
+function toUpdate(changed: SessionField[], after: SessionDraft): SessionUpdate {
+  const update: SessionUpdate = {};
+  for (const k of changed) {
+    if (k === 'repeatWeeks') continue;
+    if (k === 'description') update.description = after.description || null;
+    else if (k === 'level') update.level = after.level as SessionLevel;
+    else if (k === 'startsAt') update.startsAt = after.startsAt!;
+    else Object.assign(update, { [k]: after[k] });
+  }
+  return update;
+}
+
 /** The coach edits a group session before it starts. Only the changed fields are saved. */
 async function edit({ req, user, params: { id } }: AuthContext<{ id: string }>) {
   await assertActiveCoach(user);
@@ -49,8 +62,9 @@ async function edit({ req, user, params: { id } }: AuthContext<{ id: string }>) 
     ERROR_CODES.SESSION_CLOSED,
   );
 
+  const body = await req.json();
   const before = draftFromSession(session);
-  const after = readSessionDraft(await req.json(), before);
+  const after = readSessionDraft(body, before);
   assertSessionValid(after);
 
   const changed = (Object.keys(before) as SessionField[]).filter((k) =>
@@ -67,15 +81,13 @@ async function edit({ req, user, params: { id } }: AuthContext<{ id: string }>) 
     ...(changed.includes('venueId') && { venueId: after.venueId }),
   });
 
-  const update: SessionUpdate = {};
-  for (const k of changed) {
-    if (k === 'repeatWeeks') continue;
-    if (k === 'description') update.description = after.description || null;
-    else if (k === 'level') update.level = after.level as SessionLevel;
-    else if (k === 'startsAt') update.startsAt = after.startsAt!;
-    else Object.assign(update, { [k]: after[k] });
-  }
-  return NextResponse.json(toSessionDTO(await updateSession(id, update)));
+  const update = toUpdate(changed, after);
+  // The cover isn't part of the draft rules; it can change even after members have booked.
+  const coverPath = await readCover(user.id, body ?? {});
+  if (coverPath !== undefined) update.coverPath = coverPath;
+  const saved = await updateSession(id, update);
+  if (coverPath !== undefined && coverPath !== session.coverPath) await releaseCover(session.coverPath);
+  return NextResponse.json(toSessionDTO(saved));
 }
 
 export const GET = publicRoute(get);
