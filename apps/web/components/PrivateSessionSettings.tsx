@@ -2,33 +2,10 @@
 import { useTranslations } from 'next-intl';
 import { Field, Segmented } from '@/components/ui';
 import { useSessionLabels } from '@/lib/client/session-labels';
-import { privateSettingsOk } from '@/lib/shared/session-rules';
+import { privateDraftOk, type PrivateDraft } from '@el-captain/rules/coach-form';
 import onb from './onboarding.module.css';
 
-/** The private-session switch and the price and length as typed. Off clears both when saved. */
-export type PrivateDraft = { on: boolean; price: string; duration: string };
-
-/** A blank field is "not set" (null), anything else is read as a number. */
-const optionalNumber = (v: string) => (v.trim() === '' ? null : Number(v));
-
-export const privateDraftOf = (price: number | null, duration: number | null): PrivateDraft => ({
-  on: price !== null && duration !== null,
-  price: price === null ? '' : String(price),
-  duration: duration === null ? '' : String(duration),
-});
-
-/** Off can always be saved; on needs a valid price and length. */
-export function privateDraftOk({ on, price, duration }: PrivateDraft) {
-  const p = optionalNumber(price);
-  const d = optionalNumber(duration);
-  return !on || (p !== null && d !== null && privateSettingsOk(p, d));
-}
-
-/** What a profile save sends for private sessions. */
-export const privateBody = (draft: PrivateDraft) =>
-  draft.on
-    ? { privatePrice: optionalNumber(draft.price), privateDuration: optionalNumber(draft.duration) }
-    : { privatePrice: null, privateDuration: null };
+export { privateBody, privateDraftOf, privateDraftOk, type PrivateDraft } from '@el-captain/rules/coach-form';
 
 /**
  * Yes / No for private sessions, with the price and length when Yes, and a status line saying whether members can

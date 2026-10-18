@@ -568,7 +568,8 @@
     "coverUpload": "ارفع صورة",
     "coverChoose": "اختار من صورك",
     "coverNoPhotos": "مفيش صور لسه. ضيفها من البروفايل ← صور وفيديوهات.",
-    "coverPhoto": "صورة"
+    "coverPhoto": "صورة",
+    "dateTimeFormat": "اكتب التاريخ كده YYYY-MM-DD والوقت كده H:MM، وبعدين اختار ص أو م، زي 2026-10-25 و6:30."
   },
   "coachEdit": {
     "displayName": "الاسم الظاهر",
@@ -611,7 +612,8 @@
     "video": "فيديو",
     "coverAdd": "ضيف صورة غلاف",
     "coverReplace": "غيّر الغلاف",
-    "coverHint": "ضيف صورة غلاف · صورة عريضة، JPG أو PNG أو WebP، لحد 10 ميجا"
+    "coverHint": "ضيف صورة غلاف · صورة عريضة، JPG أو PNG أو WebP، لحد 10 ميجا",
+    "mediaChoose": "اختار صور أو فيديوهات"
   },
   "admin": {
     "overview": "نظرة عامة على المنصة",
@@ -886,7 +888,8 @@
     "previewWillSee": "اللي الأعضاء هيشوفوه",
     "lockedNote": "البروفايل مقفول للتعديل وإحنا بنراجعه. محتاج تغيّر حاجة؟ <contact>كلّمنا</contact>.",
     "teamNote": "ملاحظة من فريقنا",
-    "contactUs": "كلّمنا"
+    "contactUs": "كلّمنا",
+    "chooseFiles": "اختار ملفات"
   },
   "adminReview": {
     "submitted": "اتبعت {date}",

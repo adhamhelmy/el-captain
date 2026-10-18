@@ -568,7 +568,8 @@
     "coverUpload": "Upload photo",
     "coverChoose": "Choose from your photos",
     "coverNoPhotos": "No photos yet. Add them under Profile → Photos & videos.",
-    "coverPhoto": "Photo"
+    "coverPhoto": "Photo",
+    "dateTimeFormat": "Write the date as YYYY-MM-DD and the time as H:MM, then pick AM or PM, e.g. 2026-10-25 and 6:30."
   },
   "coachEdit": {
     "displayName": "Display name",
@@ -611,7 +612,8 @@
     "video": "Video",
     "coverAdd": "Add a cover photo",
     "coverReplace": "Replace cover",
-    "coverHint": "Add a cover photo · a wide image, JPG, PNG or WebP, up to 10 MB"
+    "coverHint": "Add a cover photo · a wide image, JPG, PNG or WebP, up to 10 MB",
+    "mediaChoose": "Choose photos or videos"
   },
   "admin": {
     "overview": "Platform overview",
@@ -886,7 +888,8 @@
     "previewWillSee": "What members will see",
     "lockedNote": "Your profile is locked while we review it. Need to change something? <contact>Contact us</contact>.",
     "teamNote": "Note from the El Captain team",
-    "contactUs": "Contact us"
+    "contactUs": "Contact us",
+    "chooseFiles": "Choose files"
   },
   "adminReview": {
     "submitted": "Submitted {date}",

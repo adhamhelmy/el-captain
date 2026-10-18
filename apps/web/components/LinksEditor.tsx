@@ -1,14 +1,10 @@
 'use client';
 import { useTranslations } from 'next-intl';
+import type { LinkDraft } from '@el-captain/rules/coach-form';
 import { LINK_LABEL_MAX, MAX_LINKS } from '@/lib/shared/coach-rules';
 import styles from './onboarding.module.css';
 
-/** A link row being edited; `key` keeps React rows stable while they're reordered. */
-export type LinkDraft = { key: string; label: string; url: string };
-
-/** What the API takes: filled-in rows only (a freshly added, untouched row isn't a link yet), without the row keys. */
-export const toLinks = (rows: LinkDraft[]) =>
-  rows.filter((l) => l.label.trim() || l.url.trim() !== 'https://').map(({ label, url }) => ({ label, url }));
+export { toLinks, type LinkDraft } from '@el-captain/rules/coach-form';
 
 /** Extra profile links: add, edit, reorder, remove. */
 export function LinksEditor({ links, onChange }: Readonly<{ links: LinkDraft[]; onChange: (l: LinkDraft[]) => void }>) {
