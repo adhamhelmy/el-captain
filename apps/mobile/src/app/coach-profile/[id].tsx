@@ -1,3 +1,4 @@
+import { clockLength } from '@el-captain/rules/media';
 import { socialHandle, sportName } from '@el-captain/rules/coach-rules';
 import { Image } from 'expo-image';
 import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
@@ -16,6 +17,7 @@ import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 import { Avatar } from '@/ui/Avatar';
+import { BackLink } from '@/ui/BackLink';
 import { Card } from '@/ui/Card';
 import { Chip } from '@/ui/Chip';
 import { LinkText } from '@/ui/LinkText';
@@ -26,13 +28,6 @@ import { Text } from '@/ui/Text';
 /** Few enough spots left that the row says so in accent (as the web's). */
 const LOW_SPOTS = 3;
 
-/** "3:05" from 185 seconds, as the web's clockLength. */
-const clockLength = (totalSec: number) => {
-  const s = Math.max(0, Math.round(totalSec));
-  const [h, m, sec] = [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60];
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return h ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
-};
 
 /** A language's name in the reader's language when the device can say it, else its code. */
 const languageName = (code: string, locale: string) => {
@@ -130,11 +125,10 @@ export default function CoachProfilePage() {
     };
   }, [id]);
 
-  const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
   if (c === null) {
     return (
       <Screen tabs={false}>
-        <LinkText label={`← ${t('backToExplore')}`} onPress={back} muted />
+        <BackLink label={t('backToExplore')} />
         <Text variant="display">{te('generic')}</Text>
       </Screen>
     );
@@ -171,7 +165,7 @@ export default function CoachProfilePage() {
 
   return (
     <Screen tabs={false}>
-      <LinkText label={`← ${t('backToExplore')}`} onPress={back} muted />
+      <BackLink label={t('backToExplore')} />
       <View style={[styles.cover, { backgroundColor: colors.surface }]}>
         {c.coverUrl ? <Image source={{ uri: c.coverUrl }} style={StyleSheet.absoluteFill} contentFit="cover" /> : <Stripes />}
       </View>

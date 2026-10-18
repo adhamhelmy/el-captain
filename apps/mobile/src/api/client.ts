@@ -4,6 +4,10 @@ export class ApiError extends Error {
     readonly status: number,
     readonly code?: string,
     message = code ?? `HTTP ${status}`,
+    /** The form fields the server rejected, when it names them. */
+    readonly fields: string[] = [],
+    /** The whole error body, for codes that carry more (sport_exists names the sport). */
+    readonly body: Record<string, unknown> = {},
   ) {
     super(message);
   }
@@ -27,6 +31,13 @@ let config: Config = {
 export function configureApi(next: Partial<Config>) {
   config = { ...config, ...next };
 }
+
+/** The API's full URL for a path, and the signed-in user's auth header, for calls made outside `api` (uploads). */
+export const apiUrl = (path: string) => `${config.baseUrl}${path}`;
+export const authHeaders = (): Record<string, string> => {
+  const token = config.getToken();
+  return token ? { authorization: `Bearer ${token}` } : {};
+};
 
 /** A phone off the Mac's network often gets no answer at all, not a refusal; give up after this long. */
 const TIMEOUT_MS = 10_000;
@@ -59,7 +70,7 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
     if (res.status === 401 && token) config.onUnauthorized();
-    throw new ApiError(res.status, body.code, body.error);
+    throw new ApiError(res.status, body.code, body.error, Array.isArray(body.fields) ? body.fields : [], body);
   }
   return body as T;
 }

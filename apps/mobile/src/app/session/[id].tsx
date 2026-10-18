@@ -11,6 +11,7 @@ import { bookingState } from '@/sessions/booking';
 import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Avatar } from '@/ui/Avatar';
+import { BackLink } from '@/ui/BackLink';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { LinkText } from '@/ui/LinkText';
@@ -55,12 +56,11 @@ export default function SessionPage() {
     };
   }, [id, user]);
 
-  const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
   if (s === null) {
     return (
       <Screen tabs={false}>
-        <LinkText label={`← ${t('backToExplore')}`} onPress={back} muted />
+        <BackLink label={t('backToExplore')} />
         <Text variant="display">{te('generic')}</Text>
       </Screen>
     );
@@ -93,7 +93,7 @@ export default function SessionPage() {
 
   return (
     <Screen tabs={false}>
-      <LinkText label={`← ${t('backToExplore')}`} onPress={back} muted />
+      <BackLink label={t('backToExplore')} />
       {s.coverUrl && <Image source={{ uri: s.coverUrl }} style={styles.cover} contentFit="cover" />}
       <View style={styles.hero}>
         <View style={styles.row}>

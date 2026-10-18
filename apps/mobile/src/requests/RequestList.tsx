@@ -62,7 +62,7 @@ export function RequestList({ role, requests, onChange }: { role: 'member' | 'co
           {r.message && <Text>{t('message', { message: r.message })}</Text>}
           {r.responseNote && <Text>{t('note', { note: r.responseNote })}</Text>}
           {r.status === 'ACCEPTED' && r.sessionId && (
-            <LinkText label={t('viewSession')} onPress={() => router.push(`/session/${r.sessionId}` as Href)} />
+            <LinkText label={t('viewSession')} onPress={() => router.push(`${role === 'coach' ? '/coach-session' : '/session'}/${r.sessionId}` as Href)} />
           )}
           {r.status === 'PENDING' && role === 'member' && (
             <Button variant="secondary" label={t('withdraw')} busy={busy === r.id} onPress={() => run(r.id, 'cancel')} />

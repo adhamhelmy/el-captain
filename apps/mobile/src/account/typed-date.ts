@@ -2,7 +2,7 @@
  * Dates and times typed into a text field, as the shared rules expect them ('YYYY-MM-DD', 'HH:MM').
  * Arabic keyboards type ٠-٩ (and Persian ۰-۹), and people often skip leading zeros, so both are accepted.
  */
-const latinDigits = (s: string) => s.trim().replace(/[٠-٩۰-۹]/g, (d) => String(d.codePointAt(0)! & 0xf));
+export const latinDigits = (s: string) => s.trim().replace(/[٠-٩۰-۹]/g, (d) => String(d.codePointAt(0)! & 0xf));
 const pad = (n: string) => n.padStart(2, '0');
 
 export function typedDate(input: string): string | null {

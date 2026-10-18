@@ -23,6 +23,16 @@ describe('api', () => {
     await expect(api('/api/sessions/1/book', { method: 'POST' })).rejects.toMatchObject({ status: 409, code: 'session_full' });
   });
 
+  it("passes on the fields the server rejected", async () => {
+    globalThis.fetch = respond(400, { error: 'Invalid', code: 'invalid_session', fields: ['capacity'] });
+    await expect(api('/api/sessions/1', { method: 'PATCH' })).rejects.toMatchObject({ code: 'invalid_session', fields: ['capacity'] });
+  });
+
+  it('keeps the rest of the error body, e.g. the existing sport behind sport_exists', async () => {
+    globalThis.fetch = respond(409, { code: 'sport_exists', sport: { id: 's1' } });
+    await expect(api('/api/sports', { method: 'POST' })).rejects.toMatchObject({ code: 'sport_exists', body: { sport: { id: 's1' } } });
+  });
+
   it('reports an unreachable server as status 0, code network', async () => {
     globalThis.fetch = jest.fn(async () => {
       throw new TypeError('Network request failed');

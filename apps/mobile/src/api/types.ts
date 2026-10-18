@@ -86,3 +86,45 @@ export type PrivateRequest = {
 
 /** A coach the member has trained with, and how many sessions together. */
 export type MemberCoach = { id: string; name: string; photoUrl: string | null; city: string | null; count: number };
+
+/** A coach's own venue, with how many upcoming sessions use it. */
+export type CoachVenue = Venue & { upcoming: number };
+
+/** Someone booked on a coach's session. */
+export type Attendee = { bookingId: string; memberId: string; name: string; email: string; bookedAt: string };
+
+/** The coach's numbers on their dashboard. fillRate is null until a session has run. */
+export type CoachStats = { bookingsNext7: number; earnings30: number; fillRate: number | null };
+
+/** One row of the coach's client list. */
+export type CoachClient = { member: { id: string; name: string; email: string }; count: number; lastVisit: string | null; since: string };
+
+/** One client and every session they had with the coach, newest first. */
+export type CoachClientDetail = { member: { id: string; name: string; email: string; phone: string | null; createdAt: string }; sessions: Session[] };
+
+/** The signed-in coach's own profile (the web's CoachDTO). */
+export type CoachMe = {
+  id: string;
+  coachName: string;
+  birthDate: string | null;
+  gender: Gender | null;
+  languages: string[];
+  status: string;
+  submittedAt: string | null;
+  bio: string | null;
+  city: string | null;
+  phone: string | null;
+  instagram: string | null;
+  tiktok: string | null;
+  privatePrice: number | null;
+  privateDuration: number | null;
+  photoUrl: string | null;
+  coverUrl: string | null;
+  links: { id: string; label: string; url: string }[];
+  sports: Sport[];
+  certifications: { id: string; title: string; fileName: string; contentType: string; size: number; createdAt: string }[];
+  media: Media[];
+};
+
+/** GET /api/coaches/me/onboarding. */
+export type Onboarding = { coach: CoachMe; missing: string[]; reason: string | null };
