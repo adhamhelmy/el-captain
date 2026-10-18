@@ -54,7 +54,9 @@
     "email": "Email",
     "password": "Password",
     "fullName": "Full name",
-    "change": "Change"
+    "change": "Change",
+    "comingSoon": "Coming soon.",
+    "tryAgain": "Try again"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -266,7 +268,8 @@
     "viewCert": "View",
     "logInToView": "Log in to view",
     "rating": "{rating} ★",
-    "reviews": "{count, plural, one {# review} other {# reviews}}"
+    "reviews": "{count, plural, one {# review} other {# reviews}}",
+    "dateFormat": "Write the date as YYYY-MM-DD and the time as HH:MM, e.g. 2026-10-25 and 18:00."
   },
   "errors": {
     "missing_fields": "Missing required fields",
@@ -297,7 +300,11 @@
     "private_unavailable": "This coach isn't taking private requests right now, or you already have one waiting.",
     "invalid_session": "Check the highlighted fields.",
     "invalid_venue": "Check the venue details.",
-    "last_venue": "Keep at least one location."
+    "last_venue": "Keep at least one location.",
+    "network": "Can't reach El Captain. Check your connection and try again.",
+    "signedOut": "You were signed out. Log in again.",
+    "adminWeb": "Admin accounts use the website.",
+    "passwordChanged": "Password updated. Log in with your new password."
   },
   "login": {
     "title": "WELCOME BACK",
@@ -406,7 +413,13 @@
     "genderUnset": "Prefer not to say",
     "personalHintMember": "Optional. Coaches and other members don't see these.",
     "personalHintCoach": "Optional. Your public profile shows your age, never the date.",
-    "languages": "Languages you speak"
+    "languages": "Languages you speak",
+    "deleteAccount": "Delete account",
+    "deleteHint": "Remove your account and personal details for good",
+    "deleteConfirmTitle": "DELETE YOUR ACCOUNT?",
+    "deleteConfirmText": "This removes your account and personal details. It can't be undone.",
+    "deleteConfirm": "Delete my account",
+    "deleteUnavailable": "Deleting accounts isn't available yet. Contact us and we'll do it for you."
   },
   "status": {
     "active": "Active",

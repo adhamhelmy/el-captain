@@ -1,10 +1,8 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { isValidEmail, normalizeEmail } from '@/lib/shared/auth-rules';
 import { STATUS_RECHECK_MS } from '@/lib/shared/coach-rules';
-import { ERROR_CODES } from '@/lib/shared/error-codes';
-import { checkPassword } from '@/lib/server/password';
-import { findAccess, findUserByEmail } from '@/prisma/models/user';
+import { checkCredentials } from '@/lib/server/credentials';
+import { findAccess } from '@/prisma/models/user';
 import type { Role } from '@el-captain/types';
 
 export const authOptions: NextAuthOptions = {
@@ -18,20 +16,10 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-
-        const email = normalizeEmail(credentials.email);
-        if (!isValidEmail(email)) return null;
-
-        const user = await findUserByEmail(email);
-        if (!user) return null;
-
-        const valid = await checkPassword(credentials.password, user.passwordHash);
-        if (!valid) return null;
-        // Only after the password matched, so this can't be used to find out which emails have accounts.
-        if (!user.emailVerified) throw new Error(ERROR_CODES.EMAIL_NOT_VERIFIED);
-        if (user.suspendedAt) throw new Error(ERROR_CODES.ACCOUNT_SUSPENDED);
-
-        return { id: user.id, name: user.name, email: user.email, role: user.role as Role };
+        const result = await checkCredentials(credentials.email, credentials.password);
+        if ('user' in result) return result.user;
+        if (result.error === 'invalid') return null;
+        throw new Error(result.error);
       },
     }),
   ],

@@ -1,0 +1,8 @@
+{
+  "name": "@el-captain/rules",
+  "version": "0.0.1",
+  "description": "Validation and domain rules shared by the web app, its API and the mobile app. No server or framework imports.",
+  "exports": {
+    "./*": "./*.ts"
+  }
+}

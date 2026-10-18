@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { IntlMessageFormat } from 'intl-messageformat';
 import { APP_TZ } from '@/i18n/locale';
-import en from '@/messages/en.json';
+import { en } from '@el-captain/messages';
 import { summaryValues, type SummaryFormat } from './repeat-summary';
 
 const fmt = (o: Intl.DateTimeFormatOptions) => (d: Date) => new Intl.DateTimeFormat('en-US', { timeZone: APP_TZ, ...o }).format(d);
