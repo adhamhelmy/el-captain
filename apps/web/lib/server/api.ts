@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession, type Session } from 'next-auth';
 import type { Role } from '@el-captain/types';
 import { authOptions } from '@/lib/server/auth';
+import { userFromBearer } from '@/lib/server/bearer';
 import { ERROR_CODES } from '@/lib/shared/error-codes';
 
 type Params = Record<string, string | string[]>;
@@ -53,9 +54,14 @@ export function assertValid(condition: unknown, message: string, code?: string, 
   if (!condition) throw new HttpError(400, message, code, details);
 }
 
+/** 401 unless the caller proved who they are, e.g. a sign-in with the right password. */
+export function assertSignedIn(condition: unknown, message = 'Unauthorized'): asserts condition {
+  if (!condition) throw new HttpError(401, message);
+}
+
 /** 403 unless the user may act on this, e.g. the record is theirs. */
-export function assertAllowed(condition: boolean): asserts condition {
-  if (!condition) throw new HttpError(403, 'Forbidden');
+export function assertAllowed(condition: boolean, code?: string): asserts condition {
+  if (!condition) throw new HttpError(403, 'Forbidden', code);
 }
 
 /** 404 unless the record exists. */
@@ -91,6 +97,21 @@ function readPage(query: Query): Page {
 
 const error = ({ status, message, code, details }: HttpError) => NextResponse.json({ error: message, ...(code && { code }), ...details }, { status });
 
+/**
+ * Who is looking at a public page: the browser's cookie session, else the mobile app's bearer token, else nobody.
+ * A revoked or expired token reads as a guest here; public pages shouldn't fail for it.
+ */
+export async function optionalViewer(req: Request): Promise<AuthUser | null> {
+  const cookieUser = (await getServerSession(authOptions))?.user;
+  if (cookieUser) return cookieUser;
+  try {
+    return await userFromBearer(req);
+  } catch (e) {
+    if (e instanceof HttpError && e.status === 401) return null;
+    throw e;
+  }
+}
+
 /** Runs the handler for anyone, answering any HttpError it throws. */
 export function publicRoute<P extends Params = Params>(handler: (ctx: RequestContext<P>) => Promise<Response>) {
   return async (req: NextRequest, { params }: { params: Promise<P> }) => {
@@ -113,11 +134,12 @@ export function publicRoute<P extends Params = Params>(handler: (ctx: RequestCon
  */
 export function protect<P extends Params = Params>(handler: (ctx: AuthContext<P>) => Promise<Response>, roles?: Role[]) {
   return publicRoute<P>(async (ctx) => {
-    const session = await getServerSession(authOptions);
-    if (!session) throw new HttpError(401, 'Unauthorized');
-    if (session.user.suspended) throw new HttpError(403, 'Account suspended', ERROR_CODES.ACCOUNT_SUSPENDED);
-    if (roles && !roles.includes(session.user.role)) throw new HttpError(403, 'Forbidden');
+    // The browser's cookie session first, then the mobile app's bearer token.
+    const user = (await getServerSession(authOptions))?.user ?? (await userFromBearer(ctx.req));
+    if (!user) throw new HttpError(401, 'Unauthorized');
+    if (user.suspended) throw new HttpError(403, 'Account suspended', ERROR_CODES.ACCOUNT_SUSPENDED);
+    if (roles && !roles.includes(user.role)) throw new HttpError(403, 'Forbidden');
 
-    return handler({ ...ctx, user: session.user });
+    return handler({ ...ctx, user });
   });
 }

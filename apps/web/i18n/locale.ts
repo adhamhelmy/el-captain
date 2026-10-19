@@ -5,8 +5,7 @@ export type AppLocale = (typeof LOCALES)[number]
 /** Locale handed to Intl. `nu-latn` keeps Western digits in Arabic; drop it for ٠١٢. */
 export const INTL_LOCALE: Record<AppLocale, string> = { en: 'en-US', ar: 'ar-EG-u-nu-latn' }
 
-/** El Captain runs in Egypt; one fixed zone keeps server and client output identical. */
-export const APP_TZ = 'Africa/Cairo'
+export { APP_TZ } from '@el-captain/rules/app-time'
 
 export const isAppLocale = (v: unknown): v is AppLocale => LOCALES.includes(v as AppLocale)
 

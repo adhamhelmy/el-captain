@@ -54,7 +54,9 @@
     "email": "Email",
     "password": "Password",
     "fullName": "Full name",
-    "change": "Change"
+    "change": "Change",
+    "comingSoon": "Coming soon.",
+    "tryAgain": "Try again"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -266,7 +268,8 @@
     "viewCert": "View",
     "logInToView": "Log in to view",
     "rating": "{rating} ★",
-    "reviews": "{count, plural, one {# review} other {# reviews}}"
+    "reviews": "{count, plural, one {# review} other {# reviews}}",
+    "dateFormat": "Write the date as YYYY-MM-DD and the time as HH:MM, e.g. 2026-10-25 and 18:00."
   },
   "errors": {
     "missing_fields": "Missing required fields",
@@ -297,7 +300,11 @@
     "private_unavailable": "This coach isn't taking private requests right now, or you already have one waiting.",
     "invalid_session": "Check the highlighted fields.",
     "invalid_venue": "Check the venue details.",
-    "last_venue": "Keep at least one location."
+    "last_venue": "Keep at least one location.",
+    "network": "Can't reach El Captain. Check your connection and try again.",
+    "signedOut": "You were signed out. Log in again.",
+    "adminWeb": "Admin accounts use the website.",
+    "passwordChanged": "Password updated. Log in with your new password."
   },
   "login": {
     "title": "WELCOME BACK",
@@ -406,7 +413,13 @@
     "genderUnset": "Prefer not to say",
     "personalHintMember": "Optional. Coaches and other members don't see these.",
     "personalHintCoach": "Optional. Your public profile shows your age, never the date.",
-    "languages": "Languages you speak"
+    "languages": "Languages you speak",
+    "deleteAccount": "Delete account",
+    "deleteHint": "Remove your account and personal details for good",
+    "deleteConfirmTitle": "DELETE YOUR ACCOUNT?",
+    "deleteConfirmText": "This removes your account and personal details. It can't be undone.",
+    "deleteConfirm": "Delete my account",
+    "deleteUnavailable": "Deleting accounts isn't available yet. Contact us and we'll do it for you."
   },
   "status": {
     "active": "Active",
@@ -555,7 +568,8 @@
     "coverUpload": "Upload photo",
     "coverChoose": "Choose from your photos",
     "coverNoPhotos": "No photos yet. Add them under Profile → Photos & videos.",
-    "coverPhoto": "Photo"
+    "coverPhoto": "Photo",
+    "dateTimeFormat": "Write the date as YYYY-MM-DD and the time as H:MM, then pick AM or PM, e.g. 2026-10-25 and 6:30."
   },
   "coachEdit": {
     "displayName": "Display name",
@@ -598,7 +612,8 @@
     "video": "Video",
     "coverAdd": "Add a cover photo",
     "coverReplace": "Replace cover",
-    "coverHint": "Add a cover photo · a wide image, JPG, PNG or WebP, up to 10 MB"
+    "coverHint": "Add a cover photo · a wide image, JPG, PNG or WebP, up to 10 MB",
+    "mediaChoose": "Choose photos or videos"
   },
   "admin": {
     "overview": "Platform overview",
@@ -873,7 +888,8 @@
     "previewWillSee": "What members will see",
     "lockedNote": "Your profile is locked while we review it. Need to change something? <contact>Contact us</contact>.",
     "teamNote": "Note from the El Captain team",
-    "contactUs": "Contact us"
+    "contactUs": "Contact us",
+    "chooseFiles": "Choose files"
   },
   "adminReview": {
     "submitted": "Submitted {date}",

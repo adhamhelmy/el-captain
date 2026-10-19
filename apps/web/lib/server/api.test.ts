@@ -2,9 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
 vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
+vi.mock('@/lib/server/bearer', () => ({ userFromBearer: vi.fn(async () => null) }));
 
 import { getServerSession } from 'next-auth';
-import { assertAllowed, assertFound, assertNoConflict, assertValid, protect, publicRoute } from './api';
+import { userFromBearer } from '@/lib/server/bearer';
+import { assertAllowed, assertFound, assertNoConflict, assertSignedIn, assertValid, HttpError, optionalViewer, protect, publicRoute } from './api';
 
 const signIn = (user: object | null) => vi.mocked(getServerSession).mockResolvedValue(user && ({ user } as any));
 
@@ -19,6 +21,22 @@ describe('protect', () => {
   it('answers 401 when nobody is signed in', async () => {
     signIn(null);
     expect((await call(protect(ok))).status).toBe(401);
+    expect(ok).not.toHaveBeenCalled();
+  });
+
+  it('accepts the mobile app bearer token when there is no cookie session', async () => {
+    signIn(null);
+    vi.mocked(userFromBearer).mockResolvedValueOnce({ id: 'u1', role: 'USER' } as any);
+    expect((await call(protect(ok, ['USER']))).status).toBe(200);
+    expect(ok).toHaveBeenCalledWith(expect.objectContaining({ user: { id: 'u1', role: 'USER' } }));
+  });
+
+  it('applies the role and suspension checks to a bearer user too', async () => {
+    signIn(null);
+    vi.mocked(userFromBearer).mockResolvedValueOnce({ id: 'u1', role: 'USER' } as any);
+    expect((await call(protect(ok, ['COACH']))).status).toBe(403);
+    vi.mocked(userFromBearer).mockResolvedValueOnce({ id: 'u1', role: 'USER', suspended: true } as any);
+    expect(await (await call(protect(ok))).json()).toMatchObject({ code: 'account_suspended' });
     expect(ok).not.toHaveBeenCalled();
   });
 
@@ -63,6 +81,22 @@ describe('protect', () => {
       return ok();
     });
     expect((await call(route)).status).toBe(403);
+  });
+
+  it('answers 401 when the handler asserts a failed sign-in, and 403 with a code from assertAllowed', async () => {
+    signIn({ id: 'u1', role: 'USER' });
+    const unauthorized = protect(async () => {
+      assertSignedIn(false, 'Invalid email or password');
+      return ok();
+    });
+    const refused = protect(async () => {
+      assertAllowed(false, 'account_suspended');
+      return ok();
+    });
+    expect((await call(unauthorized)).status).toBe(401);
+    const res = await call(refused);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ code: 'account_suspended' });
   });
 
   it('rethrows errors that are not HttpErrors', async () => {
@@ -162,5 +196,27 @@ describe('query and page', () => {
     expect(seen).toHaveBeenLastCalledWith(expect.objectContaining({ page: { take: 50, skip: 0 } }));
     await at('?limit=abc&offset=xyz');
     expect(seen).toHaveBeenLastCalledWith(expect.objectContaining({ page: { take: 12, skip: 0 } }));
+  });
+});
+
+describe('optionalViewer', () => {
+  beforeEach(() => vi.clearAllMocks());
+  const req = new Request('http://localhost/api/x');
+
+  it('is the cookie user when there is one', async () => {
+    signIn({ id: 'u1', role: 'USER' });
+    expect(await optionalViewer(req)).toMatchObject({ id: 'u1' });
+  });
+
+  it('falls back to the mobile app bearer user', async () => {
+    signIn(null);
+    vi.mocked(userFromBearer).mockResolvedValueOnce({ id: 'u2', role: 'USER' } as any);
+    expect(await optionalViewer(req)).toMatchObject({ id: 'u2' });
+  });
+
+  it('treats a revoked bearer token as a guest instead of failing the public page', async () => {
+    signIn(null);
+    vi.mocked(userFromBearer).mockRejectedValueOnce(new HttpError(401, 'Unauthorized'));
+    expect(await optionalViewer(req)).toBeNull();
   });
 });

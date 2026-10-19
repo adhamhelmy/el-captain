@@ -1,13 +1,13 @@
 'use client';
 import { useLocale, useTranslations } from 'next-intl';
 import { Field } from '@/components/ui';
-import { birthDateOk, GENDERS, MAX_AGE, MIN_AGE, SPOKEN_LANGUAGES, type Gender } from '@/lib/shared/profile-rules';
+import { birthDateInvalid } from '@el-captain/rules/coach-form';
+import { GENDERS, MAX_AGE, MIN_AGE, SPOKEN_LANGUAGES, type Gender } from '@/lib/shared/profile-rules';
 import onb from './onboarding.module.css';
 
 export type Personal = { birthDate: string; gender: Gender | '' };
 
-/** A typed birth date that can't be saved; a blank one is fine, the field is optional. */
-export const birthDateInvalid = (birthDate: string) => birthDate !== '' && !birthDateOk(birthDate);
+export { birthDateInvalid } from '@el-captain/rules/coach-form';
 
 /** Optional birth date and gender, for the member and coach profile pages. `hint` says who sees them. */
 export function PersonalFields({ value, onChange, hint }: Readonly<{ value: Personal; onChange: (v: Personal) => void; hint: string }>) {

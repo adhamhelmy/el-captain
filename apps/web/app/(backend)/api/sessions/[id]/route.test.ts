@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
 vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
+vi.mock('@/lib/server/bearer', () => ({ userFromBearer: vi.fn(async () => null) }));
 vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p, blobInfo: vi.fn(), deleteBlob: vi.fn() }));
 vi.mock('@/lib/server/coach-guard', () => ({ assertActiveCoach: vi.fn() }));
 vi.mock('@/prisma/models/session', () => ({ findSession: vi.fn(), updateSession: vi.fn(), countSessionsWithCover: vi.fn() }));
@@ -13,6 +14,7 @@ import { GET, PATCH } from './route';
 import { findBooking } from '@/prisma/models/booking';
 import { findCoach } from '@/prisma/models/coach-profile';
 import { findSession, updateSession } from '@/prisma/models/session';
+import { userFromBearer } from '@/lib/server/bearer';
 import { call, signInAs } from '@/test/api';
 import { sessionRow } from '@/test/sessions';
 
@@ -40,6 +42,18 @@ describe('GET /api/sessions/[id]', () => {
     signInAs('u1', 'USER');
     vi.mocked(findBooking).mockResolvedValue({ status: 'CONFIRMED' } as any);
     expect(await (await call(GET, { params })).json()).toMatchObject({ bookedByMe: true });
+  });
+
+  it('knows the mobile app member from their bearer token: booked, and allowed to see their private session', async () => {
+    vi.mocked(findSession).mockResolvedValue(sessionRow({ type: 'PRIVATE', capacity: 1 }) as any);
+    signInAs(null);
+    vi.mocked(userFromBearer).mockResolvedValue({ id: 'u1', role: 'USER' } as any);
+    vi.mocked(findBooking).mockResolvedValue({ status: 'CONFIRMED' } as any);
+    const res = await call(GET, { params });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ bookedByMe: true });
+    expect(findBooking).toHaveBeenCalledWith('x1', 'u1');
+    vi.mocked(userFromBearer).mockResolvedValue(null);
   });
 
   it('hides a private session from everyone but its coach, its member and admins', async () => {

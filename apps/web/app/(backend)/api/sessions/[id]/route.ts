@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import {
   assertAllowed,
   assertFound,
   assertNoConflict,
   assertValid,
+  optionalViewer,
   protect,
   publicRoute,
   type AuthContext,
   type RequestContext,
 } from '@/lib/server/api';
-import { authOptions } from '@/lib/server/auth';
 import { assertActiveCoach } from '@/lib/server/coach-guard';
 import { toSessionDTO } from '@/lib/server/dto';
 import { assertCoachCanUse, assertSessionValid, draftFromSession, readCover, readSessionDraft, releaseCover } from '@/lib/server/session-input';
@@ -23,10 +22,10 @@ import { findSession, updateSession, type SessionUpdate } from '@/prisma/models/
  * One session. A private one, or one whose coach isn't active (e.g. suspended), is a 404
  * for anyone but its coach, its booked members and admins.
  */
-async function get({ params: { id } }: RequestContext<{ id: string }>) {
+async function get({ req, params: { id } }: RequestContext<{ id: string }>) {
   const session = await findSession(id);
   assertFound(session);
-  const viewer = (await getServerSession(authOptions))?.user;
+  const viewer = await optionalViewer(req);
   const booking = viewer ? await findBooking(id, viewer.id) : null;
   const bookedByMe = booking?.status === 'CONFIRMED';
   const hidden = session.type === 'PRIVATE' || session.coach.coachProfile?.status !== 'ACTIVE';

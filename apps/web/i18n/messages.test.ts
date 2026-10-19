@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { IntlMessageFormat } from 'intl-messageformat'
 import { INTL_LOCALE } from '@/i18n/locale'
-import ar from './ar.json'
-import en from './en.json'
+import { ar, en } from '@el-captain/messages'
 
 type Tree = { [k: string]: string | Tree }
 const flat = (o: Tree, p = ''): Record<string, string> =>

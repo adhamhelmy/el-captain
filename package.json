@@ -2,7 +2,7 @@
   "name": "el-captain",
   "private": true,
   "workspaces": [
-    "apps/*",
+    "apps/web",
     "packages/*"
   ],
   "scripts": {
