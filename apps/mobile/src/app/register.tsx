@@ -83,7 +83,7 @@ export default function Register() {
 
   if (sentTo) {
     return (
-      <Screen tabs={false}>
+      <Screen>
         <Logo />
         <View style={styles.head}>
           <Text variant="display">{t('checkTitle')}</Text>
@@ -110,7 +110,7 @@ export default function Register() {
   }
 
   return (
-    <Screen tabs={false}>
+    <Screen>
       <LinkText label={t('haveAccount').replace(/<\/?link>/g, '')} onPress={() => router.back()} muted />
       <View style={styles.head}>
         <Text variant="display">{t('title')}</Text>

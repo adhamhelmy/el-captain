@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 import type { CoachVenue } from '@/api/types';
-import { myVenues } from '@/coach/data';
+import { cachedVenues, myVenues } from '@/coach/data';
 import { VenueForm, type VenueSaved } from '@/coach/VenueForm';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
@@ -12,6 +12,7 @@ import { Card } from '@/ui/Card';
 import { LinkText } from '@/ui/LinkText';
 import { Screen } from '@/ui/Screen';
 import { Sheet } from '@/ui/Sheet';
+import { FadeIn, Loading, RowSkeleton } from '@/ui/Skeleton';
 import { Tag } from '@/ui/Tag';
 import { Text } from '@/ui/Text';
 
@@ -19,7 +20,7 @@ import { Text } from '@/ui/Text';
 export default function Venues() {
   const t = useTranslations('venues');
   const { colors } = useTheme();
-  const [venues, setVenues] = useState<CoachVenue[] | null>(null);
+  const [venues, setVenues] = useState<CoachVenue[] | null>(cachedVenues);
   const [open, setOpen] = useState<CoachVenue | 'new' | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -60,23 +61,33 @@ export default function Venues() {
         </Card>
       )}
 
-      {venues?.map((v) => (
-        <Card key={v.id} style={styles.gap}>
-          <View style={styles.top}>
-            <View style={styles.grow}>
-              <Text style={styles.name}>{v.name}</Text>
-              <Text variant="label">{t('line', { address: v.address, city: v.city })}</Text>
+      {venues === null && (
+        <Loading>
+          <RowSkeleton />
+          <RowSkeleton />
+        </Loading>
+      )}
+      {venues && venues.length > 0 && (
+        <FadeIn>
+        {venues.map((v) => (
+          <Card key={v.id} style={styles.gap}>
+            <View style={styles.top}>
+              <View style={styles.grow}>
+                <Text style={styles.name}>{v.name}</Text>
+                <Text variant="label">{t('line', { address: v.address, city: v.city })}</Text>
+              </View>
+              {v.archived ? <Tag kind="past" label={t('archived')} /> : <LinkText label={t('edit')} onPress={() => setOpen(v)} />}
             </View>
-            {v.archived ? <Tag kind="past" label={t('archived')} /> : <LinkText label={t('edit')} onPress={() => setOpen(v)} />}
-          </View>
-          {(v.mapUrl || v.upcoming > 0) && (
-            <View style={styles.meta}>
-              {v.mapUrl && <LinkText label={t('map')} onPress={() => Linking.openURL(v.mapUrl!).catch(() => {})} />}
-              {v.upcoming > 0 && <Text variant="label">{t('upcoming', { count: v.upcoming })}</Text>}
-            </View>
-          )}
-        </Card>
-      ))}
+            {(v.mapUrl || v.upcoming > 0) && (
+              <View style={styles.meta}>
+                {v.mapUrl && <LinkText label={t('map')} onPress={() => Linking.openURL(v.mapUrl!).catch(() => {})} />}
+                {v.upcoming > 0 && <Text variant="label">{t('upcoming', { count: v.upcoming })}</Text>}
+              </View>
+            )}
+          </Card>
+        ))}
+        </FadeIn>
+      )}
 
       <Sheet visible={!!open} title={open === 'new' ? t('newTitle') : t('editTitle')} onClose={() => setOpen(null)}>
         {open && <VenueForm venue={open === 'new' ? undefined : open} onSaved={saved} onCancel={() => setOpen(null)} />}

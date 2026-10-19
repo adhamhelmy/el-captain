@@ -1,12 +1,15 @@
 import { CANCEL_CUTOFF_MS } from '@el-captain/rules/session-rules';
 import { Image } from 'expo-image';
-import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useTranslations } from 'use-intl';
+import { load, peek, remember } from '@/api/cache';
 import { api, ApiError } from '@/api/client';
+import { DETAIL } from '@/api/paths';
 import type { SessionDetail } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
+import { openPage } from '@/nav/open';
 import { bookingState } from '@/sessions/booking';
 import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -16,6 +19,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { LinkText } from '@/ui/LinkText';
 import { Screen } from '@/ui/Screen';
+import { DetailSkeleton } from '@/ui/Skeleton';
 import { Tag, typeTagKind } from '@/ui/Tag';
 import { Text } from '@/ui/Text';
 
@@ -33,7 +37,7 @@ export default function SessionPage() {
   const l = useSessionLabels();
   const { colors } = useTheme();
   const { user, returnTo, setReturnTo } = useAuth();
-  const [s, setS] = useState<SessionDetail | null | undefined>(undefined);
+  const [s, setS] = useState<SessionDetail | null | undefined>(() => peek<SessionDetail>(DETAIL.session(id)));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const path = `/session/${id}`;
@@ -48,9 +52,10 @@ export default function SessionPage() {
 
   useEffect(() => {
     let stale = false;
-    api<SessionDetail>(`/api/sessions/${id}`)
+    load<SessionDetail>(DETAIL.session(id))
       .then((d) => !stale && setS(d))
-      .catch(() => !stale && setS(null));
+      // Offline with this page already showing from the cache: keep it rather than swap in the error.
+      .catch(() => !stale && setS((shown) => shown ?? null));
     return () => {
       stale = true;
     };
@@ -59,13 +64,18 @@ export default function SessionPage() {
 
   if (s === null) {
     return (
-      <Screen tabs={false}>
+      <Screen>
         <BackLink label={t('backToExplore')} />
         <Text variant="display">{te('generic')}</Text>
       </Screen>
     );
   }
-  if (!s) return <Screen tabs={false}>{null}</Screen>;
+  if (!s)
+    return (
+      <Screen>
+        <DetailSkeleton />
+      </Screen>
+    );
 
   const state = bookingState(s, !!user, new Date(), user?.role);
   const cancelBy = new Date(new Date(s.startsAt).getTime() - CANCEL_CUTOFF_MS);
@@ -74,7 +84,10 @@ export default function SessionPage() {
     setBusy(true);
     setError(null);
     try {
-      setS(await api<SessionDetail>(`/api/sessions/${id}/${action}`, { method: 'POST', json: {} }));
+      const next = await api<SessionDetail>(`/api/sessions/${id}/${action}`, { method: 'POST', json: {} });
+      setS(next);
+      // The next visit opens on the booking as it is now, not as it was before this tap.
+      remember(DETAIL.session(id), next);
     } catch (e) {
       const code = e instanceof ApiError ? e.code : undefined;
       setError(te(BOOK_ERRORS.find((c) => c === code) ?? 'generic'));
@@ -92,7 +105,7 @@ export default function SessionPage() {
   const pills = [s.level && l.level(s.level), l.minutes(s.durationMin), l.sport(s.sport)].filter(Boolean) as string[];
 
   return (
-    <Screen tabs={false}>
+    <Screen fade>
       <BackLink label={t('backToExplore')} />
       {s.coverUrl && <Image source={{ uri: s.coverUrl }} style={styles.cover} contentFit="cover" />}
       <View style={styles.hero}>
@@ -169,7 +182,7 @@ export default function SessionPage() {
       </View>
       <Pressable
         accessibilityRole="link"
-        onPress={() => router.push(`/coach-profile/${s.coach.id}` as Href)}
+        onPress={() => openPage(`/coach-profile/${s.coach.id}`)}
         style={[styles.coach, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         {s.coach.photoUrl ? <Image source={{ uri: s.coach.photoUrl }} style={styles.photo} /> : <Avatar name={s.coach.name} size={48} />}
         <View style={styles.coachText}>

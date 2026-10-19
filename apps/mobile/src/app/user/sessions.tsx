@@ -1,9 +1,11 @@
-import { router, useFocusEffect, type Href } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslations } from 'use-intl';
-import { api } from '@/api/client';
+import { load, peek } from '@/api/cache';
+import { PATHS } from '@/api/paths';
 import type { PrivateRequest, Session } from '@/api/types';
+import { openPage } from '@/nav/open';
 import { RequestList } from '@/requests/RequestList';
 import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -12,10 +14,12 @@ import { Empty } from '@/ui/Empty';
 import { LinkText } from '@/ui/LinkText';
 import { Screen } from '@/ui/Screen';
 import { Segmented } from '@/ui/Segmented';
+import { FadeIn, Loading, RowSkeleton } from '@/ui/Skeleton';
 import { Tag, typeTagKind } from '@/ui/Tag';
 import { Text } from '@/ui/Text';
 
 type Tab = 'upcoming' | 'past' | 'requests';
+const pathOf = (tab: 'upcoming' | 'past') => (tab === 'past' ? PATHS.myPast : PATHS.myUpcoming);
 
 /** The web's /user/sessions/me: upcoming and past bookings, and private requests. */
 export default function MySessions() {
@@ -25,18 +29,18 @@ export default function MySessions() {
   const l = useSessionLabels();
   const { colors } = useTheme();
   const [tab, setTab] = useState<Tab>('upcoming');
-  const [list, setList] = useState<Session[] | null>(null);
-  const [requests, setRequests] = useState<PrivateRequest[] | null>(null);
+  const [list, setList] = useState(() => peek<Session[]>(PATHS.myUpcoming) ?? null);
+  const [requests, setRequests] = useState(() => peek<PrivateRequest[]>(PATHS.myRequests) ?? null);
 
   useFocusEffect(
     useCallback(() => {
       let stale = false;
       if (tab === 'requests') {
-        api<PrivateRequest[]>('/api/private-requests/me')
+        load<PrivateRequest[]>(PATHS.myRequests)
           .catch(() => [])
           .then((r) => !stale && setRequests(r));
       } else {
-        api<Session[]>(`/api/sessions/me?when=${tab}&limit=50`)
+        load<Session[]>(pathOf(tab))
           .catch(() => [])
           .then((r) => !stale && setList(r));
       }
@@ -47,9 +51,16 @@ export default function MySessions() {
   );
 
   const switchTab = (next: Tab) => {
-    setList(null);
+    if (next !== 'requests') setList(peek<Session[]>(pathOf(next)) ?? null);
     setTab(next);
   };
+  const skeleton = (
+    <Loading style={styles.list}>
+      <RowSkeleton lines={3} />
+      <RowSkeleton lines={3} />
+      <RowSkeleton lines={3} />
+    </Loading>
+  );
 
   return (
     <Screen>
@@ -65,14 +76,22 @@ export default function MySessions() {
         ]}
       />
       {tab === 'requests' ? (
-        requests && <RequestList role="member" requests={requests} onChange={(r) => setRequests(requests.map((x) => (x.id === r.id ? r : x)))} />
+        requests ? (
+          <FadeIn>
+            <RequestList role="member" requests={requests} onChange={(r) => setRequests(requests.map((x) => (x.id === r.id ? r : x)))} />
+          </FadeIn>
+        ) : (
+          skeleton
+        )
+      ) : list === null ? (
+        skeleton
       ) : (
-        <View style={styles.list}>
-          {list?.map((s) => (
+        <FadeIn key={tab} style={styles.list}>
+          {list.map((s) => (
             <Pressable
               key={s.id}
               accessibilityRole="link"
-              onPress={() => router.push(`/session/${s.id}` as Href)}
+              onPress={() => openPage(`/session/${s.id}`)}
               style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={styles.top}>
                 <Tag kind={typeTagKind(s.type)} label={td(s.type === 'PRIVATE' ? 'type.private' : 'type.group')} />
@@ -85,11 +104,11 @@ export default function MySessions() {
               <Text variant="label">
                 {s.coach.name} · {l.when(s.startsAt)}
               </Text>
-              {tab === 'past' && <LinkText label={t('bookAgain')} onPress={() => router.push(`/coach-profile/${s.coach.id}` as Href)} />}
+              {tab === 'past' && <LinkText label={t('bookAgain')} onPress={() => openPage(`/coach-profile/${s.coach.id}`)} />}
             </Pressable>
           ))}
-          {list?.length === 0 && <Empty text={(link) => t.rich('empty', { link })} link={() => router.push('/user/explore')} />}
-        </View>
+          {list.length === 0 && <Empty text={(link) => t.rich('empty', { link })} link={() => router.push('/user/explore')} />}
+        </FadeIn>
       )}
     </Screen>
   );

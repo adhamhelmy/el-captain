@@ -23,6 +23,7 @@ const LOW_SPOTS = 3;
 /** An approved coach's public profile; `area` is '' for guests and '/user' for members. Anyone else is a 404. */
 export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/user' }>) {
   const t = useTranslations('coachProfile');
+  const tx = useTranslations('explore');
   const td = useTranslations('data');
   const to = useTranslations('onboarding');
   const locale = useLocale();
@@ -120,8 +121,8 @@ export function CoachProfile({ id, area }: Readonly<{ id: string; area: '' | '/u
             {c.name}
           </h1>
           <div className={styles.meta}>
-            <span className={styles.rating}>{t('rating', { rating: format.number(0, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) })}</span>
-            <span>{t('reviews', { count: 0 })}</span>
+            {/* Reviews aren't built yet: say so, as the Explore card does, rather than a 0.0 rating. */}
+            <span className={styles.rating}>{tx('noReviews')}</span>
             {meta.map((m) => (
               <Fragment key={m}>
                 <span aria-hidden>·</span>

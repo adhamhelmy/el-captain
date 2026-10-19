@@ -3,9 +3,10 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_GAP, TAB_BAR_HEIGHT } from '@/nav/FloatingTabBar';
 import { useTheme } from '@/theme/ThemeProvider';
+import { FadeIn } from '@/ui/Skeleton';
 
-/** A scrolling page that clears the status bar and the floating tab bar. */
-export function Screen({ children, tabs = true }: { children: ReactNode; tabs?: boolean }) {
+/** A scrolling page that clears the status bar and the floating tab bar; `fade` eases it in over its placeholder. */
+export function Screen({ children, tabs = true, fade = false }: { children: ReactNode; tabs?: boolean; fade?: boolean }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const bottom = insets.bottom + (tabs ? TAB_BAR_HEIGHT + TAB_BAR_GAP * 2 : 24);
@@ -16,7 +17,7 @@ export function Screen({ children, tabs = true }: { children: ReactNode; tabs?: 
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
       automaticallyAdjustKeyboardInsets>
-      {children}
+      {fade ? <FadeIn>{children}</FadeIn> : children}
     </ScrollView>
   );
 }

@@ -1,14 +1,16 @@
 import { fromWallClock, wallClock, weekDates } from '@el-captain/rules/app-time';
-import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslations } from 'use-intl';
-import { api } from '@/api/client';
+import { load, peek } from '@/api/cache';
+import { PATHS, weekPath } from '@/api/paths';
 import type { PrivateRequest, Session, Sport, Venue } from '@/api/types';
-import { approvedSports, myVenues } from '@/coach/data';
+import { approvedSports, cachedSports, cachedVenues, myVenues } from '@/coach/data';
 import { fillLabel } from '@/coach/session-form';
 import { SessionForm } from '@/coach/SessionForm';
 import { useLocale } from '@/i18n/IntlProvider';
+import { openPage } from '@/nav/open';
 import { RequestList } from '@/requests/RequestList';
 import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -17,6 +19,7 @@ import { Button } from '@/ui/Button';
 import { Screen } from '@/ui/Screen';
 import { Segmented } from '@/ui/Segmented';
 import { Sheet } from '@/ui/Sheet';
+import { Bone, FadeIn, Loading, RowSkeleton } from '@/ui/Skeleton';
 import { Tag, typeTagKind } from '@/ui/Tag';
 import { Text } from '@/ui/Text';
 
@@ -24,7 +27,11 @@ type Tab = 'upcoming' | 'past' | 'requests';
 type View_ = 'week' | 'list';
 
 const noon = (date: string) => fromWallClock({ date, time: '12:00' })!;
-const list = <T,>(path: string) => api<T[]>(path).catch(() => [] as T[]);
+const list = <T,>(path: string) => load<T[]>(path).catch(() => [] as T[]);
+const peekWeek = (week: number) => {
+  const path = weekPath(week);
+  return (path && peek<Session[]>(path)) || null;
+};
 
 /** The web's coach My sessions on a phone: a week agenda or a list of upcoming sessions, past ones, and private requests. */
 export default function CoachSessions() {
@@ -40,12 +47,12 @@ export default function CoachSessions() {
   const [week, setWeek] = useState(0);
   const [adding, setAdding] = useState(false);
   const [reload, setReload] = useState(0);
-  const [upcoming, setUpcoming] = useState<Session[] | null>(null);
-  const [past, setPast] = useState<Session[] | null>(null);
-  const [weekList, setWeekList] = useState<Session[] | null>(null);
-  const [requests, setRequests] = useState<PrivateRequest[] | null>(null);
-  const [sports, setSports] = useState<Sport[] | null>(null);
-  const [venues, setVenues] = useState<Venue[] | null>(null);
+  const [upcoming, setUpcoming] = useState(() => peek<Session[]>(PATHS.myUpcoming) ?? null);
+  const [past, setPast] = useState(() => peek<Session[]>(PATHS.myPast) ?? null);
+  const [weekList, setWeekList] = useState(() => peekWeek(0));
+  const [requests, setRequests] = useState(() => peek<PrivateRequest[]>(PATHS.myRequests) ?? null);
+  const [sports, setSports] = useState<Sport[] | null>(cachedSports);
+  const [venues, setVenues] = useState<Venue[] | null>(() => cachedVenues({ active: true }));
   const [notice, setNotice] = useState<string | null>(null);
 
   // Opened from the dashboard's links (?tab=requests, ?add=1): act on each link once while rendering, then clear it,
@@ -69,9 +76,9 @@ export default function CoachSessions() {
       setFocused((n) => n + 1);
       approvedSports().then((s) => !stale && setSports(s));
       myVenues({ active: true }).then((v) => !stale && setVenues(v));
-      list<Session>('/api/sessions/me?when=upcoming&limit=50').then((r) => !stale && setUpcoming(r));
-      list<Session>('/api/sessions/me?when=past&limit=50').then((r) => !stale && setPast(r));
-      list<PrivateRequest>('/api/private-requests/me').then((r) => !stale && setRequests(r));
+      list<Session>(PATHS.myUpcoming).then((r) => !stale && setUpcoming(r));
+      list<Session>(PATHS.myPast).then((r) => !stale && setPast(r));
+      list<PrivateRequest>(PATHS.myRequests).then((r) => !stale && setRequests(r));
       return () => {
         stale = true;
       };
@@ -84,16 +91,13 @@ export default function CoachSessions() {
   // The shown week loads by date range, so it's complete however many sessions come before it.
   useEffect(() => {
     let stale = false;
-    const from = fromWallClock({ date: weekKey, time: '00:00' });
-    const to = fromWallClock({ date: weekDates(week + 1)[0], time: '00:00' });
-    if (!from || !to) return;
-    list<Session>(`/api/sessions/me?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`).then(
-      (r) => !stale && setWeekList(r),
-    );
+    const path = weekPath(week);
+    if (!path) return;
+    list<Session>(path).then((r) => !stale && setWeekList(r));
     return () => {
       stale = true;
     };
-  }, [week, weekKey, reload, focused]);
+  }, [week, reload, focused]);
 
   const pending = requests?.filter((r) => r.status === 'PENDING').length ?? 0;
   const showWeek = tab === 'upcoming' && view === 'week';
@@ -107,7 +111,19 @@ export default function CoachSessions() {
     end: `${l.day(last)} ${l.dayMonth(last)}`,
   });
   const count = t('weekCount', { count: inWeek.length });
-  const open = (s: Session) => router.push(`/coach-session/${s.id}` as Href);
+  const open = (s: Session) => openPage(`/coach-session/${s.id}`);
+  // The new week's sessions load by date range; show what we had for it, else placeholders, never an empty week.
+  const goWeek = (next: number) => {
+    setWeekList(peekWeek(next));
+    setWeek(next);
+  };
+  const skeleton = (lead: 'none' | 'date') => (
+    <Loading style={styles.cards}>
+      <RowSkeleton lead={lead} />
+      <RowSkeleton lead={lead} />
+      <RowSkeleton lead={lead} />
+    </Loading>
+  );
   const fillColor = (s: Session) => (s.type !== 'PRIVATE' && s.booked >= s.capacity ? colors.warn : colors.text);
 
   return (
@@ -138,16 +154,19 @@ export default function CoachSessions() {
         />
       )}
 
+      {tab === 'requests' && !requests && skeleton('none')}
       {tab === 'requests' && requests && (
-        <RequestList
-          role="coach"
-          requests={requests}
-          onChange={(r) => {
-            setRequests(requests.map((x) => (x.id === r.id ? r : x)));
-            // Accepting puts a private session on the calendar.
-            if (r.status === 'ACCEPTED') setReload((n) => n + 1);
-          }}
-        />
+        <FadeIn>
+          <RequestList
+            role="coach"
+            requests={requests}
+            onChange={(r) => {
+              setRequests(requests.map((x) => (x.id === r.id ? r : x)));
+              // Accepting puts a private session on the calendar.
+              if (r.status === 'ACCEPTED') setReload((n) => n + 1);
+            }}
+          />
+        </FadeIn>
       )}
 
       {showWeek && (
@@ -157,56 +176,60 @@ export default function CoachSessions() {
               accessibilityRole="button"
               accessibilityLabel={t('prevWeek')}
               disabled={week === 0}
-              onPress={() => setWeek(week - 1)}
+              onPress={() => goWeek(week - 1)}
               style={[styles.arrow, { borderColor: colors.border, opacity: week === 0 ? 0.4 : 1 }]}>
               <Text style={styles.arrowText}>{isRTL ? '›' : '‹'}</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('nextWeek')}
-              onPress={() => setWeek(week + 1)}
+              onPress={() => goWeek(week + 1)}
               style={[styles.arrow, { borderColor: colors.border }]}>
               <Text style={styles.arrowText}>{isRTL ? '‹' : '›'}</Text>
             </Pressable>
             <View style={styles.grow}>
               <Text style={styles.range}>{range}</Text>
-              <Text variant="label">{week === 0 ? t('thisWeek', { count }) : count}</Text>
+              {weekList ? <Text variant="label">{week === 0 ? t('thisWeek', { count }) : count}</Text> : <Bone width={120} height={12} />}
             </View>
           </View>
-          {weekList &&
-            days.map((day) => {
-              const items = inWeek.filter((s) => wallClock(new Date(s.startsAt)).date === day);
-              if (!items.length) return null;
-              const at = noon(day);
-              return (
-                <View key={day} style={styles.day}>
-                  <View style={styles.dayHead}>
-                    <Text variant="label" style={day === today ? { color: colors.accentText } : undefined}>
-                      {l.day(at)}
-                    </Text>
-                    <Text style={[styles.dayNum, day < today && { color: colors.text3 }, day === today && { color: colors.accentText }]}>{l.dayNum(at)}</Text>
-                  </View>
-                  {items.map((s) => (
-                    <Pressable
-                      key={s.id}
-                      accessibilityRole="link"
-                      onPress={() => open(s)}
-                      style={[
-                        styles.agendaRow,
-                        { backgroundColor: s.type === 'PRIVATE' ? colors.warnTint : colors.accentTint, borderStartColor: s.type === 'PRIVATE' ? colors.warn : colors.accentText },
-                      ]}>
-                      <Text variant="label">{l.time(s.startsAt)}</Text>
-                      <Text numberOfLines={1} style={styles.agendaTitle}>
-                        {l.title(s)}
-                      </Text>
-                      <Text variant="label" style={{ color: colors.text }}>
-                        {s.type === 'PRIVATE' ? l.oneToOne() : l.fill(s)}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              );
-            })}
+          {!weekList && skeleton('date')}
+          {weekList && (
+            <FadeIn key={weekKey}>
+              {days.map((day) => {
+                  const items = inWeek.filter((s) => wallClock(new Date(s.startsAt)).date === day);
+                  if (!items.length) return null;
+                  const at = noon(day);
+                  return (
+                    <View key={day} style={styles.day}>
+                      <View style={styles.dayHead}>
+                        <Text variant="label" style={day === today ? { color: colors.accentText } : undefined}>
+                          {l.day(at)}
+                        </Text>
+                        <Text style={[styles.dayNum, day < today && { color: colors.text3 }, day === today && { color: colors.accentText }]}>{l.dayNum(at)}</Text>
+                      </View>
+                      {items.map((s) => (
+                        <Pressable
+                          key={s.id}
+                          accessibilityRole="link"
+                          onPress={() => open(s)}
+                          style={[
+                            styles.agendaRow,
+                            { backgroundColor: s.type === 'PRIVATE' ? colors.warnTint : colors.accentTint, borderStartColor: s.type === 'PRIVATE' ? colors.warn : colors.accentText },
+                          ]}>
+                          <Text variant="label">{l.time(s.startsAt)}</Text>
+                          <Text numberOfLines={1} style={styles.agendaTitle}>
+                            {l.title(s)}
+                          </Text>
+                          <Text variant="label" style={{ color: colors.text }}>
+                            {s.type === 'PRIVATE' ? l.oneToOne() : l.fill(s)}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  );
+                })}
+            </FadeIn>
+          )}
           {weekList && inWeek.length === 0 && (
             <Text variant="label" style={styles.center}>
               {t.rich('emptyWeek', {
@@ -221,8 +244,9 @@ export default function CoachSessions() {
         </>
       )}
 
+      {tab !== 'requests' && !showWeek && !shown && skeleton('none')}
       {tab !== 'requests' && !showWeek && shown && (
-        <View style={styles.cards}>
+        <FadeIn key={tab} style={styles.cards}>
           {shown.map((s) => (
             <Pressable
               key={s.id}
@@ -252,7 +276,7 @@ export default function CoachSessions() {
             </Pressable>
           ))}
           {shown.length === 0 && <Text muted>{t('empty')}</Text>}
-        </View>
+        </FadeIn>
       )}
 
       <Sheet visible={adding} title={t('newSession')} onClose={() => setAdding(false)}>

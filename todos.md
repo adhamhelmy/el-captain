@@ -31,6 +31,10 @@ Open work, grouped by area. Each area is ordered by priority.
 - **Social logins:** Apple, Google, Instagram, TikTok
 - **Account deletion (backend).** Apple requires in-app account deletion before the app can ship to the App Store. The mobile app has the button; the API has no delete yet. Decide what happens to a coach's upcoming sessions and their bookings, and to a member's bookings (e.g. cancel and email those affected, then remove personal details).
 
+## Mobile
+
+- **Arabic needs a review.** Switching to Arabic crashes the app on its reload ("Cannot find native module 'ExpoAsset'" in Expo Go; reloading JS brings it back), and the layout still has issues once it's up. `supportsRTL` is now on in app.json; check mirroring, the crash, and every screen in a development build, not just Expo Go.
+
 ## Admin
 
 - **Coach page:** real stats and sessions

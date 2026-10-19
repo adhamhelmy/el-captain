@@ -1,3 +1,4 @@
+import { wallClock } from '@el-captain/rules/app-time';
 import { NAME_MAX, sportName } from '@el-captain/rules/coach-rules';
 import { MAX_FAVOURITE_SPORTS } from '@el-captain/rules/member-rules';
 import { MAX_AGE, MIN_AGE, type Gender } from '@el-captain/rules/profile-rules';
@@ -14,9 +15,11 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { Avatar } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { addYears } from '@/ui/calendar';
 import { Chip } from '@/ui/Chip';
+import { DateField } from '@/ui/DateField';
 import { Screen } from '@/ui/Screen';
-import { Segmented } from '@/ui/Segmented';
+import { FadeIn, FormSkeleton, Loading } from '@/ui/Skeleton';
 import { Text } from '@/ui/Text';
 import { TextField } from '@/ui/TextField';
 
@@ -37,6 +40,7 @@ const ltr = { writingDirection: 'ltr', textAlign: 'left' } as const;
 /** Mirrors the web's /user/profile: details, favourite sports, then settings. */
 export default function Profile() {
   const t = useTranslations('profile');
+  const today = wallClock(new Date()).date;
   const tc = useTranslations('common');
   const te = useTranslations('errors');
   const td = useTranslations('data');
@@ -115,6 +119,11 @@ export default function Profile() {
       <Text variant="display">{t('title')}</Text>
       {!me ? (
         <>
+          {!error && (
+            <Loading>
+              <FormSkeleton fields={5} />
+            </Loading>
+          )}
           {error && <Text style={{ color: colors.warn }}>{error}</Text>}
           {error && (
             <Button
@@ -129,7 +138,7 @@ export default function Profile() {
           <Settings />
         </>
       ) : (
-        <>
+        <FadeIn>
           <Card>
             <View style={styles.head}>
               <Avatar name={form.name || me.name} />
@@ -163,29 +172,29 @@ export default function Profile() {
               hint={t('phoneHint')}
               error={problems.phone ? t(problems.phone) : null}
             />
-            <TextField
+            <DateField
               label={t('birthDate')}
               value={form.birthDate}
-              onChangeText={(birthDate) => edit({ birthDate })}
-              keyboardType="numbers-and-punctuation"
-              placeholder="YYYY-MM-DD"
-              maxLength={10}
-              style={ltr}
+              onChange={(birthDate) => edit({ birthDate })}
+              today={today}
+              min={addYears(today, -MAX_AGE)}
+              max={addYears(today, -MIN_AGE)}
               hint={t('personalHintMember')}
               error={problems.birthDate ? t('birthDateRule', { min: MIN_AGE, max: MAX_AGE }) : null}
             />
             <View style={styles.group}>
               <Text variant="label">{t('gender')}</Text>
-              <Segmented
-                label={t('gender')}
-                value={form.gender || 'unset'}
-                onChange={(g) => edit({ gender: g === 'unset' ? '' : g })}
-                options={[
-                  { value: 'unset' as const, label: t('genderUnset') },
-                  { value: 'MALE' as const, label: td('gender.MALE') },
-                  { value: 'FEMALE' as const, label: td('gender.FEMALE') },
-                ]}
-              />
+              {/* Chips, not a segmented control: "Prefer not to say" needs more room than a third of the row. */}
+              <View style={styles.chips}>
+                {(['MALE', 'FEMALE', 'unset'] as const).map((g) => (
+                  <Chip
+                    key={g}
+                    label={g === 'unset' ? t('genderUnset') : td(`gender.${g}`)}
+                    on={(form.gender || 'unset') === g}
+                    onPress={() => edit({ gender: g === 'unset' ? '' : g })}
+                  />
+                ))}
+              </View>
             </View>
             <View style={styles.group}>
               <Text variant="label">
@@ -206,7 +215,7 @@ export default function Profile() {
             <Button label={tc('save')} onPress={save} busy={busy} />
           </Card>
           <Settings />
-        </>
+        </FadeIn>
       )}
     </Screen>
   );

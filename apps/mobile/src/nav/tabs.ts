@@ -24,3 +24,19 @@ export const TABS: Record<Audience, Tab[]> = {
     { name: 'sign-in', icon: LogIn, labelKey: 'common.logIn' },
   ],
 };
+
+/** Pages outside the tab groups that still show the bar: detail pages, and the guest's sign-up and reset pages. */
+const DETAIL = /^\/(session|coach-profile|client|coach-session)\//;
+const GUEST_PAGES: Record<string, string> = { '/register': 'sign-in', '/forgot-password': 'sign-in' };
+
+/**
+ * The tab bar a page outside the tab groups shows, so the bar never disappears: whose tabs, and which one is lit
+ * (none on a detail page, which can be reached from several tabs). Null where there is no bar, such as onboarding.
+ */
+export function barFor(pathname: string, home: string): { audience: Audience; active: string | null } | null {
+  const audience = (['user', 'coach', 'guest'] as const).find((a) => home.startsWith(`/${a}/`));
+  if (!audience) return null;
+  if (DETAIL.test(pathname)) return { audience, active: null };
+  if (audience === 'guest' && pathname in GUEST_PAGES) return { audience, active: GUEST_PAGES[pathname] };
+  return null;
+}

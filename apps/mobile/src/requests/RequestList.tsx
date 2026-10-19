@@ -1,9 +1,11 @@
-import { router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslations } from 'use-intl';
+import { forget } from '@/api/cache';
 import { api, ApiError } from '@/api/client';
+import { PATHS } from '@/api/paths';
 import type { PrivateRequest, RequestState } from '@/api/types';
+import { openPage } from '@/nav/open';
 import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Button } from '@/ui/Button';
@@ -36,6 +38,9 @@ export function RequestList({ role, requests, onChange }: { role: 'member' | 'co
       setRejecting('');
       setNote('');
       onChange(r);
+      // The kept request lists (and, once accepted, the upcoming sessions) are out of date now: reload them on the next visit.
+      forget(PATHS.myRequests);
+      forget(PATHS.myUpcoming);
     } catch (e) {
       const code = e instanceof ApiError ? e.code : undefined;
       setError(te(ACTION_ERRORS.find((c) => c === code) ?? 'generic'));
@@ -62,7 +67,7 @@ export function RequestList({ role, requests, onChange }: { role: 'member' | 'co
           {r.message && <Text>{t('message', { message: r.message })}</Text>}
           {r.responseNote && <Text>{t('note', { note: r.responseNote })}</Text>}
           {r.status === 'ACCEPTED' && r.sessionId && (
-            <LinkText label={t('viewSession')} onPress={() => router.push(`${role === 'coach' ? '/coach-session' : '/session'}/${r.sessionId}` as Href)} />
+            <LinkText label={t('viewSession')} onPress={() => openPage(`${role === 'coach' ? '/coach-session' : '/session'}/${r.sessionId}`)} />
           )}
           {r.status === 'PENDING' && role === 'member' && (
             <Button variant="secondary" label={t('withdraw')} busy={busy === r.id} onPress={() => run(r.id, 'cancel')} />

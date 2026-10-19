@@ -1,18 +1,21 @@
 import { clockLength } from '@el-captain/rules/media';
 import { socialHandle, sportName } from '@el-captain/rules/coach-rules';
 import { Image } from 'expo-image';
-import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Link as LinkIcon, MapPin, Play } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslations } from 'use-intl';
-import { api } from '@/api/client';
+import { load, peek } from '@/api/cache';
+import { DETAIL } from '@/api/paths';
 import type { Media, PublicCoach, Session } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
+import { languageName } from '@/coach/languages';
 import { filterSports } from '@/coaches/profile';
 import { RequestForm } from '@/coaches/RequestForm';
 import { useLocale } from '@/i18n/IntlProvider';
+import { openPage } from '@/nav/open';
 import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
@@ -22,21 +25,12 @@ import { Card } from '@/ui/Card';
 import { Chip } from '@/ui/Chip';
 import { LinkText } from '@/ui/LinkText';
 import { Screen } from '@/ui/Screen';
+import { DetailSkeleton } from '@/ui/Skeleton';
 import { Stripes } from '@/ui/Stripes';
 import { Text } from '@/ui/Text';
 
 /** Few enough spots left that the row says so in accent (as the web's). */
 const LOW_SPOTS = 3;
-
-
-/** A language's name in the reader's language when the device can say it, else its code. */
-const languageName = (code: string, locale: string) => {
-  try {
-    return new Intl.DisplayNames([locale], { type: 'language' }).of(code) ?? code;
-  } catch {
-    return code.toUpperCase();
-  }
-};
 
 const hostOf = (url: string) => {
   try {
@@ -56,7 +50,7 @@ function SessionRow({ s }: { s: Session }) {
   return (
     <Pressable
       accessibilityRole="link"
-      onPress={() => router.push(`/session/${s.id}` as Href)}
+      onPress={() => openPage(`/session/${s.id}`)}
       style={[styles.sessionRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={[styles.date, { backgroundColor: colors.surface2 }]}>
         <Text variant="label">{l.day(s.startsAt)}</Text>
@@ -90,6 +84,7 @@ function SessionRow({ s }: { s: Session }) {
 export default function CoachProfilePage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const t = useTranslations('coachProfile');
+  const tx = useTranslations('explore');
   const td = useTranslations('data');
   const to = useTranslations('onboarding');
   const te = useTranslations('errors');
@@ -98,8 +93,8 @@ export default function CoachProfilePage() {
   const insets = useSafeAreaInsets();
   const l = useSessionLabels();
   const { user, returnTo, setReturnTo } = useAuth();
-  const [c, setC] = useState<PublicCoach | null | undefined>(undefined);
-  const [sessions, setSessions] = useState<Session[]>([]);
+  const [c, setC] = useState<PublicCoach | null | undefined>(() => peek<PublicCoach>(DETAIL.coach(id)));
+  const [sessions, setSessions] = useState<Session[]>(() => peek<Session[]>(DETAIL.coachSessions(id)) ?? []);
   const [sport, setSport] = useState('all');
   const [asking, setAsking] = useState(false);
   const [sent, setSent] = useState(false);
@@ -114,10 +109,11 @@ export default function CoachProfilePage() {
 
   useEffect(() => {
     let stale = false;
-    api<PublicCoach>(`/api/coaches/${id}`)
+    load<PublicCoach>(DETAIL.coach(id))
       .then((d) => !stale && setC(d))
-      .catch(() => !stale && setC(null));
-    api<Session[]>(`/api/sessions?limit=50&coach=${id}`)
+      // Offline with this page already showing from the cache: keep it rather than swap in the error.
+      .catch(() => !stale && setC((shown) => shown ?? null));
+    load<Session[]>(DETAIL.coachSessions(id))
       .catch(() => [])
       .then((list) => !stale && setSessions(list));
     return () => {
@@ -127,13 +123,18 @@ export default function CoachProfilePage() {
 
   if (c === null) {
     return (
-      <Screen tabs={false}>
+      <Screen>
         <BackLink label={t('backToExplore')} />
         <Text variant="display">{te('generic')}</Text>
       </Screen>
     );
   }
-  if (!c) return <Screen tabs={false}>{null}</Screen>;
+  if (!c)
+    return (
+      <Screen>
+        <DetailSkeleton cover />
+      </Screen>
+    );
 
   const firstName = c.name.trim().split(/\s+/)[0];
   const meta = [
@@ -164,7 +165,7 @@ export default function CoachProfilePage() {
   const showRequest = !user || isMember;
 
   return (
-    <Screen tabs={false}>
+    <Screen fade>
       <BackLink label={t('backToExplore')} />
       <View style={[styles.cover, { backgroundColor: colors.surface }]}>
         {c.coverUrl ? <Image source={{ uri: c.coverUrl }} style={StyleSheet.absoluteFill} contentFit="cover" /> : <Stripes />}
@@ -175,7 +176,8 @@ export default function CoachProfilePage() {
         </View>
         <Text variant="display">{c.name}</Text>
         <Text variant="label">
-          {[t('rating', { rating: '0.0' }), t('reviews', { count: 0 }), ...meta].join(' · ')}
+          {/* Reviews aren't built yet: say so, as the Explore card does, rather than a 0.0 rating. */}
+          {[tx('noReviews'), ...meta].join(' · ')}
         </Text>
       </View>
       {sent && (

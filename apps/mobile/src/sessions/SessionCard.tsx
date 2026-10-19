@@ -1,8 +1,8 @@
 import { Image } from 'expo-image';
-import { router, type Href } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 import type { Session } from '@/api/types';
+import { openPage } from '@/nav/open';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 import { Stripes } from '@/ui/Stripes';
@@ -18,7 +18,7 @@ export function SessionCard({ s }: { s: Session }) {
   return (
     <Pressable
       accessibilityRole="link"
-      onPress={() => router.push(`/session/${s.id}` as Href)}
+      onPress={() => openPage(`/session/${s.id}`)}
       style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.head}>
         {s.coverUrl ? (

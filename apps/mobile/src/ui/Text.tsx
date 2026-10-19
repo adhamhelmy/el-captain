@@ -13,7 +13,8 @@ export function Text({ variant = 'body', muted, style, ...rest }: Props) {
   const ar = isRTL;
 
   const base = {
-    display: { fontFamily: ar ? fonts.arabicBold : fonts.display, fontSize: 48, lineHeight: 50, letterSpacing: ar ? 0 : 1, color: colors.text },
+    // Cairo is much taller than Bebas Neue: a fixed 50pt line clips the top of Arabic letters, so Arabic keeps its natural height.
+    display: { fontFamily: ar ? fonts.arabicBold : fonts.display, fontSize: 48, lineHeight: ar ? undefined : 50, letterSpacing: ar ? 0 : 1, color: colors.text },
     title: { fontFamily: ar ? fonts.arabicBold : fonts.display, fontSize: 24, letterSpacing: ar ? 0 : 1, color: colors.text },
     body: { fontFamily: uiFont(ar), fontSize: 15, lineHeight: 24, color: colors.text },
     label: { fontFamily: uiFont(ar, 'medium'), fontSize: 13, color: colors.text2 },

@@ -11,6 +11,7 @@ import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Button } from '@/ui/Button';
 import { Chip } from '@/ui/Chip';
+import { DateField } from '@/ui/DateField';
 import { Text } from '@/ui/Text';
 import { TextField } from '@/ui/TextField';
 import { requestProblems, requestStart, type RequestField } from './request';
@@ -26,6 +27,7 @@ export function RequestForm({ coach, onSent }: { coach: PublicCoach; onSent: () 
   const te = useTranslations('errors');
   const { locale } = useLocale();
   const { colors } = useTheme();
+  const today = wallClock(new Date()).date;
   const l = useSessionLabels();
   const [draft, setDraft] = useState({
     venueId: coach.venues[0]?.id ?? '',
@@ -89,19 +91,15 @@ export function RequestForm({ coach, onSent }: { coach: PublicCoach; onSent: () 
           ))}
         </View>
       </View>
+      <DateField
+        label={t('date')}
+        value={draft.date}
+        onChange={(date) => edit({ date })}
+        today={today}
+        min={today}
+        invalid={startsBad || formatBad || bad.includes('startsAt')}
+      />
       <View style={styles.row}>
-        <View style={styles.grow}>
-          <TextField
-            label={t('date')}
-            value={draft.date}
-            onChangeText={(date) => edit({ date })}
-            placeholder={wallClock(new Date()).date}
-            keyboardType="numbers-and-punctuation"
-            maxLength={10}
-            style={ltr}
-            invalid={startsBad || formatBad || bad.includes('startsAt')}
-          />
-        </View>
         <View style={styles.grow}>
           <TextField
             label={t('time')}

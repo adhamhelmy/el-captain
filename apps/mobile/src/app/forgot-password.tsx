@@ -42,7 +42,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <Screen tabs={false}>
+    <Screen>
       <LinkText label={t('back')} onPress={() => router.back()} muted />
       {sent ? (
         <View style={styles.head}>
