@@ -1,10 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
+import { clearCache, prefetch } from '@/api/cache';
 import { configureApi } from '@/api/client';
+import { prefetchPaths } from '@/api/paths';
 import { useLocale } from '@/i18n/IntlProvider';
 import { shouldRefresh } from './refresh';
 import * as session from './session';
-import type { MobileUser, Notice } from './session';
+import { noticeOf, type MobileUser, type Notice } from './session';
 
 type AuthValue = {
   status: 'loading' | 'ready';
@@ -48,9 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async (why?: Notice) => {
     await session.signOut();
     token.current = null;
+    clearCache();
     setUser(null);
     setReturnTo(null);
-    if (why) setNotice(why);
+    const notice = noticeOf(why);
+    if (notice) setNotice(notice);
   }, []);
 
   useEffect(() => {
@@ -72,6 +76,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setStatus('ready');
       });
   }, [accept]);
+
+  // Load the signed-in person's tabs in the background so they open filled in. When it becomes someone else (or a
+  // coach is approved), start over first; not at launch, when screens' own loads are already filling the empty cache.
+  const role = user?.role;
+  const coachStatus = user?.coachStatus;
+  const userId = user?.id;
+  const cachedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (status !== 'ready') return;
+    const who = `${userId}|${role}|${coachStatus}`;
+    if (cachedFor.current !== null && cachedFor.current !== who) clearCache();
+    cachedFor.current = who;
+    prefetch(prefetchPaths(role ? { role, coachStatus } : null));
+  }, [status, userId, role, coachStatus]);
 
   // Back from the background: pick up an approval, suspension or password change made on the web meanwhile.
   useEffect(() => {

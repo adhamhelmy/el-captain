@@ -1,14 +1,18 @@
 import { endsAt, sessionPhase } from '@el-captain/rules/session-rules';
 import { Image } from 'expo-image';
-import { router, useLocalSearchParams, type Href } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { Pencil } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useTranslations } from 'use-intl';
+import { load, peek, remember } from '@/api/cache';
 import { api, ApiError } from '@/api/client';
+import { DETAIL } from '@/api/paths';
 import type { Attendee, SessionDetail, Sport, Venue } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
 import { approvedSports, myVenues } from '@/coach/data';
 import { SessionForm } from '@/coach/SessionForm';
+import { openPage } from '@/nav/open';
 import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
@@ -18,6 +22,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { LinkText } from '@/ui/LinkText';
 import { Screen } from '@/ui/Screen';
+import { DetailSkeleton } from '@/ui/Skeleton';
 import { Sheet } from '@/ui/Sheet';
 import { Tag, typeTagKind } from '@/ui/Tag';
 import { Text } from '@/ui/Text';
@@ -36,8 +41,8 @@ export default function CoachSessionPage() {
   const l = useSessionLabels();
   const { colors } = useTheme();
   const { user } = useAuth();
-  const [s, setS] = useState<SessionDetail | null | undefined>(undefined);
-  const [roster, setRoster] = useState<Attendee[]>([]);
+  const [s, setS] = useState<SessionDetail | null | undefined>(() => peek<SessionDetail>(DETAIL.session(id)));
+  const [roster, setRoster] = useState<Attendee[]>(() => peek<Attendee[]>(DETAIL.attendees(id)) ?? []);
   const [editing, setEditing] = useState(false);
   const [sports, setSports] = useState<Sport[] | null>(null);
   const [venues, setVenues] = useState<Venue[] | null>(null);
@@ -49,9 +54,10 @@ export default function CoachSessionPage() {
 
   useEffect(() => {
     let stale = false;
-    api<SessionDetail>(`/api/sessions/${id}`)
+    load<SessionDetail>(DETAIL.session(id))
       .then((d) => !stale && setS(d))
-      .catch(() => !stale && setS(null));
+      // Offline with this page already showing from the cache: keep it rather than swap in the error.
+      .catch(() => !stale && setS((shown) => shown ?? null));
     return () => {
       stale = true;
     };
@@ -59,7 +65,7 @@ export default function CoachSessionPage() {
 
   useEffect(() => {
     if (!own) return;
-    api<Attendee[]>(`/api/sessions/${id}/attendees`)
+    load<Attendee[]>(DETAIL.attendees(id))
       .then(setRoster)
       .catch(() => setRoster([]));
   }, [id, own]);
@@ -72,13 +78,18 @@ export default function CoachSessionPage() {
 
   if (s === null) {
     return (
-      <Screen tabs={false}>
+      <Screen>
         <BackLink label={t('back')} />
         <Text variant="display">{te('generic')}</Text>
       </Screen>
     );
   }
-  if (!s) return <Screen tabs={false}>{null}</Screen>;
+  if (!s)
+    return (
+      <Screen>
+        <DetailSkeleton />
+      </Screen>
+    );
   const phase = sessionPhase(s);
 
   async function cancel() {
@@ -88,6 +99,8 @@ export default function CoachSessionPage() {
       const r = await api<SessionDetail>(`/api/sessions/${id}/cancel`, { method: 'POST', json: { reason } });
       setS({ ...r, bookedByMe: false });
       setRoster([]);
+      remember(DETAIL.session(id), { ...r, bookedByMe: false });
+      remember(DETAIL.attendees(id), []);
       setCancelling(false);
     } catch (e) {
       const code = e instanceof ApiError ? e.code : undefined;
@@ -108,7 +121,7 @@ export default function CoachSessionPage() {
   const fill = s.capacity ? Math.min(s.booked / s.capacity, 1) : 0;
 
   return (
-    <Screen tabs={false}>
+    <Screen fade>
       <BackLink label={own ? t('backToMine') : t('back')} />
       {s.coverUrl && <Image source={{ uri: s.coverUrl }} style={styles.cover} contentFit="cover" />}
 
@@ -124,11 +137,11 @@ export default function CoachSessionPage() {
         <View style={styles.actions}>
           {s.type === 'GROUP' && (
             <View style={styles.grow}>
-              <Button variant="secondary" label={t('edit')} onPress={() => setEditing(true)} />
+              <Button label={t('edit')} icon={Pencil} onPress={() => setEditing(true)} />
             </View>
           )}
           <View style={styles.grow}>
-            <Button variant="danger" label={t('cancelSession')} onPress={() => setCancelling(true)} />
+            <Button variant="dangerOutline" label={t('cancelSession')} onPress={() => setCancelling(true)} />
           </View>
         </View>
       )}
@@ -177,7 +190,7 @@ export default function CoachSessionPage() {
             <Pressable
               key={a.bookingId}
               accessibilityRole="link"
-              onPress={() => router.push(`/client/${a.memberId}` as Href)}
+              onPress={() => openPage(`/client/${a.memberId}`)}
               style={[styles.attendee, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Avatar name={a.name} size={34} />
               <View style={styles.grow}>
@@ -202,6 +215,7 @@ export default function CoachSessionPage() {
             onCancel={() => setEditing(false)}
             onSaved={([saved]) => {
               setS({ ...saved, bookedByMe: false });
+              remember(DETAIL.session(id), { ...saved, bookedByMe: false });
               setEditing(false);
             }}
           />

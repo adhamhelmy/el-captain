@@ -3,7 +3,8 @@ import { Search } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useTranslations } from 'use-intl';
-import { api } from '@/api/client';
+import { load, peek, prefetch } from '@/api/cache';
+import { PATHS } from '@/api/paths';
 import type { PublicCoach, Session, Sport } from '@/api/types';
 import { useLocale } from '@/i18n/IntlProvider';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -11,6 +12,7 @@ import { fonts, radius, uiFont } from '@/theme/tokens';
 import { Button } from '@/ui/Button';
 import { Chip } from '@/ui/Chip';
 import { Screen } from '@/ui/Screen';
+import { Bone, CardSkeleton, FadeIn, Loading } from '@/ui/Skeleton';
 import { Text } from '@/ui/Text';
 import { CoachCard } from './CoachCard';
 import { exploreQuery, sportHits } from './search';
@@ -19,6 +21,7 @@ import { SessionCard } from './SessionCard';
 /** How long typing must pause before the search is sent, and coaches shown before "Show all" (as on the web). */
 const SEARCH_DELAY_MS = 300;
 const COACHES_SHOWN = 4;
+const paths = (query: string) => [`/api/coaches?${query}`, `/api/sessions?${query}`] as const;
 
 function Empty({ text }: { text: string }) {
   const { colors } = useTheme();
@@ -40,14 +43,18 @@ export function Explore() {
   const [q, setQ] = useState('');
   const [needle, setNeedle] = useState('');
   const [sport, setSport] = useState('all');
-  const [sports, setSports] = useState<Sport[]>([]);
-  const [coaches, setCoaches] = useState<PublicCoach[] | null>(null);
-  const [sessions, setSessions] = useState<Session[] | null>(null);
+  const [sports, setSports] = useState(() => peek<Sport[]>(PATHS.sports) ?? null);
+  const [coaches, setCoaches] = useState(() => peek<PublicCoach[]>(PATHS.exploreCoaches) ?? null);
+  const [sessions, setSessions] = useState(() => peek<Session[]>(PATHS.exploreSessions) ?? null);
   const [allCoaches, setAllCoaches] = useState(false);
 
   useEffect(() => {
-    api<Sport[]>('/api/sports')
-      .then(setSports)
+    load<Sport[]>(PATHS.sports)
+      .then((list) => {
+        setSports(list);
+        // Each sport's results load in the background, so tapping its chip shows them at once.
+        prefetch(list.flatMap((s) => paths(exploreQuery({ sport: s.id, q: '' }))));
+      })
       .catch(() => setSports([]));
   }, []);
 
@@ -59,15 +66,15 @@ export function Explore() {
   useEffect(() => {
     // A slow answer to an older search must not replace a newer one.
     let stale = false;
-    const query = exploreQuery({ sport, q: needle });
-    api<PublicCoach[]>(`/api/coaches?${query}`)
+    const [coachPath, sessionPath] = paths(exploreQuery({ sport, q: needle }));
+    load<PublicCoach[]>(coachPath)
       .catch(() => [])
       .then((list) => {
         if (stale) return;
         setCoaches(list);
         setAllCoaches(false);
       });
-    api<Session[]>(`/api/sessions?${query}`)
+    load<Session[]>(sessionPath)
       .catch(() => [])
       .then((list) => !stale && setSessions(list));
     return () => {
@@ -75,12 +82,20 @@ export function Explore() {
     };
   }, [sport, needle]);
 
-  const pickSport = (id: string) => {
+  // A new sport shows its results at once: what was loaded for it before, else placeholders, never the old sport's list.
+  const chooseSport = (id: string, query = needle) => {
+    const [coachPath, sessionPath] = paths(exploreQuery({ sport: id, q: query }));
     setSport(id);
+    setCoaches(peek<PublicCoach[]>(coachPath) ?? null);
+    setSessions(peek<Session[]>(sessionPath) ?? null);
+    setAllCoaches(false);
+  };
+  const pickSport = (id: string) => {
     setQ('');
     setNeedle('');
+    chooseSport(id, '');
   };
-  const hits = sportHits(sports, needle, sport);
+  const hits = sportHits(sports ?? [], needle, sport);
   const filtered = needle !== '' || sport !== 'all';
   const shownCoaches = allCoaches ? coaches : coaches?.slice(0, COACHES_SHOWN);
 
@@ -104,9 +119,10 @@ export function Explore() {
         />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipRow}>
-        <Chip label={td('all')} on={sport === 'all'} onPress={() => setSport('all')} />
-        {sports.map((s) => (
-          <Chip key={s.id} label={sportName(s, locale)} on={sport === s.id} onPress={() => setSport(s.id)} />
+        <Chip label={td('all')} on={sport === 'all'} onPress={() => chooseSport('all')} />
+        {sports === null && [72, 96, 64, 88].map((w) => <Bone key={w} width={w} height={36} round={radius.pill} />)}
+        {sports?.map((s) => (
+          <Chip key={s.id} label={sportName(s, locale)} on={sport === s.id} onPress={() => chooseSport(s.id)} />
         ))}
       </ScrollView>
 
@@ -121,12 +137,23 @@ export function Explore() {
         </View>
       )}
 
+      {coaches === null && (
+        <View style={styles.section}>
+          <Text variant="title">{t('coaches')}</Text>
+          <Loading style={styles.list}>
+            <CardSkeleton avatar />
+            <CardSkeleton avatar />
+          </Loading>
+        </View>
+      )}
       {coaches && (coaches.length > 0 || filtered) && (
         <View style={styles.section}>
           <Text variant="title">{t('coaches')}</Text>
-          {shownCoaches?.map((c) => (
-            <CoachCard key={c.id} c={c} />
-          ))}
+          <FadeIn style={styles.list}>
+            {shownCoaches?.map((c) => (
+              <CoachCard key={c.id} c={c} />
+            ))}
+          </FadeIn>
           {coaches.length === 0 && <Empty text={t('noCoaches')} />}
           {coaches.length > COACHES_SHOWN && (
             <Button
@@ -140,10 +167,19 @@ export function Explore() {
 
       <View style={styles.section}>
         <Text variant="title">{t('sessions')}</Text>
-        {sessions?.map((s) => (
-          <SessionCard key={s.id} s={s} />
-        ))}
-        {sessions?.length === 0 && <Empty text={t('noSessions')} />}
+        {sessions === null ? (
+          <Loading style={styles.list}>
+            <CardSkeleton />
+            <CardSkeleton />
+          </Loading>
+        ) : (
+          <FadeIn style={styles.list}>
+            {sessions.map((s) => (
+              <SessionCard key={s.id} s={s} />
+            ))}
+            {sessions.length === 0 && <Empty text={t('noSessions')} />}
+          </FadeIn>
+        )}
       </View>
     </Screen>
   );
@@ -157,6 +193,7 @@ const styles = StyleSheet.create({
   chips: { gap: 8, paddingHorizontal: 16 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   section: { gap: 12, marginTop: 8 },
+  list: { gap: 12 },
   empty: { borderWidth: 1, borderStyle: 'dashed', borderRadius: radius.card, padding: 24 },
   center: { textAlign: 'center' },
 });

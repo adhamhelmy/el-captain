@@ -7,6 +7,11 @@ export type MobileUser = { id: string; name: string; email: string; role: Role; 
 export type Notice = 'signedOut' | 'accountSuspended' | 'network' | 'passwordChanged';
 export type Session = { token: string | null; user: MobileUser | null; notice?: Notice };
 
+const NOTICES: readonly Notice[] = ['signedOut', 'accountSuspended', 'network', 'passwordChanged'];
+
+/** A notice, or null for anything else (a button wired straight to signOut passes its press event). */
+export const noticeOf = (why: unknown): Notice | null => (NOTICES.includes(why as Notice) ? (why as Notice) : null);
+
 export const TOKEN_KEY = 'token';
 export const USER_KEY = 'user';
 

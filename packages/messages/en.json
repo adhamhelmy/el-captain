@@ -56,7 +56,13 @@
     "fullName": "Full name",
     "change": "Change",
     "comingSoon": "Coming soon.",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "loading": "Loading",
+    "pickDate": "Pick a date",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "pickYear": "Pick a year",
+    "thousands": "{n}k"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -304,7 +310,8 @@
     "network": "Can't reach El Captain. Check your connection and try again.",
     "signedOut": "You were signed out. Log in again.",
     "adminWeb": "Admin accounts use the website.",
-    "passwordChanged": "Password updated. Log in with your new password."
+    "passwordChanged": "Password updated. Log in with your new password.",
+    "passwordRequired": "Enter your password."
   },
   "login": {
     "title": "WELCOME BACK",
@@ -440,8 +447,13 @@
       "revenue": "Expected earnings (30 days)",
       "fill": "Fill rate (30 days)"
     },
+    "statsShort": {
+      "bookings": "Booked (7d)",
+      "revenue": "Earnings (30d)",
+      "fill": "Fill rate (30d)"
+    },
     "comingUp": "COMING UP",
-    "schedule": "Schedule",
+    "schedule": "My schedule",
     "requestsTitle": "PRIVATE REQUESTS",
     "allRequests": "All requests",
     "noRequests": "No requests waiting.",

@@ -1,3 +1,5 @@
+// First, before anything formats a message: the phone's JS engine lacks parts of Intl.
+import '@/i18n/polyfills';
 import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { Cairo_500Medium, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { SpaceGrotesk_400Regular, SpaceGrotesk_500Medium, SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
@@ -8,6 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { IntlProvider } from '@/i18n/IntlProvider';
+import { DetailTabBar } from '@/nav/FloatingTabBar';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { NoticeBanner } from '@/ui/NoticeBanner';
 
@@ -28,6 +31,8 @@ function Root({ fontsReady }: { fontsReady: boolean }) {
     <>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
+      {/* Detail pages sit outside the tab groups; this keeps the bar on them, still while they slide in. */}
+      <DetailTabBar />
       <NoticeBanner />
     </>
   );

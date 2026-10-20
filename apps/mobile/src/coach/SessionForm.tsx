@@ -15,6 +15,7 @@ import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Button } from '@/ui/Button';
 import { Chip } from '@/ui/Chip';
+import { DateField } from '@/ui/DateField';
 import { LinkText } from '@/ui/LinkText';
 import { Segmented } from '@/ui/Segmented';
 import { Text } from '@/ui/Text';
@@ -47,6 +48,7 @@ export function SessionForm({ session, sports: activeSports, venues: initialVenu
   const tv = useTranslations('venues');
   const { locale } = useLocale();
   const { colors } = useTheme();
+  const today = wallClock(new Date()).date;
   const f = useFormatter();
   const l = useSessionLabels();
   const [activeVenues, setActiveVenues] = useState(initialVenues);
@@ -190,32 +192,15 @@ export function SessionForm({ session, sports: activeSports, venues: initialVenu
       </View>
 
       <Text variant="eyebrow">{t('groupWhen')}</Text>
-      <View style={styles.row}>
-        <View style={styles.grow}>
-          <TextField
-            label={t('date')}
-            value={d.date}
-            onChangeText={(date) => edit({ date })}
-            placeholder={wallClock(new Date()).date}
-            keyboardType="numbers-and-punctuation"
-            maxLength={10}
-            editable={!locked}
-            style={ltr}
-            invalid={whenBad}
-          />
-        </View>
-        <View style={styles.minutes}>
-          <TextField
-            label={t('minutes')}
-            value={d.duration}
-            onChangeText={(duration) => edit({ duration })}
-            keyboardType="number-pad"
-            editable={!locked}
-            style={ltr}
-            invalid={bad('durationMin', d.duration)}
-          />
-        </View>
-      </View>
+      <DateField
+        label={t('date')}
+        value={d.date}
+        onChange={(date) => edit({ date })}
+        today={today}
+        min={today}
+        editable={!locked}
+        invalid={whenBad}
+      />
       <View style={styles.timeRow}>
         <View style={styles.grow}>
           <TextField
@@ -239,6 +224,19 @@ export function SessionForm({ session, sports: activeSports, venues: initialVenu
             ]}
             value={clock.period}
             onChange={(period: Period) => !locked && setTime(clock.text, period)}
+          />
+        </View>
+      </View>
+      <View style={styles.row}>
+        <View style={styles.minutes}>
+          <TextField
+            label={t('minutes')}
+            value={d.duration}
+            onChangeText={(duration) => edit({ duration })}
+            keyboardType="number-pad"
+            editable={!locked}
+            style={ltr}
+            invalid={bad('durationMin', d.duration)}
           />
         </View>
       </View>

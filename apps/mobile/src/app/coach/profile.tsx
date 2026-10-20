@@ -1,6 +1,6 @@
 import { birthDateInvalid, privateDraftOk } from '@el-captain/rules/coach-form';
 import { BIO_MAX, CITY_MAX, MAX_LINKS, NAME_MAX } from '@el-captain/rules/coach-rules';
-import { router, useFocusEffect, type Href } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,12 +19,14 @@ import { PrivateSettings } from '@/coach/PrivateSettings';
 import { profileBody, profileFormOf, profileSnapshot, type ProfileForm } from '@/coach/profile-form';
 import { SportPicker } from '@/coach/SportPicker';
 import { TAB_BAR_GAP, TAB_BAR_HEIGHT } from '@/nav/FloatingTabBar';
+import { openPage } from '@/nav/open';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { LinkText } from '@/ui/LinkText';
 import { Screen } from '@/ui/Screen';
+import { FadeIn, FormSkeleton, Loading } from '@/ui/Skeleton';
 import { Text } from '@/ui/Text';
 import { TextField } from '@/ui/TextField';
 
@@ -109,6 +111,12 @@ export default function CoachProfile() {
     return (
       <Screen>
         <Text variant="display">{tp('title')}</Text>
+        {!error && (
+          <Loading>
+            <FormSkeleton fields={4} />
+            <FormSkeleton fields={2} />
+          </Loading>
+        )}
         {error && <Text style={{ color: colors.warn }}>{error}</Text>}
         {error && (
           <LinkText
@@ -153,72 +161,74 @@ export default function CoachProfile() {
     <View style={styles.fill}>
       <Screen>
         <Text variant="display">{tp('title')}</Text>
-        <LinkText label={t('viewPublic')} onPress={() => router.push(`/coach-profile/${profile.id}` as Href)} />
+        <FadeIn>
+          <LinkText label={t('viewPublic')} onPress={() => openPage(`/coach-profile/${profile.id}`)} />
 
-        <Section title={t('section.public')}>
-          <CoverPicker onBusy={track} userId={profile.id} url={form.cover?.url ?? profile.coverUrl} onUploaded={(path, url) => set({ cover: { path, url } })} />
-          <PhotoPicker onBusy={track} userId={profile.id} url={form.photo?.url ?? profile.photoUrl} onUploaded={(path, url) => set({ photo: { path, url } })} />
-          <TextField label={t('displayName')} value={form.name} maxLength={NAME_MAX} onChangeText={(name) => set({ name })} />
-          <TextField label={to('address')} value={form.city} maxLength={CITY_MAX} placeholder={to('addressPlaceholder')} onChangeText={(city) => set({ city })} />
-          <TextField
-            label={t('bio')}
-            value={form.bio}
-            maxLength={BIO_MAX}
-            multiline
-            style={styles.bio}
-            onChangeText={(bio) => set({ bio })}
-            aside={<Text variant="label">{to('bioCount', { count: form.bio.trim().length, max: BIO_MAX })}</Text>}
-          />
-          <PersonalFields key={version} value={form} hint={tp('personalHintCoach')} onChange={({ birthDate, gender, languages }) => set({ birthDate, gender, languages })} />
-          {(['instagram', 'tiktok'] as const).map((net) => (
+          <Section title={t('section.public')}>
+            <CoverPicker onBusy={track} userId={profile.id} url={form.cover?.url ?? profile.coverUrl} onUploaded={(path, url) => set({ cover: { path, url } })} />
+            <PhotoPicker onBusy={track} userId={profile.id} url={form.photo?.url ?? profile.photoUrl} onUploaded={(path, url) => set({ photo: { path, url } })} />
+            <TextField label={t('displayName')} value={form.name} maxLength={NAME_MAX} onChangeText={(name) => set({ name })} />
+            <TextField label={to('address')} value={form.city} maxLength={CITY_MAX} placeholder={to('addressPlaceholder')} onChangeText={(city) => set({ city })} />
             <TextField
-              key={net}
-              label={`${to(net)} (@)`}
-              value={form[net]}
-              placeholder={to('socialPlaceholder')}
-              autoCapitalize="none"
-              autoCorrect={false}
-              style={ltr}
-              onChangeText={(v) => set(net === 'instagram' ? { instagram: v } : { tiktok: v })}
+              label={t('bio')}
+              value={form.bio}
+              maxLength={BIO_MAX}
+              multiline
+              style={styles.bio}
+              onChangeText={(bio) => set({ bio })}
+              aside={<Text variant="label">{to('bioCount', { count: form.bio.trim().length, max: BIO_MAX })}</Text>}
             />
-          ))}
-          <View style={styles.labelRow}>
-            <Text variant="label">{to('links')}</Text>
-            <Text variant="label">
-              {form.links.length} / {MAX_LINKS}
-            </Text>
-          </View>
-          <LinksEditor links={form.links} onChange={(links) => set({ links })} />
-        </Section>
+            <PersonalFields key={version} value={form} hint={tp('personalHintCoach')} onChange={({ birthDate, gender, languages }) => set({ birthDate, gender, languages })} />
+            {(['instagram', 'tiktok'] as const).map((net) => (
+              <TextField
+                key={net}
+                label={`${to(net)} (@)`}
+                value={form[net]}
+                placeholder={to('socialPlaceholder')}
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={ltr}
+                onChangeText={(v) => set(net === 'instagram' ? { instagram: v } : { tiktok: v })}
+              />
+            ))}
+            <View style={styles.labelRow}>
+              <Text variant="label">{to('links')}</Text>
+              <Text variant="label">
+                {form.links.length} / {MAX_LINKS}
+              </Text>
+            </View>
+            <LinksEditor links={form.links} onChange={(links) => set({ links })} />
+          </Section>
 
-        <Section title={t('section.sports')}>
-          <SportPicker onBusy={track} selected={form.sports} onChange={(sports) => set({ sports })} />
-        </Section>
+          <Section title={t('section.sports')}>
+            <SportPicker onBusy={track} selected={form.sports} onChange={(sports) => set({ sports })} />
+          </Section>
 
-        <Section title={t('section.media')}>
-          <MediaList coachId={profile.id} items={media} sports={profile.sports} onChange={setMedia} />
-        </Section>
+          <Section title={t('section.media')}>
+            <MediaList coachId={profile.id} items={media} sports={profile.sports} onChange={setMedia} />
+          </Section>
 
-        <Section title={t('section.certifications')}>
-          <CertificationList coachId={profile.id} items={certs} onChange={setCerts} />
-        </Section>
+          <Section title={t('section.certifications')}>
+            <CertificationList coachId={profile.id} items={certs} onChange={setCerts} />
+          </Section>
 
-        <Section title={t('section.private')}>
-          <PrivateSettings
-            value={form.private}
-            onChange={(p) => set({ private: p })}
-            active={profile.privatePrice !== null && profile.privateDuration !== null ? { price: profile.privatePrice, duration: profile.privateDuration } : null}
-          />
-        </Section>
+          <Section title={t('section.private')}>
+            <PrivateSettings
+              value={form.private}
+              onChange={(p) => set({ private: p })}
+              active={profile.privatePrice !== null && profile.privateDuration !== null ? { price: profile.privatePrice, duration: profile.privateDuration } : null}
+            />
+          </Section>
 
-        <Section title={t('section.locations')} aside={<LinkText label={tv('manage')} onPress={() => router.push('/coach/venues')} />}>
-          <Text muted>{venueCount === null ? '' : tv('count', { count: venueCount })}</Text>
-        </Section>
+          <Section title={t('section.locations')} aside={<LinkText label={tv('manage')} onPress={() => router.push('/coach/venues')} />}>
+            <Text muted>{venueCount === null ? '' : tv('count', { count: venueCount })}</Text>
+          </Section>
 
-        <Section title={t('section.account')}>
-          <TextField label={tc('email')} value={user?.email ?? ''} editable={false} style={ltr} />
-        </Section>
-        <Settings />
+          <Section title={t('section.account')}>
+            <TextField label={tc('email')} value={user?.email ?? ''} editable={false} style={ltr} />
+          </Section>
+          <Settings />
+        </FadeIn>
         {/* Room for the save bar, so it never covers the last fields. */}
         {showBar && <View style={styles.barSpace} />}
       </Screen>

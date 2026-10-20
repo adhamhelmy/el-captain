@@ -1,5 +1,5 @@
 import { api, ApiError } from '@/api/client';
-import { restoreSession, signIn, signOut, TOKEN_KEY, USER_KEY } from './session';
+import { noticeOf, restoreSession, signIn, signOut, TOKEN_KEY, USER_KEY } from './session';
 
 jest.mock('@/lib/storage', () => {
   const store = new Map<string, string>();
@@ -80,5 +80,17 @@ describe('session', () => {
     await signOut();
     expect(store.has(TOKEN_KEY)).toBe(false);
     expect(store.has(USER_KEY)).toBe(false);
+  });
+});
+
+describe('noticeOf', () => {
+  it('keeps a known notice', () => {
+    expect(noticeOf('passwordChanged')).toBe('passwordChanged');
+  });
+
+  it('drops anything else, such as a press event from a button wired straight to signOut', () => {
+    expect(noticeOf({ nativeEvent: {} })).toBeNull();
+    expect(noticeOf('nope')).toBeNull();
+    expect(noticeOf(undefined)).toBeNull();
   });
 });

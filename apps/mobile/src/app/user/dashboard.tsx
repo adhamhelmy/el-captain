@@ -1,10 +1,12 @@
-import { router, useFocusEffect, type Href } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { useTranslations } from 'use-intl';
-import { api } from '@/api/client';
+import { load, peek } from '@/api/cache';
+import { PATHS } from '@/api/paths';
 import type { Member, MemberCoach, Session } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
+import { openPage } from '@/nav/open';
 import { useSessionLabels } from '@/sessions/labels';
 import { pickedForYou } from '@/sessions/picked';
 import { SessionCard } from '@/sessions/SessionCard';
@@ -13,13 +15,20 @@ import { radius } from '@/theme/tokens';
 import { Empty } from '@/ui/Empty';
 import { Screen } from '@/ui/Screen';
 import { SectionHead } from '@/ui/SectionHead';
+import { Bone, CardSkeleton, FadeIn, Loading, StatsSkeleton } from '@/ui/Skeleton';
 import { Stats } from '@/ui/Stats';
 import { Text } from '@/ui/Text';
 
 /** Bookings listed under the next-session card; the rest are on My sessions (as the web's). */
 const MORE_SHOWN = 6;
 const isolate = (s: string) => `⁨${s}⁩`;
-const list = <T,>(path: string) => api<T[]>(path).catch(() => [] as T[]);
+const list = <T,>(path: string) => load<T[]>(path).catch(() => [] as T[]);
+
+/** Picks from what the last visit (or sign-in) already loaded, so the section opens filled in. */
+function cachedPicks() {
+  const [open, mine, me] = [peek<Session[]>(PATHS.openSessions), peek<Session[]>(PATHS.myUpcoming), peek<Member>(PATHS.me)];
+  return open && mine ? pickedForYou(open, mine, me?.sports.map((s) => s.id) ?? []) : null;
+}
 
 /** The web's /user/dashboard. Reloads whenever the tab comes back into view, so a booking made elsewhere shows. */
 export default function Dashboard() {
@@ -27,21 +36,17 @@ export default function Dashboard() {
   const l = useSessionLabels();
   const { colors } = useTheme();
   const { user } = useAuth();
-  const [upcoming, setUpcoming] = useState<Session[] | null>(null);
-  const [completed, setCompleted] = useState(0);
-  const [coaches, setCoaches] = useState(0);
-  const [picked, setPicked] = useState<Session[]>([]);
+  const [upcoming, setUpcoming] = useState(() => peek<Session[]>(PATHS.myUpcoming) ?? null);
+  const [completed, setCompleted] = useState(() => peek<Session[]>(PATHS.myPast)?.length ?? null);
+  const [coaches, setCoaches] = useState(() => peek<MemberCoach[]>(PATHS.myCoaches)?.length ?? null);
+  const [picked, setPicked] = useState(cachedPicks);
 
   useFocusEffect(
     useCallback(() => {
       let stale = false;
-      list<Session>('/api/sessions/me?when=past&limit=50').then((r) => !stale && setCompleted(r.length));
-      list<MemberCoach>('/api/users/me/coaches').then((r) => !stale && setCoaches(r.length));
-      Promise.all([
-        list<Session>('/api/sessions/me?when=upcoming&limit=50'),
-        api<Member>('/api/users/me').catch(() => null),
-        list<Session>('/api/sessions?limit=24'),
-      ]).then(([mine, me, open]) => {
+      list<Session>(PATHS.myPast).then((r) => !stale && setCompleted(r.length));
+      list<MemberCoach>(PATHS.myCoaches).then((r) => !stale && setCoaches(r.length));
+      Promise.all([list<Session>(PATHS.myUpcoming), load<Member>(PATHS.me).catch(() => null), list<Session>(PATHS.openSessions)]).then(([mine, me, open]) => {
         if (stale) return;
         setUpcoming(mine);
         setPicked(pickedForYou(open, mine, me?.sports.map((s) => s.id) ?? []));
@@ -59,45 +64,65 @@ export default function Dashboard() {
     <Screen>
       <Text variant="label">{t('welcome')}</Text>
       <Text variant="display">{t('title', { name: isolate((user?.name ?? '').split(' ')[0].toUpperCase()) })}</Text>
+      {upcoming === null && <Bone height={150} round={radius.card + 4} />}
       {next && (
-        <Pressable
-          accessibilityRole="link"
-          onPress={() => router.push(`/session/${next.id}` as Href)}
-          style={[styles.next, { backgroundColor: colors.accent }]}>
-          <Text variant="eyebrow" style={{ color: colors.onAccent }}>
-            {t('nextSession')}
-          </Text>
-          <Text variant="display" style={[styles.nextTitle, { color: colors.onAccent }]}>
-            {l.title(next)}
-          </Text>
-          <Text style={{ color: colors.onAccent }}>
-            {next.coach.name} · {l.when(next.startsAt)}
-          </Text>
-          <Text variant="label" style={{ color: colors.onAccent }}>
-            {t('viewDetails')}
-          </Text>
-        </Pressable>
+        <FadeIn>
+          <Pressable
+            accessibilityRole="link"
+            onPress={() => openPage(`/session/${next.id}`)}
+            style={[styles.next, { backgroundColor: colors.accent }]}>
+            <Text variant="eyebrow" style={{ color: colors.onAccent }}>
+              {t('nextSession')}
+            </Text>
+            <Text variant="display" style={[styles.nextTitle, { color: colors.onAccent }]}>
+              {l.title(next)}
+            </Text>
+            <Text style={{ color: colors.onAccent }}>
+              {next.coach.name} · {l.when(next.startsAt)}
+            </Text>
+            <Text variant="label" style={{ color: colors.onAccent }}>
+              {t('viewDetails')}
+            </Text>
+          </Pressable>
+        </FadeIn>
       )}
-      <Stats
-        items={[
-          [upcoming?.length ?? 0, t('stats.upcoming')],
-          [completed, t('stats.completed')],
-          [coaches, t('stats.coaches')],
-        ]}
-      />
+      {upcoming === null || completed === null || coaches === null ? (
+        <StatsSkeleton />
+      ) : (
+        <FadeIn>
+          <Stats
+            items={[
+              [upcoming.length, t('stats.upcoming')],
+              [completed, t('stats.completed')],
+              [coaches, t('stats.coaches')],
+            ]}
+          />
+        </FadeIn>
+      )}
       {upcoming && (upcoming.length === 0 || later.length > 0) && (
         <>
           <SectionHead title={t('comingUp')} link={t('mySessions')} onPress={() => router.push('/user/sessions')} />
-          {later.slice(0, MORE_SHOWN).map((s) => (
-            <SessionCard key={s.id} s={s} />
-          ))}
-          {upcoming.length === 0 && <Empty text={(link) => t.rich('noUpcoming', { link })} link={toExplore} />}
+          <FadeIn>
+            {later.slice(0, MORE_SHOWN).map((s) => (
+              <SessionCard key={s.id} s={s} />
+            ))}
+            {upcoming.length === 0 && <Empty text={(link) => t.rich('noUpcoming', { link })} link={toExplore} />}
+          </FadeIn>
         </>
       )}
       <SectionHead title={t('picked')} link={t('exploreAll')} onPress={toExplore} />
-      {picked.map((s) => (
-        <SessionCard key={s.id} s={s} />
-      ))}
+      {picked === null ? (
+        <Loading>
+          <CardSkeleton />
+          <CardSkeleton />
+        </Loading>
+      ) : (
+        <FadeIn>
+          {picked.map((s) => (
+            <SessionCard key={s.id} s={s} />
+          ))}
+        </FadeIn>
+      )}
     </Screen>
   );
 }

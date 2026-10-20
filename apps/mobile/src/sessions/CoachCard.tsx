@@ -1,11 +1,11 @@
 import { sportName } from '@el-captain/rules/coach-rules';
 import { Image } from 'expo-image';
-import { router, type Href } from 'expo-router';
 import { MapPin, Star } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 import type { PublicCoach } from '@/api/types';
 import { useLocale } from '@/i18n/IntlProvider';
+import { openPage } from '@/nav/open';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 import { Avatar } from '@/ui/Avatar';
@@ -25,7 +25,7 @@ export function CoachCard({ c }: { c: PublicCoach }) {
   return (
     <Pressable
       accessibilityRole="link"
-      onPress={() => router.push(`/coach-profile/${c.id}` as Href)}
+      onPress={() => openPage(`/coach-profile/${c.id}`)}
       style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.head}>
         <Stripes />

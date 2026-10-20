@@ -44,7 +44,7 @@ export default function SignIn() {
   const address = normalizeEmail(email);
   // Shown once the user has tried to submit, and kept live as they fix it.
   const emailError = tried && !isValidEmail(address) ? te('invalid_email') : null;
-  const passwordError = tried && !password ? te('missing_fields') : null;
+  const passwordError = tried && !password ? te('passwordRequired') : null;
 
   async function submit() {
     setTried(true);

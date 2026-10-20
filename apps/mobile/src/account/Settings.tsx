@@ -77,7 +77,7 @@ function PasswordSetting() {
             secureTextEntry
             autoComplete="current-password"
             style={ltr}
-            error={tried && !form.current ? te('missing_fields') : null}
+            error={tried && !form.current ? te('passwordRequired') : null}
           />
           <TextField
             label={tr('newPassword')}
@@ -186,7 +186,7 @@ export function Settings() {
         <PasswordSetting />
         <DeleteAccount />
       </Card>
-      <Button label={tc('logOut')} variant="secondary" onPress={signOut} />
+      <Button label={tc('logOut')} variant="secondary" onPress={() => signOut()} />
     </>
   );
 }
