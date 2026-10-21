@@ -17,6 +17,8 @@ export function TabsLayout({ audience }: { audience: Audience }) {
   const tabs = TABS[audience];
   return (
     <Tabs
+      // Back goes to the page you came from, so pages without a tab (Locations, a member's My sessions) return there.
+      backBehavior="history"
       tabBar={(props) => <FloatingTabBar {...props} tabs={tabs} />}
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.bg } }}>
       {tabs.map((tab) => (

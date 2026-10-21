@@ -10,6 +10,7 @@ import { RequestList } from '@/requests/RequestList';
 import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
+import { BackLink } from '@/ui/BackLink';
 import { Empty } from '@/ui/Empty';
 import { LinkText } from '@/ui/LinkText';
 import { Screen } from '@/ui/Screen';
@@ -25,6 +26,7 @@ const pathOf = (tab: 'upcoming' | 'past') => (tab === 'past' ? PATHS.myPast : PA
 export default function MySessions() {
   const t = useTranslations('userSessions');
   const td = useTranslations('data');
+  const tb = useTranslations('onboarding');
   const tst = useTranslations('status');
   const l = useSessionLabels();
   const { colors } = useTheme();
@@ -64,6 +66,7 @@ export default function MySessions() {
 
   return (
     <Screen>
+      <BackLink label={tb('back')} />
       <Text variant="display">{t('title')}</Text>
       <Segmented
         label={t('title')}

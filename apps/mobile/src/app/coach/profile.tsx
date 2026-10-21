@@ -6,11 +6,14 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslations } from 'use-intl';
 import { Settings } from '@/account/Settings';
+import { load as loadCached } from '@/api/cache';
 import { api, ApiError } from '@/api/client';
+import { PATHS } from '@/api/paths';
 import type { CoachMe, CoachVenue, Media, Onboarding } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
 import { CertificationList, type Certification } from '@/coach/CertificationList';
 import { CoverPicker } from '@/coach/CoverPicker';
+import { cachedVenues } from '@/coach/data';
 import { LinksEditor } from '@/coach/LinksEditor';
 import { MediaList } from '@/coach/MediaList';
 import { PersonalFields } from '@/coach/PersonalFields';
@@ -63,7 +66,7 @@ export default function CoachProfile() {
   const [form, setForm] = useState<ProfileForm | null>(null);
   const [certs, setCerts] = useState<Certification[]>([]);
   const [media, setMedia] = useState<Media[]>([]);
-  const [venueCount, setVenueCount] = useState<number | null>(null);
+  const [venues, setVenues] = useState(() => cachedVenues({ active: true }));
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,12 +95,16 @@ export default function CoachProfile() {
     load();
   }, [load]);
 
-  // The location count can change on the Locations tab. A failed load leaves it blank, as the web does.
+  // Locations change on the Locations page, so reload on coming back. A failed load leaves the list blank, as the web does.
   useFocusEffect(
     useCallback(() => {
-      api<CoachVenue[]>('/api/venues/me')
-        .then((v) => setVenueCount(v.filter((x) => !x.archived).length))
-        .catch(() => setVenueCount(null));
+      let stale = false;
+      loadCached<CoachVenue[]>(PATHS.myVenues)
+        .then((v) => !stale && setVenues(v.filter((x) => !x.archived)))
+        .catch(() => !stale && setVenues(null));
+      return () => {
+        stale = true;
+      };
     }, []),
   );
 
@@ -221,7 +228,13 @@ export default function CoachProfile() {
           </Section>
 
           <Section title={t('section.locations')} aside={<LinkText label={tv('manage')} onPress={() => router.push('/coach/venues')} />}>
-            <Text muted>{venueCount === null ? '' : tv('count', { count: venueCount })}</Text>
+            {venues?.length === 0 && <Text muted>{tv('count', { count: 0 })}</Text>}
+            {venues?.map((v) => (
+              <View key={v.id} style={[styles.venue, { borderTopColor: colors.border }]}>
+                <Text style={styles.venueName}>{v.name}</Text>
+                <Text variant="label">{tv('line', { address: v.address, city: v.city })}</Text>
+              </View>
+            ))}
           </Section>
 
           <Section title={t('section.account')}>
@@ -267,6 +280,8 @@ const styles = StyleSheet.create({
   section: { gap: 14 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   bio: { minHeight: 110, textAlignVertical: 'top', paddingTop: 12 },
+  venue: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 12, gap: 2 },
+  venueName: { fontSize: 15 },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between' },
   barSpace: { height: 80 },
   bar: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderRadius: radius.card, padding: 12 },

@@ -1,4 +1,5 @@
 import { router, useFocusEffect } from 'expo-router';
+import { CalendarCheck } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { useTranslations } from 'use-intl';
@@ -12,6 +13,7 @@ import { pickedForYou } from '@/sessions/picked';
 import { SessionCard } from '@/sessions/SessionCard';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
+import { Button } from '@/ui/Button';
 import { Empty } from '@/ui/Empty';
 import { Screen } from '@/ui/Screen';
 import { SectionHead } from '@/ui/SectionHead';
@@ -33,6 +35,7 @@ function cachedPicks() {
 /** The web's /user/dashboard. Reloads whenever the tab comes back into view, so a booking made elsewhere shows. */
 export default function Dashboard() {
   const t = useTranslations('userDashboard');
+  const tn = useTranslations('nav');
   const l = useSessionLabels();
   const { colors } = useTheme();
   const { user } = useAuth();
@@ -99,9 +102,11 @@ export default function Dashboard() {
           />
         </FadeIn>
       )}
+      {/* Members have no My sessions tab, so this is the way to every booking, past ones and requests too. */}
+      <Button label={tn('mySessions')} icon={CalendarCheck} variant="secondary" onPress={() => router.push('/user/sessions')} />
       {upcoming && (upcoming.length === 0 || later.length > 0) && (
         <>
-          <SectionHead title={t('comingUp')} link={t('mySessions')} onPress={() => router.push('/user/sessions')} />
+          <SectionHead title={t('comingUp')} />
           <FadeIn>
             {later.slice(0, MORE_SHOWN).map((s) => (
               <SessionCard key={s.id} s={s} />

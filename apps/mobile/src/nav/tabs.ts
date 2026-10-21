@@ -1,14 +1,17 @@
-import { CalendarCheck, Compass, House, LogIn, MapPin, UserRound, Users, type LucideIcon } from 'lucide-react-native';
+import { CalendarCheck, House, LogIn, Search, UserRound, Users, type LucideIcon } from 'lucide-react-native';
 
-/** Tabs per audience, copied from the web nav (apps/web/components/Shell.tsx). `name` is the route file in that group. */
+/**
+ * Tabs per audience, from the web nav (apps/web/components/Shell.tsx). `name` is the route file in that group.
+ * A member has no My sessions tab: the home screen's My sessions button opens it. A coach has no Locations tab:
+ * their profile lists them, with a link to manage them.
+ */
 export type Tab = { name: string; icon: LucideIcon; labelKey: string };
 export type Audience = 'guest' | 'user' | 'coach';
 
 export const TABS: Record<Audience, Tab[]> = {
   user: [
     { name: 'dashboard', icon: House, labelKey: 'nav.dashboard' },
-    { name: 'explore', icon: Compass, labelKey: 'nav.explore' },
-    { name: 'sessions', icon: CalendarCheck, labelKey: 'nav.mySessions' },
+    { name: 'explore', icon: Search, labelKey: 'nav.explore' },
     { name: 'coaches', icon: Users, labelKey: 'nav.myCoaches' },
     { name: 'profile', icon: UserRound, labelKey: 'nav.profile' },
   ],
@@ -16,11 +19,10 @@ export const TABS: Record<Audience, Tab[]> = {
     { name: 'dashboard', icon: House, labelKey: 'nav.dashboard' },
     { name: 'sessions', icon: CalendarCheck, labelKey: 'nav.mySessions' },
     { name: 'clients', icon: Users, labelKey: 'nav.myClients' },
-    { name: 'venues', icon: MapPin, labelKey: 'nav.venues' },
     { name: 'profile', icon: UserRound, labelKey: 'nav.profile' },
   ],
   guest: [
-    { name: 'explore', icon: Compass, labelKey: 'nav.explore' },
+    { name: 'explore', icon: Search, labelKey: 'nav.explore' },
     { name: 'sign-in', icon: LogIn, labelKey: 'common.logIn' },
   ],
 };

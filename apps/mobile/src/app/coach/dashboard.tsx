@@ -174,6 +174,7 @@ export default function CoachDashboard() {
       {stats && (
         <FadeIn>
           <Stats
+            oneLineLabels
             items={[
               [f.number(stats.bookingsNext7), t('statsShort.bookings')],
               [compact(stats.earnings30), t('statsShort.revenue'), tcl('egp')],
