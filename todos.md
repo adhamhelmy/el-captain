@@ -22,6 +22,8 @@ Open work, grouped by area. Each area is ordered by priority.
 ## Member
 
 - **Guardian accounts.** A parent supervises the account of a member under 16.
+- **Private requests: check coach availability first.** Today a member can request any future time. A clash with the coach's other sessions is only caught when the coach accepts (`TIME_CONFLICT` in `api/private-requests/[id]/accept`). Check the time against the coach's sessions when the request is sent, and only offer free times in the request form.
+- **Private requests flow: more to come.** Rework the rest of the flow. Details to be added.
 
 ## Platform
 
@@ -34,6 +36,7 @@ Open work, grouped by area. Each area is ordered by priority.
 ## Mobile
 
 - **Arabic needs a review.** Switching to Arabic crashes the app on its reload ("Cannot find native module 'ExpoAsset'" in Expo Go; reloading JS brings it back), and the layout still has issues once it's up. `supportsRTL` is now on in app.json; check mirroring, the crash, and every screen in a development build, not just Expo Go.
+- **Guest home page.** Guests land straight on Explore and have only two tabs, Explore and Log in. Give them a home screen of their own.
 
 ## Admin
 

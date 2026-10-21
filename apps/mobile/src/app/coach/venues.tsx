@@ -7,6 +7,7 @@ import { cachedVenues, myVenues } from '@/coach/data';
 import { VenueForm, type VenueSaved } from '@/coach/VenueForm';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
+import { BackLink } from '@/ui/BackLink';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { LinkText } from '@/ui/LinkText';
@@ -19,6 +20,7 @@ import { Text } from '@/ui/Text';
 /** The web's Locations page: add and edit in a sheet; the coach always keeps at least one. */
 export default function Venues() {
   const t = useTranslations('venues');
+  const tb = useTranslations('onboarding');
   const { colors } = useTheme();
   const [venues, setVenues] = useState<CoachVenue[] | null>(cachedVenues);
   const [open, setOpen] = useState<CoachVenue | 'new' | null>(null);
@@ -44,6 +46,7 @@ export default function Venues() {
 
   return (
     <Screen>
+      <BackLink label={tb('back')} />
       <Text variant="display">{t('title')}</Text>
       <Text muted>{t('sub')}</Text>
       <Button label={t('add')} onPress={() => setOpen('new')} />

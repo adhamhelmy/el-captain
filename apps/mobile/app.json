@@ -8,7 +8,10 @@
     "scheme": "elcaptain",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "ExpoLocalization_supportsRTL": true
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -50,7 +53,16 @@
       "reactCompiler": true
     },
     "extra": {
-      "supportsRTL": true
+      "supportsRTL": true,
+      "router": {},
+      "eas": {
+        "projectId": "249013c9-f09d-4125-8970-79540197e431"
+      }
+    },
+    "owner": "adhamhelmy",
+    "runtimeVersion": "exposdk:57.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/249013c9-f09d-4125-8970-79540197e431"
     }
   }
 }
