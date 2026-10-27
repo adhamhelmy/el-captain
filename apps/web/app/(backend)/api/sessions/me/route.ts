@@ -4,6 +4,7 @@ import { toSessionDTO } from '@/lib/server/dto';
 import { date, oneOf } from '@/lib/server/query-filter';
 import { WHENS } from '@/lib/shared/session-rules';
 import { assertActiveCoach } from '@/lib/server/coach-guard';
+import { expireHolds } from '@/prisma/models/booking';
 import { listCoachSessions, listCoachSessionsBetween, listMemberSessions, MAX_RANGE_DAYS } from '@/prisma/models/session';
 
 /**
@@ -12,6 +13,7 @@ import { listCoachSessions, listCoachSessionsBetween, listMemberSessions, MAX_RA
  */
 async function mine({ user, query, page }: AuthContext) {
   await assertActiveCoach(user);
+  await expireHolds();
   const from = date('from')(query);
   const to = date('to')(query);
   if (user.role === 'COACH' && (from || to)) {

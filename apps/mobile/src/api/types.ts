@@ -39,8 +39,11 @@ export type Session = {
   coach: { id: string; name: string; photoUrl: string | null };
 };
 
-/** One session's page: the session plus whether the signed-in member holds a confirmed booking. */
-export type SessionDetail = Session & { bookedByMe: boolean };
+/**
+ * One session's page: the session plus whether the signed-in member holds a confirmed booking.
+ * After booking a paid session, `checkoutUrl` is the payment page. `payBy` is set while the member holds an unpaid spot.
+ */
+export type SessionDetail = Session & { bookedByMe: boolean; checkoutUrl?: string; payBy?: string | null };
 
 export type Media = { id: string; kind: 'PHOTO' | 'VIDEO'; url: string; caption: string | null; sport: Sport | null; durationSec: number | null };
 
@@ -82,6 +85,9 @@ export type PrivateRequest = {
   venue: Venue;
   member: { id: string; name: string };
   coach: { id: string; name: string };
+  /** An accepted paid request: `due` until the member pays (by `payBy`), `lapsed` if they didn't. */
+  payment: 'due' | 'lapsed' | null;
+  payBy: string | null;
 };
 
 /** A coach the member has trained with, and how many sessions together. */

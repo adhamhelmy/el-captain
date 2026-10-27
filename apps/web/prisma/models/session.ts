@@ -81,8 +81,8 @@ export function updateSession(id: string, data: SessionUpdate) {
 }
 
 /**
- * Cancels the session and every confirmed booking in one transaction.
- * Returns the members who were booked (for the emails), or null when it was already cancelled.
+ * Cancels the session and every confirmed or held booking in one transaction.
+ * Returns the members who were booked (for the emails) and their bookings (for refunds), or null when it was already cancelled.
  */
 export function cancelSession(id: string, by: 'COACH' | 'ADMIN', reason: string | null) {
   return prisma.$transaction(async (tx) => {
@@ -92,12 +92,10 @@ export function cancelSession(id: string, by: 'COACH' | 'ADMIN', reason: string 
       data: { status: 'CANCELLED', cancelledAt: now, cancelReason: reason },
     });
     if (count === 0) return null;
-    const booked = await tx.booking.findMany({
-      where: { sessionId: id, status: 'CONFIRMED' },
-      select: { member: { select: { id: true, email: true, locale: true } } },
-    });
-    await tx.booking.updateMany({ where: { sessionId: id, status: 'CONFIRMED' }, data: { status: 'CANCELLED', cancelledAt: now, cancelledBy: by } });
-    return booked.map((b) => b.member);
+    const active = { sessionId: id, status: { in: ['CONFIRMED' as const, 'PENDING_PAYMENT' as const] } };
+    const booked = await tx.booking.findMany({ where: active, select: { id: true, member: { select: { id: true, email: true, locale: true } } } });
+    await tx.booking.updateMany({ where: active, data: { status: 'CANCELLED', cancelledAt: now, cancelledBy: by, holdUntil: null } });
+    return { members: booked.map((b) => b.member), bookingIds: booked.map((b) => b.id) };
   });
 }
 

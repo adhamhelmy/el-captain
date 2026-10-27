@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const tx = vi.hoisted(() => ({
   $queryRaw: vi.fn(),
   privateRequest: { findUnique: vi.fn(), update: vi.fn() },
-  session: { findMany: vi.fn(), create: vi.fn() },
+  session: { findMany: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
+  booking: { findMany: vi.fn(), updateMany: vi.fn() },
   sport: { findUniqueOrThrow: vi.fn() },
 }));
 vi.mock('../client', () => ({ prisma: { $transaction: vi.fn((fn: (t: typeof tx) => unknown) => fn(tx)) } }));
@@ -31,11 +32,12 @@ beforeEach(() => {
   tx.session.findMany.mockResolvedValue([]);
   tx.session.create.mockResolvedValue({ id: 'x9' });
   tx.sport.findUniqueOrThrow.mockResolvedValue({ nameEn: 'Yoga' });
+  tx.booking.findMany.mockResolvedValue([]);
 });
 
 describe('acceptRequest', () => {
   it('locks the coach, then the request, then creates the private session with the member booked, and links it', async () => {
-    expect(await acceptRequest('r1', 'k1', now)).toEqual({ ok: true, sessionId: 'x9' });
+    expect(await acceptRequest('r1', 'k1', now)).toEqual({ ok: true, sessionId: 'x9', payBy: pending.startsAt });
     const [coachLock, coachId] = tx.$queryRaw.mock.calls[0];
     expect(coachLock.join('?')).toMatch(/FROM "CoachProfile" WHERE "userId" = \? FOR UPDATE/);
     expect(coachId).toBe('k1');
@@ -53,7 +55,7 @@ describe('acceptRequest', () => {
         durationMin: 60,
         price: 800,
         capacity: 1,
-        bookings: { create: { memberId: 'u1' } },
+        bookings: { create: { memberId: 'u1', status: 'PENDING_PAYMENT', holdUntil: pending.startsAt } },
       },
     });
     expect(tx.privateRequest.update).toHaveBeenCalledWith({ where: { id: 'r1' }, data: { status: 'ACCEPTED', respondedAt: now, sessionId: 'x9' } });
@@ -67,6 +69,38 @@ describe('acceptRequest', () => {
     tx.privateRequest.findUnique.mockResolvedValue(request);
     expect(await acceptRequest('r1', 'k1', now)).toEqual({ ok: false, reason: 'closed' });
     expect(tx.session.create).not.toHaveBeenCalled();
+  });
+
+  it('holds the booking for 24 hours for payment', async () => {
+    tx.privateRequest.findUnique.mockResolvedValue({ ...pending, startsAt: new Date('2026-10-23T10:00:00Z') });
+    await acceptRequest('r1', 'k1', now);
+    expect(tx.session.create.mock.calls[0][0].data.bookings).toEqual({
+      create: { memberId: 'u1', status: 'PENDING_PAYMENT', holdUntil: new Date('2026-10-21T10:00:00Z') },
+    });
+  });
+
+  it('holds only until the start when that comes sooner', async () => {
+    const soon = new Date('2026-10-20T12:00:00Z');
+    tx.privateRequest.findUnique.mockResolvedValue({ ...pending, startsAt: soon });
+    await acceptRequest('r1', 'k1', now);
+    expect(tx.session.create.mock.calls[0][0].data.bookings.create.holdUntil).toEqual(soon);
+  });
+
+  it('confirms a free private session straight away', async () => {
+    tx.privateRequest.findUnique.mockResolvedValue({ ...pending, price: 0 });
+    await acceptRequest('r1', 'k1', now);
+    expect(tx.session.create.mock.calls[0][0].data.bookings).toEqual({ create: { memberId: 'u1' } });
+  });
+
+  it('clears lapsed unpaid holds before the clash check, so their time is free again', async () => {
+    tx.booking.findMany.mockResolvedValue([{ id: 'b0', sessionId: 'x0', session: { type: 'PRIVATE' } }]);
+    await acceptRequest('r1', 'k1', now);
+    expect(tx.booking.updateMany).toHaveBeenCalledWith({ where: { id: { in: ['b0'] } }, data: { status: 'CANCELLED', cancelledAt: now } });
+    expect(tx.session.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: ['x0'] }, status: 'SCHEDULED' },
+      data: { status: 'CANCELLED', cancelledAt: now },
+    });
+    expect(tx.session.updateMany.mock.invocationCallOrder[0]).toBeLessThan(tx.session.findMany.mock.invocationCallOrder[0]);
   });
 
   it('refuses when the coach already has a session at that time', async () => {

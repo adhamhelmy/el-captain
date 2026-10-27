@@ -20,7 +20,7 @@ import { findSession, updateSession, type SessionUpdate } from '@/prisma/models/
 
 /**
  * One session. A private one, or one whose coach isn't active (e.g. suspended), is a 404
- * for anyone but its coach, its booked members and admins.
+ * for anyone but its coach, its members and admins. A member still paying for their spot gets `payBy`.
  */
 async function get({ req, params: { id } }: RequestContext<{ id: string }>) {
   const session = await findSession(id);
@@ -29,8 +29,10 @@ async function get({ req, params: { id } }: RequestContext<{ id: string }>) {
   const booking = viewer ? await findBooking(id, viewer.id) : null;
   const bookedByMe = booking?.status === 'CONFIRMED';
   const hidden = session.type === 'PRIVATE' || session.coach.coachProfile?.status !== 'ACTIVE';
-  if (hidden) assertFound(viewer?.role === 'ADMIN' || viewer?.id === session.coachId || bookedByMe ? session : null);
-  return NextResponse.json({ ...toSessionDTO(session), bookedByMe });
+  // Any booking counts here, so a member can still see the private session they were asked to pay for after it lapsed.
+  if (hidden) assertFound(viewer?.role === 'ADMIN' || viewer?.id === session.coachId || booking ? session : null);
+  const payBy = booking?.status === 'PENDING_PAYMENT' && booking.holdUntil && booking.holdUntil > new Date() ? booking.holdUntil : null;
+  return NextResponse.json({ ...toSessionDTO(session), bookedByMe, payBy });
 }
 
 /** Fields that can't change once a member has booked: they'd turn up at the wrong time or place. */

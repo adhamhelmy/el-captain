@@ -121,7 +121,7 @@ cd apps/web && npm run db:seed
 4. Set output directory: `apps/web/.next`
 5. Add env vars: `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET`, `APP_URL`, `RESEND_API_KEY`, `MAIL_FROM`
 
-`build:prod` runs `prisma migrate deploy` (applies migrations) then `next build`.
+`build:prod` runs `prisma migrate deploy` (applies migrations), `prisma generate`, then `next build`. `vercel.json` uses it, so every deploy migrates the database; it needs `DIRECT_URL` (migrations can't run through the pooler).
 
 ---
 

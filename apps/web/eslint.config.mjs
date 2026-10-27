@@ -2,7 +2,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
-const ASSERTIONS = 'Use an assertion from @/lib/api (assertValid, assertSignedIn, assertAllowed, assertFound, assertNoConflict)'
+const ASSERTIONS = 'Use an assertion from @/lib/api (assertValid, assertSignedIn, assertAllowed, assertFound, assertNoConflict, assertUpstream)'
 
 // Banned syntax, shared because a later no-restricted-syntax entry replaces an earlier one instead of adding to it.
 const restricted = {

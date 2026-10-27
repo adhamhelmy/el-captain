@@ -56,6 +56,22 @@ describe('GET /api/sessions/[id]', () => {
     vi.mocked(userFromBearer).mockResolvedValue(null);
   });
 
+  it('lets the member who holds an unpaid private session see it, and says when to pay by', async () => {
+    const holdUntil = new Date(Date.now() + 3_600_000);
+    vi.mocked(findSession).mockResolvedValue(sessionRow({ type: 'PRIVATE', capacity: 1 }) as any);
+    signInAs('u1', 'USER');
+    vi.mocked(findBooking).mockResolvedValue({ status: 'PENDING_PAYMENT', holdUntil } as any);
+    const res = await call(GET, { params });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ bookedByMe: false, payBy: holdUntil.toISOString() });
+  });
+
+  it('stops offering payment once the hold lapses', async () => {
+    signInAs('u1', 'USER');
+    vi.mocked(findBooking).mockResolvedValue({ status: 'PENDING_PAYMENT', holdUntil: new Date(Date.now() - 1000) } as any);
+    expect(await (await call(GET, { params })).json()).toMatchObject({ payBy: null });
+  });
+
   it('hides a private session from everyone but its coach, its member and admins', async () => {
     vi.mocked(findSession).mockResolvedValue(sessionRow({ type: 'PRIVATE', capacity: 1 }) as any);
     signInAs(null);

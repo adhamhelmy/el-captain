@@ -1,9 +1,18 @@
-import { bookingState } from './booking';
+import { bookingState, paymentOutcome } from './booking';
 
 const now = new Date('2026-10-20T10:00:00Z');
 const base = { type: 'GROUP' as const, status: 'SCHEDULED', startsAt: '2026-10-22T16:00:00Z', capacity: 10, booked: 3, bookedByMe: false };
 
 describe('bookingState', () => {
+  it('asks a member holding an unpaid spot to pay for it', () => {
+    expect(bookingState({ ...base, type: 'PRIVATE', payBy: '2026-10-21T10:00:00Z' }, true, now)).toBe('pay');
+  });
+
+  it('shows a paid spot as booked, and a lapsed hold on a past session as past', () => {
+    expect(bookingState({ ...base, bookedByMe: true, payBy: null }, true, now)).toBe('bookedCanCancel');
+    expect(bookingState({ ...base, startsAt: '2026-10-19T10:00:00Z', payBy: '2026-10-19T09:00:00Z' }, true, now)).toBe('past');
+  });
+
   it('asks a guest to log in to book', () => {
     expect(bookingState(base, false, now)).toBe('logIn');
   });
@@ -31,5 +40,14 @@ describe('bookingState', () => {
   it('closes past and cancelled sessions', () => {
     expect(bookingState({ ...base, startsAt: '2026-10-19T10:00:00Z' }, true, now)).toBe('past');
     expect(bookingState({ ...base, status: 'CANCELLED' }, true, now)).toBe('cancelled');
+  });
+});
+
+describe('paymentOutcome', () => {
+  it('reads the outcome the return link carries, and nothing else', () => {
+    expect(paymentOutcome('paid')).toBe('paid');
+    expect(paymentOutcome('refunded')).toBe('refunded');
+    expect(paymentOutcome('hacked')).toBeNull();
+    expect(paymentOutcome(undefined)).toBeNull();
   });
 });

@@ -13,6 +13,9 @@
 .profileLink { color: var(--accent-text); font-size: 14px; font-weight: 600; }
 .panel { padding: 24px; position: sticky; top: 24px; gap: 16px; }
 .note { font-size: 14px; }
+/* What came of a payment, shown on the way back from the payment page. */
+.notice { display: block; padding: 12px 14px; border-radius: 10px; font-size: 14px; background: var(--accent-tint); }
+.noticeWarn { background: var(--warn-tint); color: var(--warn); }
 .confirmed { display: flex; align-items: center; gap: 12px; }
 /* Round lime badge with a tick drawn from two borders. */
 .check { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); position: relative; flex: 0 0 auto; }

@@ -1,5 +1,5 @@
 /** Browser calls for dashboards, clients and "my coaches". */
-import type { CoachClientDTO, MemberCoachDTO, RecentBookingDTO, SessionDTO } from '@/lib/server/dto';
+import type { CoachClientDTO, FailedRefundDTO, MemberCoachDTO, RecentBookingDTO, SessionDTO } from '@/lib/server/dto';
 import { request } from '@/lib/client/coach-api';
 
 export type CoachStats = { bookingsNext7: number; earnings30: number; fillRate: number | null };
@@ -12,6 +12,7 @@ export const coachClient = (memberId: string) => request<CoachClient>(`/api/coac
 export const myCoaches = () => request<MemberCoachDTO[]>('/api/users/me/coaches');
 export const adminStats = () => request<AdminStats>('/api/admin/stats');
 export const adminRecentBookings = () => request<RecentBookingDTO[]>('/api/admin/bookings');
+export const adminFailedRefunds = () => request<FailedRefundDTO[]>('/api/admin/payments/failed-refunds');
 export const adminSessions = ({ q, status, when }: { q?: string; status?: string; when?: string } = {}) => {
   const query = new URLSearchParams({ limit: '50', ...(q && { q }), ...(status && { status }), ...(when && { when }) });
   return request<SessionDTO[]>(`/api/admin/sessions?${query}`);

@@ -74,6 +74,11 @@ export function assertNoConflict(condition: unknown, message: string, code?: str
   if (!condition) throw new HttpError(409, message, code, details);
 }
 
+/** 502 unless a service we rely on, such as the payment provider, did its part. */
+export function assertUpstream(condition: unknown, message: string, code?: string): asserts condition {
+  if (!condition) throw new HttpError(502, message, code);
+}
+
 function readQuery(req: NextRequest): Query {
   const { searchParams } = new URL(req.url);
   return {

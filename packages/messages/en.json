@@ -230,12 +230,20 @@
     "privateCancel": "To cancel a one to one session, contact your coach.",
     "logInToBook": "Log in to book",
     "reserve": "Reserve spot",
-    "payAtSession": "Nothing to pay now. You pay the coach at the session."
+    "payAtSession": "Nothing to pay now. You pay the coach at the session.",
+    "payByCard": "You pay by card on the next step. Your spot is held for 15 minutes.",
+    "freeSession": "Free session. Nothing to pay.",
+    "paymentPaid": "Payment received. You’re booked.",
+    "paymentPending": "Your payment is still processing. We’ll email you once it’s confirmed.",
+    "paymentFailed": "Your payment didn’t go through. Your spot is held a little longer, so you can try again.",
+    "paymentRefunded": "Your payment came through after the last spot was taken, so we refunded it in full.",
+    "payNow": "Pay now",
+    "payBy": "Pay by {when} to keep this spot."
   },
   "coachProfile": {
     "backToExplore": "Explore",
     "upcoming": "UPCOMING SESSIONS",
-    "requestLine": "{minutes} min · {price}, paid at the session",
+    "requestLine": "{minutes} min · {price}, paid by card once the coach accepts",
     "formTitle": "REQUEST A PRIVATE SESSION",
     "formHint": "Pick a place and time. The coach confirms or declines, and you'll get an email either way.",
     "where": "Where",
@@ -311,7 +319,9 @@
     "signedOut": "You were signed out. Log in again.",
     "adminWeb": "Admin accounts use the website.",
     "passwordChanged": "Password updated. Log in with your new password.",
-    "passwordRequired": "Enter your password."
+    "passwordRequired": "Enter your password.",
+    "payment_unavailable": "Card payment isn’t available right now. Try again in a minute.",
+    "payment_closed": "The time to pay for this has passed."
   },
   "login": {
     "title": "WELCOME BACK",
@@ -489,7 +499,7 @@
     "when": "When",
     "where": "Where",
     "timeRange": "{start} – {end}",
-    "paidAtSession": "Paid at the session",
+    "paidAtSession": "Paid by card when booking",
     "bookedOf": "BOOKED · {booked} OF {capacity}",
     "bookedOn": "Booked {date}"
   },
@@ -532,7 +542,7 @@
       "description": "Optional, up to {max} characters",
       "startsAt": "In the future",
       "duration": "{min}–{max} minutes",
-      "price": "0–{max, number} EGP, paid at the session",
+      "price": "0–{max, number} EGP, paid by card when members book",
       "capacity": "{min}–{max} people"
     },
     "noSports": "Your sports are still waiting for approval, so you can't publish yet.",
@@ -689,7 +699,10 @@
     "booked": "booked",
     "cancelSession": "Cancel session",
     "noSessions": "No sessions match.",
-    "searchSessions": "Search by title or coach…"
+    "searchSessions": "Search by title or coach…",
+    "failedRefunds": "Refunds that failed",
+    "failedRefundsHint": "Paymob refused these refunds. Refund each one from the Paymob dashboard, using its transaction number.",
+    "transaction": "transaction {id}"
   },
   "notFound": {
     "text": "This page took a rest day.",
@@ -740,12 +753,12 @@
     },
     "bookingConfirmed": {
       "subject": "You're booked",
-      "intro": "Your spot is reserved. You pay the coach at the session.",
+      "intro": "Your spot is booked.",
       "button": "View session"
     },
     "sessionCancelled": {
       "subject": "Your session was cancelled",
-      "intro": "The coach cancelled a session you booked. There's nothing to pay.",
+      "intro": "The coach cancelled a session you booked. If you paid, the full amount goes back to your card.",
       "button": "Find another session"
     },
     "privateRequested": {
@@ -754,8 +767,13 @@
       "button": "Answer the request"
     },
     "requestAccepted": {
+      "subject": "Your private session request was accepted",
+      "intro": "The coach accepted your request. Pay by card to confirm the session.",
+      "button": "Pay now"
+    },
+    "requestAcceptedFree": {
       "subject": "Your private session is confirmed",
-      "intro": "The coach accepted your request. You pay the coach at the session.",
+      "intro": "The coach accepted your request. It’s free, so there’s nothing to pay.",
       "button": "View session"
     },
     "requestRejected": {
@@ -763,10 +781,11 @@
       "intro": "The coach can't take this session. Their note, if they left one, is below.",
       "button": "Pick another time"
     },
-    "sessionDetail": "{title} with {coach}\n{when} (Cairo time) · {minutes} min\n{venue}, {address}\n{price}, paid at the session",
+    "sessionDetail": "{title} with {coach}\n{when} (Cairo time) · {minutes} min\n{venue}, {address}\n{price}",
     "cancelBy": "You can cancel until {when}.",
     "requestDetail": "{member} · {sport}\n{when} (Cairo time) · {minutes} min\n{venue}",
-    "reasonLine": "Reason: {reason}"
+    "reasonLine": "Reason: {reason}",
+    "payBy": "Pay by {when} to confirm it. After that the time is released."
   },
   "onboarding": {
     "title": "Set up your coach profile",
@@ -952,7 +971,11 @@
     "notePlaceholder": "A note for the member (optional)",
     "confirmReject": "Decline request",
     "viewSession": "View session",
-    "none": "No requests yet."
+    "none": "No requests yet.",
+    "awaitingPayment": "Awaiting payment",
+    "notPaid": "Not paid",
+    "payNow": "Pay now",
+    "payBy": "Pay by {when}"
   },
   "venues": {
     "title": "Locations",

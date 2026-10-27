@@ -1,12 +1,15 @@
 import type { Prisma } from '@prisma/client';
 import { DURATION, endsAt, overlaps } from '@/lib/shared/session-rules';
 import { prisma } from '../client';
+import { PRIVATE_HOLD_MS, sweepLapsedHolds } from './booking';
 
 const withDetails = {
   sport: true,
   venue: true,
   member: { select: { id: true, name: true, email: true, locale: true } },
   coach: { select: { id: true, name: true, email: true, coachProfile: { select: { locale: true } } } },
+  // The member's booking on the accepted session tells whether it's paid.
+  session: { select: { bookings: { select: { status: true, holdUntil: true, cancelledBy: true } } } },
 } satisfies Prisma.PrivateRequestInclude;
 
 export type RequestWithDetails = Prisma.PrivateRequestGetPayload<{ include: typeof withDetails }>;
@@ -50,7 +53,8 @@ export function listCoachRequests(coachId: string) {
   return prisma.privateRequest.findMany({ where: { coachId }, include: withDetails, orderBy: { createdAt: 'desc' }, take: RECENT });
 }
 
-export type AcceptOutcome = { ok: true; sessionId: string } | { ok: false; reason: 'closed' | 'conflict' };
+/** `payBy` is when the member's hold ends; null for a free session, which is confirmed at once. */
+export type AcceptOutcome = { ok: true; sessionId: string; payBy: Date | null } | { ok: false; reason: 'closed' | 'conflict' };
 
 /**
  * The coach accepts: in one transaction, create the private session with the member already booked and link the request.
@@ -63,6 +67,8 @@ export function acceptRequest(id: string, coachId: string, now = new Date()): Pr
     await tx.$queryRaw`SELECT id FROM "PrivateRequest" WHERE id = ${id} FOR UPDATE`;
     const r = await tx.privateRequest.findUnique({ where: { id } });
     if (r?.coachId !== coachId || r.status !== 'PENDING' || r.startsAt <= now) return { ok: false, reason: 'closed' };
+    // A private session nobody paid for in time no longer holds the coach's time.
+    await sweepLapsedHolds(tx, now);
 
     // Any scheduled session that could overlap starts less than the longest session before this one ends.
     const nearby = await tx.session.findMany({
@@ -75,6 +81,7 @@ export function acceptRequest(id: string, coachId: string, now = new Date()): Pr
     });
     if (nearby.some((s) => overlaps(s, r))) return { ok: false, reason: 'conflict' };
 
+    const payBy = r.price > 0 ? new Date(Math.min(now.getTime() + PRIVATE_HOLD_MS, r.startsAt.getTime())) : null;
     const sport = await tx.sport.findUniqueOrThrow({ where: { id: r.sportId }, select: { nameEn: true } });
     const session = await tx.session.create({
       data: {
@@ -88,11 +95,12 @@ export function acceptRequest(id: string, coachId: string, now = new Date()): Pr
         durationMin: r.durationMin,
         price: r.price,
         capacity: 1,
-        bookings: { create: { memberId: r.memberId } },
+        // A paid one waits for the member's payment; see PRIVATE_HOLD_MS.
+        bookings: { create: payBy ? { memberId: r.memberId, status: 'PENDING_PAYMENT', holdUntil: payBy } : { memberId: r.memberId } },
       },
     });
     await tx.privateRequest.update({ where: { id }, data: { status: 'ACCEPTED', respondedAt: now, sessionId: session.id } });
-    return { ok: true, sessionId: session.id };
+    return { ok: true, sessionId: session.id, payBy };
   });
 }
 

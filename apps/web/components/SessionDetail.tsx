@@ -1,20 +1,22 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { notFound, useParams } from 'next/navigation';
+import { notFound, useParams, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { PhaseTag, SessionCover, TypeTag } from '@/components/sessions';
 import { Avatar, Back, initialsOf } from '@/components/ui';
 import { isolate } from '@/i18n/locale';
-import { bookSession, getSession, unbookSession } from '@/lib/client/session-api';
+import { bookSession, getSession, paySession, unbookSession } from '@/lib/client/session-api';
 import { useSessionLabels } from '@/lib/client/session-labels';
 import type { SessionDetailDTO } from '@/lib/server/dto';
 import { CANCEL_CUTOFF_MS, canMemberCancel, sessionPhase } from '@/lib/shared/session-rules';
 import onb from './onboarding.module.css';
 import styles from './SessionDetail.module.css';
 
-const BOOK_ERRORS = ['session_full', 'session_closed', 'cancel_too_late'] as const;
+const BOOK_ERRORS = ['session_full', 'session_closed', 'cancel_too_late', 'payment_unavailable', 'payment_closed'] as const;
+/** What the payment return route reports in `?payment=`, and the message for each. */
+const PAYMENT_NOTICES = { paid: 'paymentPaid', pending: 'paymentPending', failed: 'paymentFailed', refunded: 'paymentRefunded' } as const;
 
 /** Session detail. Guests see everything but are sent to log in to book. */
 export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
@@ -22,6 +24,7 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
   const te = useTranslations('errors');
   const l = useSessionLabels();
   const { id } = useParams<{ id: string }>();
+  const paymentNotice = PAYMENT_NOTICES[useSearchParams().get('payment') as keyof typeof PAYMENT_NOTICES];
   const email = useSession().data?.user.email ?? '';
   const [s, setS] = useState<SessionDetailDTO | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
@@ -44,9 +47,20 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
     setBusy(true);
     setError('');
     const r = await call(id);
+    // A paid session: off to the payment page, which sends the member back here. Stay busy until the page goes.
+    if (r.ok && r.data.checkoutUrl) return globalThis.location.assign(r.data.checkoutUrl);
     setBusy(false);
     if (r.ok) setS(r.data);
     else setError(te(BOOK_ERRORS.find((c) => c === r.code) ?? 'generic'));
+  }
+
+  async function pay() {
+    setBusy(true);
+    setError('');
+    const r = await paySession(id);
+    if (r.ok) return globalThis.location.assign(r.data.checkoutUrl);
+    setBusy(false);
+    setError(te(BOOK_ERRORS.find((c) => c === r.code) ?? 'generic'));
   }
 
   return (
@@ -106,6 +120,11 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
           </Link>
         </div>
         <div className={`card stack ${styles.panel}`}>
+          {paymentNotice && (
+            <output className={`${styles.notice} ${paymentNotice === 'paymentFailed' ? styles.noticeWarn : ''}`}>
+              {t(paymentNotice)}
+            </output>
+          )}
           {phase === 'cancelled' && (
             <>
               <div className={`muted ${styles.note}`}>{t('cancelled')}</div>
@@ -141,7 +160,18 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
               {s.type === 'GROUP' && !canMemberCancel(s.startsAt) && <div className={`dim ${styles.fine}`}>{t('cancelClosed')}</div>}
             </>
           )}
-          {phase === 'upcoming' && !s.bookedByMe && (
+          {phase === 'upcoming' && !s.bookedByMe && s.payBy && (
+            <>
+              <div className={styles.priceRow}>
+                <span className={`muted ${styles.note}`}>{t('payBy', { when: l.when(s.payBy) })}</span>
+                <span className={`display ${styles.price}`}>{l.price(s.price)}</span>
+              </div>
+              <button type='button' className={`btn block ${styles.book}`} disabled={busy} onClick={pay}>
+                {t('payNow')}
+              </button>
+            </>
+          )}
+          {phase === 'upcoming' && !s.bookedByMe && !s.payBy && (
             <>
               <div className={styles.priceRow}>
                 <span className={`muted ${styles.note}`}>{l.spots(s)}</span>
@@ -158,7 +188,7 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
                   {t('reserve')}
                 </button>
               )}
-              <div className={`dim ${styles.fine}`}>{t('payAtSession')}</div>
+              <div className={`dim ${styles.fine}`}>{t(s.price > 0 ? 'payByCard' : 'freeSession')}</div>
             </>
           )}
           {error && <div className={onb.error}>{error}</div>}

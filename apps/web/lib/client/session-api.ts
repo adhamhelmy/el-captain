@@ -35,6 +35,8 @@ export const mySessionsBetween = (from: Date, to: Date) =>
   request<SessionDTO[]>(`/api/sessions/me?${new URLSearchParams({ from: from.toISOString(), to: to.toISOString() })}`);
 export const listAttendees = (id: string) => request<AttendeeDTO[]>(`/api/sessions/${id}/attendees`);
 export const bookSession = (id: string) => request<SessionDetailDTO>(`/api/sessions/${id}/book`, 'POST', {});
+/** Starts (or reopens) the checkout for a spot the member holds unpaid. */
+export const paySession = (id: string) => request<{ checkoutUrl: string }>(`/api/sessions/${id}/pay`, 'POST', {});
 export const unbookSession = (id: string) => request<SessionDetailDTO>(`/api/sessions/${id}/unbook`, 'POST', {});
 
 export const listVenues = () => request<CoachVenueDTO[]>('/api/venues/me');

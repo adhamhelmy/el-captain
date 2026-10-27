@@ -59,6 +59,7 @@ export function RequestList({
             </div>
             <div className={`muted ${styles.small}`}>{t('line', { sport: l.sport(r.sport), when: l.when(r.startsAt), place: r.venue.name })}</div>
             <div className={`muted ${styles.small}`}>{t('terms', { minutes: r.durationMin, price: l.price(r.price) })}</div>
+            {r.payBy && <div className={styles.small}>{t('payBy', { when: l.when(r.payBy) })}</div>}
             {r.message && (
               <div dir='auto' className={styles.small}>
                 {t('message', { message: r.message })}
@@ -72,10 +73,17 @@ export function RequestList({
           </div>
           <div className={styles.actions}>
             {/* A coach answers pending requests with the buttons, so only settled ones get a tag. */}
-            {(role === 'member' || r.status !== 'PENDING') && (
+            {(role === 'member' || r.status !== 'PENDING') && !r.payment && (
               <Tag kind={TAG_KIND[r.status]}>{t(`status.${r.status.toLowerCase() as 'pending'}`)}</Tag>
             )}
-            {r.status === 'ACCEPTED' && r.sessionId && (
+            {r.payment === 'due' && <Tag kind='pending'>{t('awaitingPayment')}</Tag>}
+            {r.payment === 'lapsed' && <Tag kind='cancelled'>{t('notPaid')}</Tag>}
+            {r.payment === 'due' && role === 'member' && r.sessionId && (
+              <Link href={`/user/sessions/${r.sessionId}`} className='btn sm plain'>
+                {t('payNow')}
+              </Link>
+            )}
+            {r.status === 'ACCEPTED' && r.sessionId && (r.payment !== 'due' || role === 'coach') && (
               <Link href={`${role === 'coach' ? '/coach' : '/user'}/sessions/${r.sessionId}`} className='btn-ghost sm plain'>
                 {t('viewSession')}
               </Link>
