@@ -6,8 +6,9 @@ import { ERROR_CODES } from '@/lib/shared/error-codes';
 import { cleanText, hasStarted, TEXT_MAX } from '@/lib/shared/session-rules';
 import { cancelSession, findSession } from '@/prisma/models/session';
 import { sendSessionCancelled } from '@/lib/email/session-emails';
+import { refundBookings } from '@/lib/server/payments/checkout';
 
-/** The coach (or an admin) cancels a session that hasn't started. Every booking is cancelled with it. */
+/** The coach (or an admin) cancels a session that hasn't started. Every booking is cancelled with it, and paid ones refunded. */
 async function cancel({ req, user, params: { id } }: AuthContext<{ id: string }>) {
   const admin = user.role === 'ADMIN';
   if (!admin) await assertActiveCoach(user);
@@ -21,11 +22,12 @@ async function cancel({ req, user, params: { id } }: AuthContext<{ id: string }>
   const reason = cleanText(body?.reason);
   assertValid(reason.length <= TEXT_MAX, 'Reason too long', ERROR_CODES.INVALID_SESSION, { fields: ['reason'] });
 
-  const members = await cancelSession(id, admin ? 'ADMIN' : 'COACH', reason || null);
-  assertNoConflict(members, 'Session closed', ERROR_CODES.SESSION_CLOSED);
+  const cancelled = await cancelSession(id, admin ? 'ADMIN' : 'COACH', reason || null);
+  assertNoConflict(cancelled, 'Session closed', ERROR_CODES.SESSION_CLOSED);
+  await refundBookings(cancelled.bookingIds);
 
   const dto = toSessionDTO((await findSession(id))!);
-  await sendSessionCancelled(members, dto, reason || null);
+  await sendSessionCancelled(cancelled.members, dto, reason || null);
   return NextResponse.json(dto);
 }
 

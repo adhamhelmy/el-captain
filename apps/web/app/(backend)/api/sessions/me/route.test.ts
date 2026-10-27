@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
 vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
+vi.mock('@/prisma/models/booking', () => ({ expireHolds: vi.fn() }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoachStatus: vi.fn(async () => 'ACTIVE') }));
 vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p }));
 vi.mock('@/prisma/models/session', () => ({

@@ -26,10 +26,11 @@ beforeEach(() => {
 
 describe('POST /api/private-requests/[id]/accept', () => {
   it('accepts and emails the member', async () => {
-    vi.mocked(acceptRequest).mockResolvedValue({ ok: true, sessionId: 'x9' });
+    const payBy = new Date('2026-10-21T10:00:00Z');
+    vi.mocked(acceptRequest).mockResolvedValue({ ok: true, sessionId: 'x9', payBy });
     expect((await call(POST, { params, body: {} })).status).toBe(200);
     expect(acceptRequest).toHaveBeenCalledWith('r1', 'k1');
-    expect(sendRequestAccepted).toHaveBeenCalledWith({ id: 'u1', email: 'u@x.com', locale: 'ar' }, expect.objectContaining({ id: 'x9' }));
+    expect(sendRequestAccepted).toHaveBeenCalledWith({ id: 'u1', email: 'u@x.com', locale: 'ar' }, expect.objectContaining({ id: 'x9' }), payBy);
   });
 
   it.each([

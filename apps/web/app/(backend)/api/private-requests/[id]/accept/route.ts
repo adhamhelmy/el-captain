@@ -19,7 +19,7 @@ async function accept({ user, params: { id } }: AuthContext<{ id: string }>) {
 
   const session = await findSession(outcome.sessionId);
   const { id: memberId, email, locale } = request.member;
-  await sendRequestAccepted({ id: memberId, email, locale }, toSessionDTO(session!));
+  await sendRequestAccepted({ id: memberId, email, locale }, toSessionDTO(session!), outcome.payBy);
   return NextResponse.json(toRequestDTO((await findRequest(id))!));
 }
 

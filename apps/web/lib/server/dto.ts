@@ -1,4 +1,5 @@
 import { blobUrlOrNull } from '@/lib/server/blob';
+import type { FailedRefundRow } from '@/prisma/models/payment';
 import type { Draft } from '@/lib/shared/coach-rules';
 import type { Client } from '@/prisma/models/client-profile';
 import type { Certification } from '@/prisma/models/certification';
@@ -49,8 +50,12 @@ export const toSessionDTO = ({ coach, sport, venue, _count, ...s }: SessionWithD
 });
 
 export type SessionDTO = ReturnType<typeof toSessionDTO>;
-/** One session's page: the session plus whether the signed-in member holds a confirmed booking. */
-export type SessionDetailDTO = SessionDTO & { bookedByMe: boolean };
+/**
+ * One session's page: the session plus whether the signed-in member holds a confirmed booking.
+ * After booking a paid session, `checkoutUrl` is the payment page to send the member to.
+ * `payBy` is set while the member holds an unpaid spot: they can pay until then.
+ */
+export type SessionDetailDTO = SessionDTO & { bookedByMe: boolean; checkoutUrl?: string; payBy?: Date | null };
 
 export const toAttendeeDTO = ({ id, createdAt, member }: AttendeeRow) => ({
   bookingId: id,
@@ -62,6 +67,17 @@ export const toAttendeeDTO = ({ id, createdAt, member }: AttendeeRow) => ({
 export type AttendeeDTO = ReturnType<typeof toAttendeeDTO>;
 
 /** A private request with its state (EXPIRED when a pending request's time has passed), sport, venue and both people. */
+/**
+ * Where an accepted paid request stands: `due` until the member pays (by `payBy`), `lapsed` if they didn't.
+ * Null when there's nothing to pay: not accepted, free, or paid.
+ */
+function requestPayment(r: RequestWithDetails, now: Date) {
+  const b = r.session?.bookings[0];
+  if (b?.status === 'PENDING_PAYMENT' && b.holdUntil && b.holdUntil > now) return { payment: 'due' as const, payBy: b.holdUntil };
+  const lapsed = b?.status === 'PENDING_PAYMENT' || (b?.status === 'CANCELLED' && !b.cancelledBy);
+  return { payment: lapsed ? ('lapsed' as const) : null, payBy: null };
+}
+
 export const toRequestDTO = (r: RequestWithDetails, now = new Date()) => ({
   id: r.id,
   status: requestState(r, now),
@@ -76,8 +92,20 @@ export const toRequestDTO = (r: RequestWithDetails, now = new Date()) => ({
   venue: toVenueDTO(r.venue),
   member: { id: r.member.id, name: r.member.name },
   coach: { id: r.coach.id, name: r.coach.name },
+  ...requestPayment(r, now),
 });
 export type RequestDTO = ReturnType<typeof toRequestDTO>;
+
+/** A refund Paymob refused: enough for an admin to find it in Paymob's dashboard and refund it there. */
+export const toFailedRefundDTO = (p: FailedRefundRow) => ({
+  id: p.id,
+  amount: p.amountCents / 100,
+  transactionId: p.providerTransactionId,
+  failedAt: p.updatedAt,
+  member: p.member,
+  session: p.booking.session,
+});
+export type FailedRefundDTO = ReturnType<typeof toFailedRefundDTO>;
 
 /** A photo or video with its public URL. Members only see the sport once admins have approved it. */
 export const toMediaDTO = ({ id, kind, filePath, caption, sport, durationSec }: Media, forPublic = false) => ({

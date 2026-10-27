@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { SectionHead, Stats } from '@/components/ui';
 import { adminListCoaches } from '@/lib/client/coach-api';
-import { adminRecentBookings, adminStats, type AdminStats } from '@/lib/client/insights-api';
+import { adminFailedRefunds, adminRecentBookings, adminStats, type AdminStats } from '@/lib/client/insights-api';
 import { useSessionLabels } from '@/lib/client/session-labels';
-import type { AdminCoachRowDTO, RecentBookingDTO } from '@/lib/server/dto';
+import type { AdminCoachRowDTO, FailedRefundDTO, RecentBookingDTO } from '@/lib/server/dto';
 import { sportName } from '@/lib/shared/coach-rules';
 import styles from './page.module.css';
 
@@ -24,9 +24,11 @@ export default function AdminDashboard() {
   const l = useSessionLabels();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recent, setRecent] = useState<RecentBookingDTO[]>([]);
+  const [failedRefunds, setFailedRefunds] = useState<FailedRefundDTO[]>([]);
   useEffect(() => {
     adminStats().then((r) => r.ok && setStats(r.data));
     adminRecentBookings().then((r) => r.ok && setRecent(r.data));
+    adminFailedRefunds().then((r) => r.ok && setFailedRefunds(r.data));
   }, []);
 
   return (
@@ -44,6 +46,28 @@ export default function AdminDashboard() {
             [l.price(stats.bookedValue30), t('stats.gross30')],
           ]}
         />
+      )}
+      {failedRefunds.length > 0 && (
+        <div>
+          <div className={`h2 ${styles.heading}`}>{t('failedRefunds')}</div>
+          <div className={`muted ${styles.hint}`}>{t('failedRefundsHint')}</div>
+          <div className={`card ${styles.feed}`}>
+            {failedRefunds.map((p) => (
+              <div key={p.id} className={styles.booking}>
+                <div>
+                  <Link href={`/admin/sessions/${p.session.id}`} className={`plain ${styles.link}`}>
+                    <bdi>{p.session.title}</bdi>
+                  </Link>
+                  <span className='muted'>
+                    {' · '}
+                    <bdi>{p.member.name}</bdi> · {l.price(p.amount)} · {t('transaction', { id: p.transactionId ?? '—' })}
+                  </span>
+                </div>
+                <span className={`dim ${styles.ago}`}>{l.ago(p.failedAt)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
       <div className={`grid-2 ${styles.columns}`}>
         <div>

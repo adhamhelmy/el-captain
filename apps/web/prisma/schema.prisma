@@ -36,6 +36,7 @@ model User {
   bookings          Booking[]
   sentRequests      PrivateRequest[] @relation("PrivateRequestsSent")
   receivedRequests  PrivateRequest[] @relation("PrivateRequestsReceived")
+  payments          Payment[]
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 }
@@ -238,6 +239,8 @@ enum SessionStatus {
 }
 
 enum BookingStatus {
+  /// Spot held while the member pays; lapses at holdUntil.
+  PENDING_PAYMENT
   CONFIRMED
   CANCELLED
 }
@@ -317,6 +320,9 @@ model Booking {
   status      BookingStatus @default(CONFIRMED)
   cancelledAt DateTime?
   cancelledBy CancelledBy?
+  /// Set while waiting for payment. Past it, an unpaid booking no longer holds the spot.
+  holdUntil   DateTime?
+  payments    Payment[]
   createdAt   DateTime      @default(now())
 
   @@unique([sessionId, memberId])
@@ -349,4 +355,41 @@ model PrivateRequest {
 
   @@index([coachId, status])
   @@index([memberId, status])
+}
+
+enum PaymentProvider {
+  PAYMOB
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  REFUND_FAILED
+}
+
+/// One checkout attempt for a booking. The amount is copied at checkout, so later price edits don't change it.
+model Payment {
+  id                    String          @id @default(cuid())
+  bookingId             String
+  booking               Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  memberId              String
+  member                User            @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  /// EGP piastres.
+  amountCents           Int
+  currency              String          @default("EGP")
+  provider              PaymentProvider
+  status                PaymentStatus   @default(PENDING)
+  providerIntentionId   String?         @unique
+  providerTransactionId String?         @unique
+  clientSecret          String?
+  /// The app link to send the member back to after checkout; null sends them to the web.
+  returnUrl             String?
+  paidAt                DateTime?
+  refundedAt            DateTime?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([bookingId])
 }

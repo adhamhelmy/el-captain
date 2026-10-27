@@ -92,11 +92,14 @@ export async function sendPrivateRequested(coach: Recipient, request: EmailReque
   );
 }
 
-export async function sendRequestAccepted(member: Recipient, session: EmailSession) {
+/** A paid session asks the member to pay by `payBy`; a free one (null) is confirmed. Both link to the session, where Pay now is. */
+export async function sendRequestAccepted(member: Recipient, session: EmailSession, payBy: Date | null) {
   const locale = localeOf(member);
   const w = words(locale);
+  const copy = payBy ? MESSAGES[locale].emails.requestAccepted : MESSAGES[locale].emails.requestAcceptedFree;
+  const detail = lines(w.sessionDetail(session), payBy && w.t('payBy', { when: w.when(payBy) }));
   await send(
-    noticeMail(member.email, locale, MESSAGES[locale].emails.requestAccepted, appUrl(`/user/sessions/${session.id}`), w.sessionDetail(session)),
+    noticeMail(member.email, locale, copy, appUrl(`/user/sessions/${session.id}`), detail),
     `accepted email to ${member.id}`,
   );
 }

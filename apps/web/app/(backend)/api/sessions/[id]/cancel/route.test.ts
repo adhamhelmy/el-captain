@@ -6,8 +6,10 @@ vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p }))
 vi.mock('@/lib/server/coach-guard', () => ({ assertActiveCoach: vi.fn() }));
 vi.mock('@/prisma/models/session', () => ({ findSession: vi.fn(), cancelSession: vi.fn() }));
 vi.mock('@/lib/email/session-emails', () => ({ sendSessionCancelled: vi.fn() }));
+vi.mock('@/lib/server/payments/checkout', () => ({ refundBookings: vi.fn() }));
 
 import { POST } from './route';
+import { refundBookings } from '@/lib/server/payments/checkout';
 import { cancelSession, findSession } from '@/prisma/models/session';
 import { call, signInAs } from '@/test/api';
 import { sendSessionCancelled } from '@/lib/email/session-emails';
@@ -18,7 +20,7 @@ const params = { id: 'x1' };
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(findSession).mockResolvedValue(sessionRow() as any);
-  vi.mocked(cancelSession).mockResolvedValue([{ id: 'u1', email: 'u@x.com', locale: 'ar' }]);
+  vi.mocked(cancelSession).mockResolvedValue({ members: [{ id: 'u1', email: 'u@x.com', locale: 'ar' }], bookingIds: ['b1'] });
 });
 
 describe('POST /api/sessions/[id]/cancel', () => {
@@ -26,6 +28,7 @@ describe('POST /api/sessions/[id]/cancel', () => {
     signInAs('k1', 'COACH');
     expect((await call(POST, { params, body: { reason: ' Injury ' } })).status).toBe(200);
     expect(cancelSession).toHaveBeenCalledWith('x1', 'COACH', 'Injury');
+    expect(refundBookings).toHaveBeenCalledWith(['b1']);
     expect(sendSessionCancelled).toHaveBeenCalledWith(
       [{ id: 'u1', email: 'u@x.com', locale: 'ar' }],
       expect.objectContaining({ id: 'x1' }),

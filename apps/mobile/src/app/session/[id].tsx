@@ -4,13 +4,14 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useTranslations } from 'use-intl';
-import { load, peek, remember } from '@/api/cache';
+import { forget, load, peek, remember } from '@/api/cache';
 import { api, ApiError } from '@/api/client';
-import { DETAIL } from '@/api/paths';
+import { DETAIL, PATHS } from '@/api/paths';
 import type { SessionDetail } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
 import { openPage } from '@/nav/open';
-import { bookingState } from '@/sessions/booking';
+import { bookingState, paymentOutcome, type PaymentOutcome } from '@/sessions/booking';
+import { payInBrowser, sessionReturnUrl } from '@/sessions/checkout';
 import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Avatar } from '@/ui/Avatar';
@@ -23,13 +24,16 @@ import { DetailSkeleton } from '@/ui/Skeleton';
 import { Tag, typeTagKind } from '@/ui/Tag';
 import { Text } from '@/ui/Text';
 
-const BOOK_ERRORS = ['session_full', 'session_closed', 'cancel_too_late', 'network'] as const;
+const BOOK_ERRORS = ['session_full', 'session_closed', 'cancel_too_late', 'payment_unavailable', 'payment_closed', 'network'] as const;
+/** The message for each payment outcome, as the web's session page. */
+const PAYMENT_NOTICES = { paid: 'paymentPaid', pending: 'paymentPending', failed: 'paymentFailed', refunded: 'paymentRefunded' } as const;
 /** Wraps text whose direction may differ from the page (an email in Arabic), as the web's isolate. */
 const isolate = (s: string) => `⁨${s}⁩`;
 
 /** The web's SessionDetail. Guests see everything and are sent to log in to book, then brought back here. */
 export default function SessionPage() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  // `payment` is set when the checkout's return link opened this page rather than the in-app browser catching it.
+  const { id, payment } = useLocalSearchParams<{ id: string; payment?: string }>();
   const t = useTranslations('session');
   const te = useTranslations('errors');
   const td = useTranslations('data');
@@ -40,6 +44,7 @@ export default function SessionPage() {
   const [s, setS] = useState<SessionDetail | null | undefined>(() => peek<SessionDetail>(DETAIL.session(id)));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<PaymentOutcome | null>(() => paymentOutcome(payment));
   const path = `/session/${id}`;
 
   // Back on screen after logging in to book: the detour is done. Only while focused, so a copy that isn't
@@ -83,17 +88,45 @@ export default function SessionPage() {
   async function act(action: 'book' | 'unbook') {
     setBusy(true);
     setError(null);
+    setOutcome(null);
     try {
-      const next = await api<SessionDetail>(`/api/sessions/${id}/${action}`, { method: 'POST', json: {} });
+      const next = await api<SessionDetail>(`/api/sessions/${id}/${action}`, {
+        method: 'POST',
+        json: action === 'book' ? { returnUrl: sessionReturnUrl(id) } : {},
+      });
       setS(next);
       // The next visit opens on the booking as it is now, not as it was before this tap.
       remember(DETAIL.session(id), next);
+      if (next.checkoutUrl) await checkout(next.checkoutUrl);
     } catch (e) {
       const code = e instanceof ApiError ? e.code : undefined;
       setError(te(BOOK_ERRORS.find((c) => c === code) ?? 'generic'));
     } finally {
       setBusy(false);
     }
+  }
+
+  async function pay() {
+    setBusy(true);
+    setError(null);
+    setOutcome(null);
+    try {
+      const r = await api<{ checkoutUrl: string }>(`/api/sessions/${id}/pay`, { method: 'POST', json: { returnUrl: sessionReturnUrl(id) } });
+      await checkout(r.checkoutUrl);
+    } catch (e) {
+      const code = e instanceof ApiError ? e.code : undefined;
+      setError(te(BOOK_ERRORS.find((c) => c === code) ?? 'generic'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Pays in the in-app browser, then shows the session as it is now: closing the browser early may still have paid. */
+  async function checkout(url: string) {
+    setOutcome(await payInBrowser(url, sessionReturnUrl(id)));
+    forget(PATHS.myUpcoming);
+    forget(PATHS.myRequests);
+    setS(await load<SessionDetail>(DETAIL.session(id)));
   }
 
   // Replace rather than push: after sign-in the redirect opens this page fresh, so the old copy must not stay underneath.
@@ -118,6 +151,11 @@ export default function SessionPage() {
       </View>
 
       <Card>
+        {outcome && (
+          <Text accessibilityRole="alert" style={{ color: outcome === 'failed' ? colors.warn : colors.accentText }}>
+            {t(PAYMENT_NOTICES[outcome])}
+          </Text>
+        )}
         {state === 'cancelled' && (
           <>
             <Text muted>{t('cancelled')}</Text>
@@ -142,6 +180,19 @@ export default function SessionPage() {
             {state === 'bookedTooLate' && <Text variant="label">{t('cancelClosed')}</Text>}
           </>
         )}
+        {state === 'pay' && (
+          <>
+            <View style={styles.priceRow}>
+              <Text muted style={styles.grow}>
+                {t('payBy', { when: l.when(s.payBy!) })}
+              </Text>
+              <Text variant="display" style={styles.price}>
+                {l.price(s.price)}
+              </Text>
+            </View>
+            <Button label={t('payNow')} onPress={pay} busy={busy} />
+          </>
+        )}
         {(state === 'logIn' || state === 'notMember' || state === 'full' || state === 'reserve') && (
           <>
             <View style={styles.priceRow}>
@@ -153,7 +204,7 @@ export default function SessionPage() {
             {state === 'logIn' && <Button label={t('logInToBook')} onPress={logInToBook} />}
             {state === 'full' && <Text muted>{t('full')}</Text>}
             {state === 'reserve' && <Button label={t('reserve')} onPress={() => act('book')} busy={busy} />}
-            <Text variant="label">{t('payAtSession')}</Text>
+            <Text variant="label">{t(s.price > 0 ? 'payByCard' : 'freeSession')}</Text>
           </>
         )}
         {error && <Text style={{ color: colors.warn }}>{error}</Text>}
@@ -201,7 +252,8 @@ const styles = StyleSheet.create({
   cover: { height: 180, borderRadius: 16 },
   hero: { gap: 8 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
-  priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+  grow: { flex: 1 },
   price: { fontSize: 34, lineHeight: 38 },
   pill: { borderWidth: 1, borderRadius: 100, paddingHorizontal: 14, paddingVertical: 7 },
   block: { gap: 6 },

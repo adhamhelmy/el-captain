@@ -45,5 +45,6 @@ export const requestRow = (over: Record<string, unknown> = {}) => ({
   venue: { id: 'v1', name: 'Club', address: 'St', city: 'Cairo', mapUrl: null, archivedAt: null },
   member: { id: 'u1', name: 'Ali', email: 'u@x.com', locale: 'ar' },
   coach: { id: 'k1', name: 'Mona', email: 'k@x.com', coachProfile: { locale: 'en' } },
+  session: null,
   ...over,
 });

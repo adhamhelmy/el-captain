@@ -5,8 +5,10 @@ vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p }));
 vi.mock('@/prisma/models/booking', () => ({ unbookSession: vi.fn() }));
 vi.mock('@/prisma/models/session', () => ({ findSession: vi.fn() }));
+vi.mock('@/lib/server/payments/checkout', () => ({ refundBookings: vi.fn() }));
 
 import { POST } from './route';
+import { refundBookings } from '@/lib/server/payments/checkout';
 import { unbookSession } from '@/prisma/models/booking';
 import { findSession } from '@/prisma/models/session';
 import { call, signInAs } from '@/test/api';
@@ -18,7 +20,7 @@ const hour = 60 * 60 * 1000;
 beforeEach(() => {
   vi.clearAllMocks();
   signInAs('u1', 'USER');
-  vi.mocked(unbookSession).mockResolvedValue(true);
+  vi.mocked(unbookSession).mockResolvedValue('b1');
 });
 
 describe('POST /api/sessions/[id]/unbook', () => {
@@ -28,6 +30,7 @@ describe('POST /api/sessions/[id]/unbook', () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ bookedByMe: false });
     expect(unbookSession).toHaveBeenCalledWith('x1', 'u1');
+    expect(refundBookings).toHaveBeenCalledWith(['b1']);
   });
 
   it('refuses inside the 2-hour window', async () => {
@@ -48,7 +51,7 @@ describe('POST /api/sessions/[id]/unbook', () => {
 
   it('returns 404 when the member had no booking', async () => {
     vi.mocked(findSession).mockResolvedValue(sessionRow({ startsAt: new Date(Date.now() + 3 * hour) }) as any);
-    vi.mocked(unbookSession).mockResolvedValue(false);
+    vi.mocked(unbookSession).mockResolvedValue(null);
     expect((await call(POST, { params, body: {} })).status).toBe(404);
   });
 });

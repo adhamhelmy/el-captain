@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@/lib/email/mail', async (orig) => ({ ...(await orig<typeof import('@/lib/email/mail')>()), sendMail: vi.fn() }));
 
 import { sendMail } from '@/lib/email/mail';
-import { sendBookingConfirmed, sendPrivateRequested, sendRequestRejected, sendSessionCancelled } from './session-emails';
+import { sendBookingConfirmed, sendPrivateRequested, sendRequestAccepted, sendRequestRejected, sendSessionCancelled } from './session-emails';
 
 const session = {
   id: 'x1',
@@ -27,7 +27,8 @@ describe('sendBookingConfirmed', () => {
     expect(mail.text).toContain('Sunrise Flow with Mona');
     expect(mail.text).toMatch(/7:00\sPM \(Cairo time\) · 60 min/);
     expect(mail.text).toContain('Zamalek Club, 26 July St');
-    expect(mail.text).toMatch(/EGP\s350, paid at the session/);
+    expect(mail.text).toMatch(/EGP\s350/);
+    expect(mail.text).not.toContain('paid at the session');
     expect(mail.text).toMatch(/You can cancel until .*5:00\sPM/);
     expect(mail.text).toContain('/user/sessions/x1');
   });
@@ -52,6 +53,23 @@ describe('sendSessionCancelled', () => {
     expect(sendMail).toHaveBeenCalledTimes(2);
     expect(vi.mocked(sendMail).mock.calls[0][0].text).toContain('Reason: Injury');
     expect(vi.mocked(sendMail).mock.calls[1][0].text).toContain('السبب: Injury');
+  });
+});
+
+describe('sendRequestAccepted', () => {
+  it('asks the member to pay by the end of their hold, linking to the session', async () => {
+    await sendRequestAccepted(member, session, new Date('2026-10-21T16:00:00Z'));
+    const mail = vi.mocked(sendMail).mock.calls[0][0];
+    expect(mail.subject).toBe('Your private session request was accepted');
+    expect(mail.text).toMatch(/Pay by .*7:00\sPM to confirm it/);
+    expect(mail.text).toContain('/user/sessions/x1');
+  });
+
+  it('confirms a free session without asking for payment', async () => {
+    await sendRequestAccepted(member, { ...session, price: 0 }, null);
+    const mail = vi.mocked(sendMail).mock.calls[0][0];
+    expect(mail.subject).toBe('Your private session is confirmed');
+    expect(mail.text).not.toContain('Pay by');
   });
 });
 

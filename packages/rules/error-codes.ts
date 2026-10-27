@@ -29,6 +29,10 @@ export const ERROR_CODES = {
   SESSION_FULL: 'session_full',
   /** The session started, was cancelled, or isn't open for booking (e.g. a private session). */
   SESSION_CLOSED: 'session_closed',
+  /** The payment provider couldn't start a checkout. The spot stays held, so trying again is safe. */
+  PAYMENT_UNAVAILABLE: 'payment_unavailable',
+  /** Nothing to pay: the hold lapsed, or the booking is already paid or cancelled. */
+  PAYMENT_CLOSED: 'payment_closed',
   /** A member tried to cancel inside the 2-hour window. */
   CANCEL_TOO_LATE: 'cancel_too_late',
   /** The coach already has a session at that time. */

@@ -58,15 +58,21 @@ export function RequestList({ role, requests, onChange }: { role: 'member' | 'co
         <Card key={r.id} style={styles.card}>
           <View style={styles.head}>
             <Text style={styles.who}>{role === 'coach' ? r.member.name : r.coach.name}</Text>
-            {(role === 'member' || r.status !== 'PENDING') && (
+            {(role === 'member' || r.status !== 'PENDING') && !r.payment && (
               <Tag kind={TAG_KIND[r.status]} label={t(`status.${r.status.toLowerCase() as 'pending'}`)} />
             )}
+            {r.payment === 'due' && <Tag kind="pending" label={t('awaitingPayment')} />}
+            {r.payment === 'lapsed' && <Tag kind="warn" label={t('notPaid')} />}
           </View>
           <Text variant="label">{t('line', { sport: l.sport(r.sport), when: l.when(r.startsAt), place: r.venue.name })}</Text>
           <Text variant="label">{t('terms', { minutes: r.durationMin, price: l.price(r.price) })}</Text>
+          {r.payBy && <Text variant="label">{t('payBy', { when: l.when(r.payBy) })}</Text>}
           {r.message && <Text>{t('message', { message: r.message })}</Text>}
           {r.responseNote && <Text>{t('note', { note: r.responseNote })}</Text>}
-          {r.status === 'ACCEPTED' && r.sessionId && (
+          {r.payment === 'due' && role === 'member' && r.sessionId && (
+            <Button label={t('payNow')} onPress={() => openPage(`/session/${r.sessionId}`)} />
+          )}
+          {r.status === 'ACCEPTED' && r.sessionId && (r.payment !== 'due' || role === 'coach') && (
             <LinkText label={t('viewSession')} onPress={() => openPage(`${role === 'coach' ? '/coach-session' : '/session'}/${r.sessionId}`)} />
           )}
           {r.status === 'PENDING' && role === 'member' && (

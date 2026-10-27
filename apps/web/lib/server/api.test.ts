@@ -6,7 +6,7 @@ vi.mock('@/lib/server/bearer', () => ({ userFromBearer: vi.fn(async () => null) 
 
 import { getServerSession } from 'next-auth';
 import { userFromBearer } from '@/lib/server/bearer';
-import { assertAllowed, assertFound, assertNoConflict, assertSignedIn, assertValid, HttpError, optionalViewer, protect, publicRoute } from './api';
+import { assertAllowed, assertFound, assertNoConflict, assertSignedIn, assertUpstream, assertValid, HttpError, optionalViewer, protect, publicRoute } from './api';
 
 const signIn = (user: object | null) => vi.mocked(getServerSession).mockResolvedValue(user && ({ user } as any));
 
@@ -136,6 +136,17 @@ describe('publicRoute', () => {
     );
     expect(res.status).toBe(409);
     expect(await res.json()).toEqual({ error: 'Taken' });
+  });
+
+  it('answers 502 when a service we rely on failed', async () => {
+    const res = await call(
+      publicRoute(async () => {
+        assertUpstream(null, 'Payment unavailable', 'payment_unavailable');
+        return ok();
+      }),
+    );
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: 'Payment unavailable', code: 'payment_unavailable' });
   });
 
   it('adds the details to the error body', async () => {

@@ -6,6 +6,7 @@ Open work, grouped by area. Each area is ordered by priority.
 
 - **Rate limits** on login, sign-up, forgot-password and resend, per IP and per email. Store them in the DB so they work on Vercel.
 - **Private Blob storage for coach certifications.** `@vercel/blob` 2.8 supports private access. Existing files need migrating.
+- **Security scanning.** Add `npm audit`, an ESLint security plugin and Semgrep to the checks.
 
 ## Coach
 

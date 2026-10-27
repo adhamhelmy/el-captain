@@ -60,7 +60,7 @@
       }
     },
     "owner": "adhamhelmy",
-    "runtimeVersion": "exposdk:57.0.0",
+    "runtimeVersion": "exposdk:58.0.0",
     "updates": {
       "url": "https://u.expo.dev/249013c9-f09d-4125-8970-79540197e431"
     }

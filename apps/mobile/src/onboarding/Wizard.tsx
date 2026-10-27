@@ -15,7 +15,7 @@ import {
   type WizardStep,
 } from '@el-captain/rules/coach-rules';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslations } from 'use-intl';
 import { api, ApiError } from '@/api/client';
@@ -79,7 +79,7 @@ export function Wizard({ data, onSubmitted }: { data: Onboarding; onSubmitted: (
   const track = (on: boolean) => setWorking((n) => n + (on ? 1 : -1));
   const [error, setError] = useState<string | null>(null);
   const saved = useRef(savedBodiesOf(form));
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
 
   // A failed load stays null (the server's own check is trusted meanwhile) and says so, with a retry, rather than
   // looking like "no locations yet".
