@@ -70,7 +70,7 @@ export function RequestList({ role, requests, onChange }: { role: 'member' | 'co
           {r.message && <Text>{t('message', { message: r.message })}</Text>}
           {r.responseNote && <Text>{t('note', { note: r.responseNote })}</Text>}
           {r.payment === 'due' && role === 'member' && r.sessionId && (
-            <Button label={t('payNow')} onPress={() => openPage(`/session/${r.sessionId}`)} />
+            <Button label={t('book')} onPress={() => openPage(`/session/${r.sessionId}`)} />
           )}
           {r.status === 'ACCEPTED' && r.sessionId && (r.payment !== 'due' || role === 'coach') && (
             <LinkText label={t('viewSession')} onPress={() => openPage(`${role === 'coach' ? '/coach-session' : '/session'}/${r.sessionId}`)} />

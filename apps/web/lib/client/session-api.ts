@@ -1,5 +1,6 @@
 /** Browser calls to the sessions, bookings, venues and private-request APIs. Pages use these instead of calling fetch themselves. */
-import type { AttendeeDTO, CoachVenueDTO, RequestDTO, SessionDetailDTO, SessionDTO, VenueDTO } from '@/lib/server/dto';
+import type { AttendeeDTO, CoachVenueDTO, MemberPaymentDTO, RequestDTO, SessionDetailDTO, SessionDTO, VenueDTO } from '@/lib/server/dto';
+import type { PaymentMethod } from '@/lib/shared/payment-rules';
 import { request } from '@/lib/client/coach-api';
 
 /** What the session form sends. startsAt is an ISO instant (from fromWallClock). */
@@ -34,9 +35,10 @@ export const mySessions = (when: 'upcoming' | 'past') => request<SessionDTO[]>(`
 export const mySessionsBetween = (from: Date, to: Date) =>
   request<SessionDTO[]>(`/api/sessions/me?${new URLSearchParams({ from: from.toISOString(), to: to.toISOString() })}`);
 export const listAttendees = (id: string) => request<AttendeeDTO[]>(`/api/sessions/${id}/attendees`);
-export const bookSession = (id: string) => request<SessionDetailDTO>(`/api/sessions/${id}/book`, 'POST', {});
-/** Starts (or reopens) the checkout for a spot the member holds unpaid. */
-export const paySession = (id: string) => request<{ checkoutUrl: string }>(`/api/sessions/${id}/pay`, 'POST', {});
+export const bookSession = (id: string, method?: PaymentMethod) => request<SessionDetailDTO>(`/api/sessions/${id}/book`, 'POST', { method });
+/** Pays for a spot the member holds unpaid: card answers `checkoutUrl` (the checkout to open), cash confirms the spot. */
+export const paySession = (id: string, method?: PaymentMethod) =>
+  request<{ checkoutUrl?: string; payment?: MemberPaymentDTO; bookedByMe?: boolean }>(`/api/sessions/${id}/pay`, 'POST', { method });
 export const unbookSession = (id: string) => request<SessionDetailDTO>(`/api/sessions/${id}/unbook`, 'POST', {});
 
 export const listVenues = () => request<CoachVenueDTO[]>('/api/venues/me');

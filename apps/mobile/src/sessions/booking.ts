@@ -8,6 +8,7 @@ type BookingInfo = {
   booked: number;
   bookedByMe: boolean;
   payBy?: string | null;
+  payment?: { method: string; status: string } | null;
 };
 
 export type BookingState =

@@ -1,3 +1,4 @@
+import type { PaymentMethod } from '@el-captain/rules/payment-rules';
 import { CANCEL_CUTOFF_MS } from '@el-captain/rules/session-rules';
 import { Image } from 'expo-image';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -12,6 +13,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { openPage } from '@/nav/open';
 import { bookingState, paymentOutcome, type PaymentOutcome } from '@/sessions/booking';
 import { payInBrowser, sessionReturnUrl } from '@/sessions/checkout';
+import { MethodNote, MethodPicker } from '@/sessions/PaymentPanels';
 import { useSessionLabels } from '@/sessions/labels';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Avatar } from '@/ui/Avatar';
@@ -24,7 +26,16 @@ import { DetailSkeleton } from '@/ui/Skeleton';
 import { Tag, typeTagKind } from '@/ui/Tag';
 import { Text } from '@/ui/Text';
 
-const BOOK_ERRORS = ['session_full', 'session_closed', 'cancel_too_late', 'payment_unavailable', 'payment_closed', 'network'] as const;
+const BOOK_ERRORS = [
+  'session_full',
+  'session_closed',
+  'cancel_too_late',
+  'payment_unavailable',
+  'payment_closed',
+  'payment_method_unavailable',
+  'cash_limit',
+  'network',
+] as const;
 /** The message for each payment outcome, as the web's session page. */
 const PAYMENT_NOTICES = { paid: 'paymentPaid', pending: 'paymentPending', failed: 'paymentFailed', refunded: 'paymentRefunded' } as const;
 /** Wraps text whose direction may differ from the page (an email in Arabic), as the web's isolate. */
@@ -45,6 +56,7 @@ export default function SessionPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<PaymentOutcome | null>(() => paymentOutcome(payment));
+  const [method, setMethod] = useState<PaymentMethod>('card');
   const path = `/session/${id}`;
 
   // Back on screen after logging in to book: the detour is done. Only while focused, so a copy that isn't
@@ -84,42 +96,51 @@ export default function SessionPage() {
 
   const state = bookingState(s, !!user, new Date(), user?.role);
   const cancelBy = new Date(new Date(s.startsAt).getTime() - CANCEL_CUTOFF_MS);
+  // An older server sends no methods: card is all it takes.
+  const methods: PaymentMethod[] = s.methods ?? (s.price > 0 ? ['card'] : []);
+  const chosen = methods.includes(method) ? method : (methods[0] ?? 'card');
 
-  async function act(action: 'book' | 'unbook') {
+  /** Runs one booking action and shows its error, if any. */
+  async function run(action: () => Promise<void>) {
     setBusy(true);
     setError(null);
     setOutcome(null);
     try {
+      await action();
+    } catch (e) {
+      const code = e instanceof ApiError ? e.code : undefined;
+      setError(te(BOOK_ERRORS.find((c) => c === code) ?? 'generic'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** The session as it is now, after booking or paying without a card. */
+  async function reload() {
+    forget(PATHS.myUpcoming);
+    forget(PATHS.myRequests);
+    setS(await load<SessionDetail>(DETAIL.session(id)));
+  }
+
+  const act = (action: 'book' | 'unbook') =>
+    run(async () => {
       const next = await api<SessionDetail>(`/api/sessions/${id}/${action}`, {
         method: 'POST',
-        json: action === 'book' ? { returnUrl: sessionReturnUrl(id) } : {},
+        json: action === 'book' ? { method: chosen, returnUrl: sessionReturnUrl(id) } : {},
       });
       setS(next);
       // The next visit opens on the booking as it is now, not as it was before this tap.
       remember(DETAIL.session(id), next);
       if (next.checkoutUrl) await checkout(next.checkoutUrl);
-    } catch (e) {
-      const code = e instanceof ApiError ? e.code : undefined;
-      setError(te(BOOK_ERRORS.find((c) => c === code) ?? 'generic'));
-    } finally {
-      setBusy(false);
-    }
-  }
+      else if (action === 'book') await reload();
+    });
 
-  async function pay() {
-    setBusy(true);
-    setError(null);
-    setOutcome(null);
-    try {
-      const r = await api<{ checkoutUrl: string }>(`/api/sessions/${id}/pay`, { method: 'POST', json: { returnUrl: sessionReturnUrl(id) } });
-      await checkout(r.checkoutUrl);
-    } catch (e) {
-      const code = e instanceof ApiError ? e.code : undefined;
-      setError(te(BOOK_ERRORS.find((c) => c === code) ?? 'generic'));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const pay = () =>
+    run(async () => {
+      const r = await api<{ checkoutUrl?: string }>(`/api/sessions/${id}/pay`, { method: 'POST', json: { method: chosen, returnUrl: sessionReturnUrl(id) } });
+      if (r.checkoutUrl) await checkout(r.checkoutUrl);
+      else await reload();
+    });
 
   /** Pays in the in-app browser, then shows the session as it is now: closing the browser early may still have paid. */
   async function checkout(url: string) {
@@ -169,6 +190,7 @@ export default function SessionPage() {
               {t('booked')}
             </Text>
             {user && <Text variant="label">{t('confirmation', { email: isolate(user.email) })}</Text>}
+            {s.payment?.method === 'cash' && s.payment.status === 'PENDING' && <Text muted>{t('cashDue', { price: l.price(s.payment.amount) })}</Text>}
             <Button variant="secondary" label={t('viewMine')} onPress={() => router.push('/user/sessions')} />
             {state === 'bookedPrivate' && <Text variant="label">{t('privateCancel')}</Text>}
             {state === 'bookedCanCancel' && (
@@ -190,7 +212,9 @@ export default function SessionPage() {
                 {l.price(s.price)}
               </Text>
             </View>
-            <Button label={t('payNow')} onPress={pay} busy={busy} />
+            <MethodPicker methods={methods} value={chosen} onChange={setMethod} />
+            <Button label={t('book')} onPress={pay} busy={busy} />
+            <MethodNote method={chosen} hold={false} />
           </>
         )}
         {(state === 'logIn' || state === 'notMember' || state === 'full' || state === 'reserve') && (
@@ -203,8 +227,9 @@ export default function SessionPage() {
             </View>
             {state === 'logIn' && <Button label={t('logInToBook')} onPress={logInToBook} />}
             {state === 'full' && <Text muted>{t('full')}</Text>}
-            {state === 'reserve' && <Button label={t('reserve')} onPress={() => act('book')} busy={busy} />}
-            <Text variant="label">{t(s.price > 0 ? 'payByCard' : 'freeSession')}</Text>
+            {state === 'reserve' && <MethodPicker methods={methods} value={chosen} onChange={setMethod} />}
+            {state === 'reserve' && <Button label={t('book')} onPress={() => act('book')} busy={busy} />}
+            {s.price > 0 ? <MethodNote method={chosen} hold /> : <Text variant="label">{t('freeSession')}</Text>}
           </>
         )}
         {error && <Text style={{ color: colors.warn }}>{error}</Text>}

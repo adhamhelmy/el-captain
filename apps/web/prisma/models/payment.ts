@@ -1,6 +1,11 @@
+import type { Prisma } from '@prisma/client';
 import type { TransactionResult } from '@/lib/server/payments/provider';
+import { CASH_UNPAID_LIMIT } from '@/lib/shared/payment-rules';
 import { prisma } from '../client';
 import { liveHold } from './booking';
+
+type Tx = Prisma.TransactionClient;
+export type { PaymentProvider, PaymentStatus } from '@prisma/client';
 
 type Recipient = { id: string; email: string; locale: string | null };
 
@@ -124,4 +129,61 @@ export type FailedRefundRow = Awaited<ReturnType<typeof failedRefunds>>[number];
 
 export function markRefund(paymentId: string, ok: boolean, now = new Date()) {
   return prisma.payment.update({ where: { id: paymentId }, data: ok ? { status: 'REFUNDED', refundedAt: now } : { status: 'REFUND_FAILED' } });
+}
+
+/** The method and state of the booking's latest payment, for the member's session page. */
+export function latestPayment(bookingId: string) {
+  return prisma.payment.findFirst({
+    where: { bookingId },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, provider: true, status: true, amountCents: true },
+  });
+}
+
+/**
+ * Cash sessions the member hasn't paid: the session started and the coach hasn't marked it yet, or marked it not paid.
+ * At CASH_UNPAID_LIMIT the member can't choose cash again.
+ */
+export async function cashBlocked(tx: Tx, memberId: string, now: Date) {
+  const unpaid = await tx.payment.count({
+    where: {
+      memberId,
+      provider: 'CASH',
+      OR: [
+        { status: 'PENDING', booking: { status: 'CONFIRMED', session: { status: 'SCHEDULED', startsAt: { lte: now } } } },
+        { status: 'FAILED', settledAt: { not: null } },
+      ],
+    },
+  });
+  return unpaid >= CASH_UNPAID_LIMIT;
+}
+
+/** Confirms the booking to be paid in cash at the session. */
+export async function confirmWithCash(tx: Tx, bookingId: string, memberId: string, price: number) {
+  await tx.booking.update({ where: { id: bookingId }, data: { status: 'CONFIRMED', holdUntil: null, cancelledAt: null, cancelledBy: null } });
+  return tx.payment.create({ data: { bookingId, memberId, amountCents: price * 100, provider: 'CASH' } });
+}
+
+/** Cash not yet paid on these cancelled bookings is no longer owed. */
+export async function closeCashPayments(bookingIds: string[]) {
+  if (bookingIds.length === 0) return;
+  await prisma.payment.updateMany({ where: { bookingId: { in: bookingIds }, provider: 'CASH', status: 'PENDING' }, data: { status: 'FAILED' } });
+}
+
+export type CashMark = { ok: true } | { ok: false; reason: 'missing' | 'forbidden' | 'early' };
+
+/** The coach marks a cash payment paid or not paid, once the session has started. Either can be changed later. */
+export async function markCash(paymentId: string, coachId: string, paid: boolean, now = new Date()): Promise<CashMark> {
+  const p = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    select: { provider: true, status: true, booking: { select: { status: true, session: { select: { coachId: true, startsAt: true } } } } },
+  });
+  if (p?.provider !== 'CASH' || p.booking.status !== 'CONFIRMED' || !['PENDING', 'PAID', 'FAILED'].includes(p.status)) return { ok: false, reason: 'missing' };
+  if (p.booking.session.coachId !== coachId) return { ok: false, reason: 'forbidden' };
+  if (p.booking.session.startsAt > now) return { ok: false, reason: 'early' };
+  await prisma.payment.update({
+    where: { id: paymentId },
+    data: { status: paid ? 'PAID' : 'FAILED', paidAt: paid ? now : null, settledAt: now, settledById: coachId },
+  });
+  return { ok: true };
 }

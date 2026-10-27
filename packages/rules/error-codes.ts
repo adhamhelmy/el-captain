@@ -33,6 +33,10 @@ export const ERROR_CODES = {
   PAYMENT_UNAVAILABLE: 'payment_unavailable',
   /** Nothing to pay: the hold lapsed, or the booking is already paid or cancelled. */
   PAYMENT_CLOSED: 'payment_closed',
+  /** The member picked a payment method this session doesn't offer. */
+  PAYMENT_METHOD_UNAVAILABLE: 'payment_method_unavailable',
+  /** The member has too many cash sessions the coach hasn't marked paid. */
+  CASH_LIMIT: 'cash_limit',
   /** A member tried to cancel inside the 2-hour window. */
   CANCEL_TOO_LATE: 'cancel_too_late',
   /** The coach already has a session at that time. */

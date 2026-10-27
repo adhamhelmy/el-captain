@@ -80,7 +80,7 @@ export function RequestList({
             {r.payment === 'lapsed' && <Tag kind='cancelled'>{t('notPaid')}</Tag>}
             {r.payment === 'due' && role === 'member' && r.sessionId && (
               <Link href={`/user/sessions/${r.sessionId}`} className='btn sm plain'>
-                {t('payNow')}
+                {t('book')}
               </Link>
             )}
             {r.status === 'ACCEPTED' && r.sessionId && (r.payment !== 'due' || role === 'coach') && (

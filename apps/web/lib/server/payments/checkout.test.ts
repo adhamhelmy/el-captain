@@ -12,6 +12,7 @@ vi.mock('@/prisma/models/payment', () => ({
   markRefund: vi.fn(),
   paidPayments: vi.fn(),
   setReturnUrl: vi.fn(),
+  closeCashPayments: vi.fn(),
 }));
 vi.mock('./paymob', () => ({
   toPiastres: (egp: number) => egp * 100,
@@ -19,7 +20,7 @@ vi.mock('./paymob', () => ({
 }));
 
 import { sendBookingConfirmed } from '@/lib/email/session-emails';
-import { attachCheckout, createPayment, findPayer, markRefund, openPayment, paidPayments, setReturnUrl, settlePayment } from '@/prisma/models/payment';
+import { attachCheckout, closeCashPayments, createPayment, findPayer, markRefund, openPayment, paidPayments, setReturnUrl, settlePayment } from '@/prisma/models/payment';
 import { findSession } from '@/prisma/models/session';
 import { sessionRow } from '@/test/sessions';
 import { refundBookings, settle, startCheckout } from './checkout';
@@ -110,6 +111,7 @@ describe('refundBookings', () => {
       { id: 'p2', providerTransactionId: 't2', amountCents: 50000 },
     ]);
     await refundBookings(['b1', 'b2', 'b3']);
+    expect(closeCashPayments).toHaveBeenCalledWith(['b1', 'b2', 'b3']);
     expect(paidPayments).toHaveBeenCalledWith(['b1', 'b2', 'b3']);
     expect(paymob.refund).toHaveBeenCalledWith('t1', 35000);
     expect(paymob.refund).toHaveBeenCalledWith('t2', 50000);

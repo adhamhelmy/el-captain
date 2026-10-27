@@ -18,14 +18,14 @@ const params = { id: 'x1' };
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(findSession).mockResolvedValue(sessionRow() as any);
-  vi.mocked(listAttendees).mockResolvedValue([{ id: 'b1', createdAt: new Date(0), member: { id: 'u1', name: 'Ali', email: 'a@x.com' } }] as any);
+  vi.mocked(listAttendees).mockResolvedValue([{ id: 'b1', createdAt: new Date(0), member: { id: 'u1', name: 'Ali', email: 'a@x.com' }, payments: [{ id: 'p1', provider: 'CASH', status: 'PENDING' }] }] as any);
 });
 
 describe('GET /api/sessions/[id]/attendees', () => {
   it('lists bookings for the coach and admins', async () => {
     signInAs('k1', 'COACH');
     expect(await (await call(GET, { params })).json()).toEqual([
-      { bookingId: 'b1', memberId: 'u1', name: 'Ali', email: 'a@x.com', bookedAt: new Date(0).toISOString() },
+      { bookingId: 'b1', memberId: 'u1', name: 'Ali', email: 'a@x.com', bookedAt: new Date(0).toISOString(), payment: { id: 'p1', method: 'cash', status: 'PENDING' } },
     ]);
     signInAs('a1', 'ADMIN');
     expect((await call(GET, { params })).status).toBe(200);

@@ -3,13 +3,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
 vi.mock('@/lib/server/auth', () => ({ authOptions: {} }));
 vi.mock('@/lib/server/bearer', () => ({ userFromBearer: vi.fn(async () => null) }));
-vi.mock('@/prisma/models/booking', () => ({ findBooking: vi.fn() }));
+vi.mock('@/prisma/models/booking', () => ({ findBooking: vi.fn(), payHeldInCashAt: vi.fn() }));
+vi.mock('@/prisma/models/payment', () => ({ latestPayment: vi.fn() }));
+vi.mock('@/lib/email/session-emails', () => ({ sendBookingConfirmed: vi.fn() }));
+vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p }));
 vi.mock('@/prisma/models/session', () => ({ findSession: vi.fn() }));
 vi.mock('@/lib/server/payments/checkout', () => ({ startCheckout: vi.fn() }));
 
 import { POST } from './route';
 import { startCheckout } from '@/lib/server/payments/checkout';
-import { findBooking } from '@/prisma/models/booking';
+import { findBooking, payHeldInCashAt } from '@/prisma/models/booking';
+import { sendBookingConfirmed } from '@/lib/email/session-emails';
+import { latestPayment } from '@/prisma/models/payment';
 import { findSession } from '@/prisma/models/session';
 import { call, signInAs } from '@/test/api';
 import { sessionRow } from '@/test/sessions';
@@ -69,6 +74,30 @@ describe('POST /api/sessions/[id]/pay', () => {
     const res = await call(POST, { params, body: {} });
     expect(res.status).toBe(502);
     expect(await res.json()).toMatchObject({ code: 'payment_unavailable' });
+  });
+
+  it('pays the held spot in cash: booked, paid at the session', async () => {
+    vi.mocked(payHeldInCashAt).mockResolvedValue({ ok: true, newlyBooked: true, awaitingPayment: null });
+    vi.mocked(latestPayment).mockResolvedValue({ id: 'p1', provider: 'CASH', status: 'PENDING', amountCents: 80000 });
+    const res = await call(POST, { params, body: { method: 'cash' } });
+    expect(await res.json()).toMatchObject({ bookedByMe: true, payment: { method: 'cash', amount: 800 } });
+    expect(payHeldInCashAt).toHaveBeenCalledWith('x1', 'u1');
+    expect(sendBookingConfirmed).toHaveBeenCalledWith(expect.objectContaining({ id: 'u1' }), expect.objectContaining({ id: 'x1' }), true);
+    expect(startCheckout).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['closed', 'session_closed'],
+    ['cashLimit', 'cash_limit'],
+  ] as const)('answers a refused cash payment (%s) with %s', async (reason, code) => {
+    vi.mocked(payHeldInCashAt).mockResolvedValue({ ok: false, reason });
+    const res = await call(POST, { params, body: { method: 'cash' } });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toMatchObject({ code });
+  });
+
+  it('rejects an unknown method', async () => {
+    for (const method of ['paypal', 'instapay']) expect((await call(POST, { params, body: { method } })).status).toBe(400);
   });
 
   it('is for members only', async () => {

@@ -2,6 +2,7 @@
  * JSON shapes the API returns, as the app reads them. The web infers these from its database mappers
  * (apps/web/lib/server/dto.ts), which the app can't import; keep the two in step when a DTO changes.
  */
+import type { PaymentMethod } from '@el-captain/rules/payment-rules';
 import type { Gender } from '@el-captain/rules/profile-rules';
 
 export type Sport = { id: string; nameEn: string; nameAr: string | null; status: string };
@@ -37,13 +38,21 @@ export type Session = {
   sport: Sport;
   venue: Venue;
   coach: { id: string; name: string; photoUrl: string | null };
+  /** How a member can pay: empty for a free session. Missing from servers older than cash payments. */
+  methods?: PaymentMethod[];
 };
+
+export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' | 'REFUND_FAILED';
+
+/** How the member is paying for their booking (the web's MemberPaymentDTO). */
+export type MemberPayment = { method: PaymentMethod; status: PaymentStatus; amount: number };
 
 /**
  * One session's page: the session plus whether the signed-in member holds a confirmed booking.
- * After booking a paid session, `checkoutUrl` is the payment page. `payBy` is set while the member holds an unpaid spot.
+ * After booking a paid session by card, `checkoutUrl` is the payment page. `payBy` is set while the member holds an unpaid spot.
+ * `payment` is how the member is paying, once they have a booking.
  */
-export type SessionDetail = Session & { bookedByMe: boolean; checkoutUrl?: string; payBy?: string | null };
+export type SessionDetail = Session & { bookedByMe: boolean; checkoutUrl?: string; payBy?: string | null; payment?: MemberPayment | null };
 
 export type Media = { id: string; kind: 'PHOTO' | 'VIDEO'; url: string; caption: string | null; sport: Sport | null; durationSec: number | null };
 
@@ -97,7 +106,15 @@ export type MemberCoach = { id: string; name: string; photoUrl: string | null; c
 export type CoachVenue = Venue & { upcoming: number };
 
 /** Someone booked on a coach's session. */
-export type Attendee = { bookingId: string; memberId: string; name: string; email: string; bookedAt: string };
+/** A booked member; `payment` says how they pay, and the coach marks cash ones. */
+export type Attendee = {
+  bookingId: string;
+  memberId: string;
+  name: string;
+  email: string;
+  bookedAt: string;
+  payment?: { id: string; method: PaymentMethod; status: PaymentStatus } | null;
+};
 
 /** The coach's numbers on their dashboard. fillRate is null until a session has run. */
 export type CoachStats = { bookingsNext7: number; earnings30: number; fillRate: number | null };
@@ -124,6 +141,7 @@ export type CoachMe = {
   tiktok: string | null;
   privatePrice: number | null;
   privateDuration: number | null;
+  /** Missing from servers that predate cash payments. */
   photoUrl: string | null;
   coverUrl: string | null;
   links: { id: string; label: string; url: string }[];

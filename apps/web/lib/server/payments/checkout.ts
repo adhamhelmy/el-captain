@@ -2,7 +2,7 @@ import { appUrl } from '@/lib/email/mail';
 import { sendBookingConfirmed } from '@/lib/email/session-emails';
 import { toSessionDTO } from '@/lib/server/dto';
 import type { AwaitingPayment } from '@/prisma/models/booking';
-import { attachCheckout, createPayment, findPayer, markRefund, openPayment, paidPayments, setReturnUrl, settlePayment, type Settlement } from '@/prisma/models/payment';
+import { attachCheckout, closeCashPayments, createPayment, findPayer, markRefund, openPayment, paidPayments, setReturnUrl, settlePayment, type Settlement } from '@/prisma/models/payment';
 import { findSession } from '@/prisma/models/session';
 import { paymob, toPiastres } from './paymob';
 import type { TransactionResult } from './provider';
@@ -55,8 +55,9 @@ async function refundPayment(paymentId: string, transactionId: string, amountCen
   }
 }
 
-/** Refunds whatever was paid for these cancelled bookings. */
+/** Refunds whatever was paid for these cancelled bookings: card payments through Paymob; unpaid cash is no longer owed. */
 export async function refundBookings(bookingIds: string[]) {
   if (bookingIds.length === 0) return;
+  await closeCashPayments(bookingIds);
   for (const p of await paidPayments(bookingIds)) await refundPayment(p.id, p.providerTransactionId!, p.amountCents);
 }
