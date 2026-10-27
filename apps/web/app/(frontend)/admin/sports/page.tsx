@@ -21,7 +21,7 @@ export default function AdminSportsPage() {
 
   const load = useCallback(() => adminListSports().then((r) => r.ok && setList(r.data)), []);
   useEffect(() => {
-    adminListSports().then((r) => r.ok && setList(r.data));
+    void adminListSports().then((r) => r.ok && setList(r.data));
   }, []);
 
   async function run(p: Promise<Result<unknown>>) {
@@ -32,7 +32,7 @@ export default function AdminSportsPage() {
     }
     setError('');
     setEdits({});
-    load();
+    void load();
     return true;
   }
 

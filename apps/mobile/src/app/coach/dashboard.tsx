@@ -79,7 +79,7 @@ export default function CoachDashboard() {
           setHidden((await getItem(hiddenKey(r.coach.id))) === '1');
         })
         .catch(() => {});
-      myVenues({ active: true }).then((v) => !stale && setVenues(v));
+      void myVenues({ active: true }).then((v) => !stale && setVenues(v));
       load<PrivateRequest[]>(PATHS.myRequests)
         .then((r) => !stale && setRequests(r.filter(pendingOnly)))
         .catch(() => !stale && setRequests((r) => r ?? []));
@@ -116,7 +116,7 @@ export default function CoachDashboard() {
   }
 
   const hide = () => {
-    if (onboarding) setItem(hiddenKey(onboarding.coach.id), '1');
+    if (onboarding) void setItem(hiddenKey(onboarding.coach.id), '1');
     setHidden(true);
   };
 

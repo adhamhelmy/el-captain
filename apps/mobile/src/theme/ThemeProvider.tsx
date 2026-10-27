@@ -17,15 +17,15 @@ export function ThemeProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [saved, setSaved] = useState<Scheme | null>(null);
 
   useEffect(() => {
-    getItem(KEY).then((v) => isScheme(v) && setSaved(v));
+    void getItem(KEY).then((v) => isScheme(v) && setSaved(v));
   }, []);
 
   const value = useMemo<ThemeValue>(() => {
     const scheme: Scheme = saved ?? (device === 'light' ? 'light' : 'dark');
     const setScheme = (s: Scheme | null) => {
       setSaved(s);
-      if (s) setItem(KEY, s);
-      else deleteItem(KEY);
+      if (s) void setItem(KEY, s);
+      else void deleteItem(KEY);
     };
     return { scheme, choice: saved, colors: colors[scheme], setScheme };
   }, [saved, device]);

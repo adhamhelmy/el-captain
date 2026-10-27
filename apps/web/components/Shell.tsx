@@ -50,7 +50,7 @@ function usePendingRequests(enabled: boolean, path: string) {
       pendingRequestCount()
         .then((r) => !stale && r.ok && setCount(r.data.count))
         .catch(() => {});
-    load();
+    void load();
     globalThis.addEventListener(REQUESTS_CHANGED, load);
     return () => {
       stale = true;

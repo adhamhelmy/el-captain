@@ -92,7 +92,7 @@ export default function CoachProfile() {
     [te],
   );
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
   // Locations change on the Locations page, so reload on coming back. A failed load leaves the list blank, as the web does.
@@ -130,7 +130,7 @@ export default function CoachProfile() {
             label={tc('tryAgain')}
             onPress={() => {
               setError(null);
-              load();
+              void load();
             }}
           />
         )}

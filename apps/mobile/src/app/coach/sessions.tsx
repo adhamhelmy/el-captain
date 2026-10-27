@@ -74,11 +74,11 @@ export default function CoachSessions() {
     useCallback(() => {
       let stale = false;
       setFocused((n) => n + 1);
-      approvedSports().then((s) => !stale && setSports(s));
-      myVenues({ active: true }).then((v) => !stale && setVenues(v));
-      list<Session>(PATHS.myUpcoming).then((r) => !stale && setUpcoming(r));
-      list<Session>(PATHS.myPast).then((r) => !stale && setPast(r));
-      list<PrivateRequest>(PATHS.myRequests).then((r) => !stale && setRequests(r));
+      void approvedSports().then((s) => !stale && setSports(s));
+      void myVenues({ active: true }).then((v) => !stale && setVenues(v));
+      void list<Session>(PATHS.myUpcoming).then((r) => !stale && setUpcoming(r));
+      void list<Session>(PATHS.myPast).then((r) => !stale && setPast(r));
+      void list<PrivateRequest>(PATHS.myRequests).then((r) => !stale && setRequests(r));
       return () => {
         stale = true;
       };
@@ -93,7 +93,7 @@ export default function CoachSessions() {
     let stale = false;
     const path = weekPath(week);
     if (!path) return;
-    list<Session>(path).then((r) => !stale && setWeekList(r));
+    void list<Session>(path).then((r) => !stale && setWeekList(r));
     return () => {
       stale = true;
     };

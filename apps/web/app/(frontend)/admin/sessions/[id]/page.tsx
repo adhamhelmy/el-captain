@@ -30,7 +30,7 @@ export default function AdminSessionPage() {
     getSession(id)
       .then((r) => setS(r.ok ? r.data : null))
       .catch(() => setS(null));
-    listAttendees(id).then((r) => r.ok && setRoster(r.data));
+    void listAttendees(id).then((r) => r.ok && setRoster(r.data));
   }, [id]);
 
   if (s === null) notFound();

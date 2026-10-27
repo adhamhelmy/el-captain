@@ -38,11 +38,11 @@ export default function MySessions() {
     useCallback(() => {
       let stale = false;
       if (tab === 'requests') {
-        load<PrivateRequest[]>(PATHS.myRequests)
+        void load<PrivateRequest[]>(PATHS.myRequests)
           .catch(() => [])
           .then((r) => !stale && setRequests(r));
       } else {
-        load<Session[]>(pathOf(tab))
+        void load<Session[]>(pathOf(tab))
           .catch(() => [])
           .then((r) => !stale && setList(r));
       }

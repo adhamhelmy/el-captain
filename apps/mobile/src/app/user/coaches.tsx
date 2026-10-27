@@ -24,7 +24,7 @@ export default function MyCoaches() {
   useFocusEffect(
     useCallback(() => {
       let stale = false;
-      load<MemberCoach[]>(PATHS.myCoaches)
+      void load<MemberCoach[]>(PATHS.myCoaches)
         .catch(() => [])
         .then((r) => !stale && setList(r));
       return () => {

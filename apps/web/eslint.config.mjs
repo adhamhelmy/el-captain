@@ -55,6 +55,12 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // A promise nobody awaits or catches fails silently (SonarCloud flags these too). Needs type information.
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname } },
+    rules: { '@typescript-eslint/no-floating-promises': 'error' },
+  },
+  {
     // Only the data layer talks to Prisma; everything else calls the functions in prisma/models/*.
     ignores: ['prisma/**'],
     rules: {

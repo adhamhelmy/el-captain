@@ -115,7 +115,7 @@ export default function CoachProfilePage() {
       .then((d) => !stale && setC(d))
       // Offline with this page already showing from the cache: keep it rather than swap in the error.
       .catch(() => !stale && setC((shown) => shown ?? null));
-    load<Session[]>(DETAIL.coachSessions(id))
+    void load<Session[]>(DETAIL.coachSessions(id))
       .catch(() => [])
       .then((list) => !stale && setSessions(list));
     return () => {

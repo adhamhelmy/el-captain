@@ -18,7 +18,7 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     if (!token || sent.current) return;
     sent.current = true;
-    verifyEmail(token).then((res) => setState(res.ok ? 'done' : 'failed'));
+    void verifyEmail(token).then((res) => setState(res.ok ? 'done' : 'failed'));
   }, [token]);
 
   if (state === 'checking') return <div className={`muted ${styles.text}`}>{t('checking')}</div>;

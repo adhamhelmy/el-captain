@@ -53,7 +53,7 @@ export function Explore() {
       .then((list) => {
         setSports(list);
         // Each sport's results load in the background, so tapping its chip shows them at once.
-        prefetch(list.flatMap((s) => paths(exploreQuery({ sport: s.id, q: '' }))));
+        void prefetch(list.flatMap((s) => paths(exploreQuery({ sport: s.id, q: '' }))));
       })
       .catch(() => setSports([]));
   }, []);
@@ -67,14 +67,14 @@ export function Explore() {
     // A slow answer to an older search must not replace a newer one.
     let stale = false;
     const [coachPath, sessionPath] = paths(exploreQuery({ sport, q: needle }));
-    load<PublicCoach[]>(coachPath)
+    void load<PublicCoach[]>(coachPath)
       .catch(() => [])
       .then((list) => {
         if (stale) return;
         setCoaches(list);
         setAllCoaches(false);
       });
-    load<Session[]>(sessionPath)
+    void load<Session[]>(sessionPath)
       .catch(() => [])
       .then((list) => !stale && setSessions(list));
     return () => {

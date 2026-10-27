@@ -29,7 +29,7 @@ export default function Venues() {
   useFocusEffect(
     useCallback(() => {
       let stale = false;
-      myVenues().then((v) => !stale && setVenues(v));
+      void myVenues().then((v) => !stale && setVenues(v));
       return () => {
         stale = true;
       };

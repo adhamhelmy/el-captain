@@ -62,14 +62,14 @@ export function MediaList({
   function pick(e: React.ChangeEvent<HTMLInputElement>) {
     const files = [...(e.target.files ?? [])];
     e.target.value = '';
-    if (files.length) upload(files);
+    if (files.length) void upload(files);
   }
 
   function drop(e: React.DragEvent) {
     e.preventDefault();
     setOver(false);
     const files = [...e.dataTransfer.files];
-    if (files.length && !busy) upload(files);
+    if (files.length && !busy) void upload(files);
   }
 
   /**
