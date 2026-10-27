@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { useFormatter, useTranslations } from 'use-intl';
 import { useLocale } from '@/i18n/IntlProvider';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -156,7 +156,7 @@ function YearGrid({ month, first, last, onPick }: Readonly<{ month: string; firs
   // Open scrolled to the shown year, two rows down from the top, rather than at the latest year.
   // scrollTo once laid out, since a starting contentOffset only works on iOS.
   const row = Math.floor((last - current) / YEARS_PER_ROW);
-  const scroller = useRef<ScrollView>(null);
+  const scroller = useRef<ScrollViewInstance>(null);
   return (
     <ScrollView
       ref={scroller}

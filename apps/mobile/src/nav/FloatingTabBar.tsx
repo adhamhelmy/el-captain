@@ -14,13 +14,13 @@ export const TAB_BAR_HEIGHT = 62;
 export const TAB_BAR_GAP = 12;
 
 /** The tab navigator's bar. */
-export function FloatingTabBar({ state, navigation, tabs }: BottomTabBarProps & { tabs: Tab[] }) {
+export function FloatingTabBar({ state, emitter, navigateToTab, tabs }: BottomTabBarProps & { tabs: Tab[] }) {
   const active = state.routes[state.index]?.name ?? null;
   const select = (name: string) => {
     const route = state.routes.find((r) => r.name === name);
     if (!route) return;
-    const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-    if (name !== active && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+    const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+    if (name !== active && !event.defaultPrevented) navigateToTab(route.key);
   };
   return <TabBarView tabs={tabs} active={active} onSelect={select} />;
 }
