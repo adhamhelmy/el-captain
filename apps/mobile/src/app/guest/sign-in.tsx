@@ -10,7 +10,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { Button } from '@/ui/Button';
 import { Logo } from '@/ui/Logo';
 import { Screen } from '@/ui/Screen';
-import { Text } from '@/ui/Text';
+import { richText, Text } from '@/ui/Text';
 import { TextField } from '@/ui/TextField';
 
 export default function SignIn() {
@@ -120,13 +120,7 @@ export default function SignIn() {
       <Button label={tc('logIn')} onPress={submit} busy={busy} />
 
       <Text muted style={styles.center}>
-        {t.rich('newHere', {
-          link: (chunks) => (
-            <Text style={{ color: colors.accentText }} onPress={() => router.push('/register')} accessibilityRole="link">
-              {chunks}
-            </Text>
-          ),
-        })}
+        {t.rich('newHere', { link: richText({ style: { color: colors.accentText }, onPress: () => router.push('/register'), accessibilityRole: 'link' }) })}
       </Text>
     </Screen>
   );

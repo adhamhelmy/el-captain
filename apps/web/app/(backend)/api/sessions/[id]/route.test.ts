@@ -7,11 +7,13 @@ vi.mock('@/lib/server/blob', () => ({ blobUrlOrNull: (p: string | null) => p, bl
 vi.mock('@/lib/server/coach-guard', () => ({ assertActiveCoach: vi.fn() }));
 vi.mock('@/prisma/models/session', () => ({ findSession: vi.fn(), updateSession: vi.fn(), countSessionsWithCover: vi.fn() }));
 vi.mock('@/prisma/models/booking', () => ({ findBooking: vi.fn() }));
+vi.mock('@/prisma/models/payment', () => ({ latestPayment: vi.fn(async () => null) }));
 vi.mock('@/prisma/models/coach-profile', () => ({ findCoach: vi.fn() }));
 vi.mock('@/prisma/models/media', () => ({ findMedia: vi.fn(), countMediaWithPath: vi.fn() }));
 
 import { GET, PATCH } from './route';
 import { findBooking } from '@/prisma/models/booking';
+import { latestPayment } from '@/prisma/models/payment';
 import { findCoach } from '@/prisma/models/coach-profile';
 import { findSession, updateSession } from '@/prisma/models/session';
 import { userFromBearer } from '@/lib/server/bearer';
@@ -64,6 +66,14 @@ describe('GET /api/sessions/[id]', () => {
     const res = await call(GET, { params });
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ bookedByMe: false, payBy: holdUntil.toISOString() });
+  });
+
+  it('says how the member is paying', async () => {
+    signInAs('u1', 'USER');
+    vi.mocked(findBooking).mockResolvedValue({ id: 'b1', status: 'CONFIRMED' } as any);
+    vi.mocked(latestPayment).mockResolvedValue({ id: 'p1', provider: 'CASH', status: 'PENDING', amountCents: 35000 });
+    expect(await (await call(GET, { params })).json()).toMatchObject({ payment: { method: 'cash', status: 'PENDING', amount: 350 } });
+    expect(latestPayment).toHaveBeenCalledWith('b1');
   });
 
   it('stops offering payment once the hold lapses', async () => {

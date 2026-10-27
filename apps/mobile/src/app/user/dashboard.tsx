@@ -47,9 +47,9 @@ export default function Dashboard() {
   useFocusEffect(
     useCallback(() => {
       let stale = false;
-      list<Session>(PATHS.myPast).then((r) => !stale && setCompleted(r.length));
-      list<MemberCoach>(PATHS.myCoaches).then((r) => !stale && setCoaches(r.length));
-      Promise.all([list<Session>(PATHS.myUpcoming), load<Member>(PATHS.me).catch(() => null), list<Session>(PATHS.openSessions)]).then(([mine, me, open]) => {
+      void list<Session>(PATHS.myPast).then((r) => !stale && setCompleted(r.length));
+      void list<MemberCoach>(PATHS.myCoaches).then((r) => !stale && setCoaches(r.length));
+      void Promise.all([list<Session>(PATHS.myUpcoming), load<Member>(PATHS.me).catch(() => null), list<Session>(PATHS.openSessions)]).then(([mine, me, open]) => {
         if (stale) return;
         setUpcoming(mine);
         setPicked(pickedForYou(open, mine, me?.sports.map((s) => s.id) ?? []));

@@ -8,6 +8,7 @@ import { SessionDrawer } from '@/components/SessionDrawer';
 import { PhaseTag, SessionCover, TypeTag } from '@/components/sessions';
 import { Avatar, Back, Field, initialsOf, Tag } from '@/components/ui';
 import { getOnboarding } from '@/lib/client/coach-api';
+import { markCash } from '@/lib/client/payment-api';
 import { cssVars } from '@/lib/client/css-vars';
 import { cancelSession, getSession, listAttendees, listVenues } from '@/lib/client/session-api';
 import { useSessionLabels } from '@/lib/client/session-labels';
@@ -15,6 +16,36 @@ import type { AttendeeDTO, SessionDetailDTO, SportDTO, VenueDTO } from '@/lib/se
 import { endsAt, sessionPhase } from '@/lib/shared/session-rules';
 import onb from '@/components/onboarding.module.css';
 import styles from './page.module.css';
+
+/**
+ * How a booked member pays. Cash is the coach's to mark once the session starts: paid, or not paid
+ * (members with unpaid cash sessions can't choose cash again).
+ */
+function AttendeePayment({ a, started, onMarked }: Readonly<{ a: AttendeeDTO; started: boolean; onMarked: (status: 'PAID' | 'FAILED') => void }>) {
+  const t = useTranslations('coachSession');
+  const ts = useTranslations('session');
+  const [busy, setBusy] = useState(false);
+  const p = a.payment;
+  if (!p) return null;
+  if (p.method !== 'cash') return <span className={styles.method}>{ts(`method.${p.method}`)}</span>;
+  const mark = async (paid: boolean) => {
+    setBusy(true);
+    const r = await markCash(p.id, paid);
+    setBusy(false);
+    if (r.ok) onMarked(r.data.status);
+  };
+  if (!started) return <span className={styles.method}>{t('cashAtSession')}</span>;
+  return (
+    <span className={styles.cash}>
+      <button type='button' className={p.status === 'PAID' ? styles.cashOn : ''} disabled={busy} onClick={() => mark(true)}>
+        {t('cashPaid')}
+      </button>
+      <button type='button' className={p.status === 'FAILED' ? styles.cashOff : ''} disabled={busy} onClick={() => mark(false)}>
+        {t('cashUnpaid')}
+      </button>
+    </span>
+  );
+}
 
 export default function CoachSessionPage() {
   const t = useTranslations('coachSession');
@@ -185,13 +216,22 @@ export default function CoachSessionPage() {
           {roster.length === 0 && <div className='muted'>{t('noBookings')}</div>}
           <div className={styles.attendees}>
             {roster.map((a) => (
-              <Link key={a.bookingId} href={`/coach/users/${a.memberId}`} className={styles.attendee}>
-                <Avatar initials={initialsOf(a.name)} size={34} />
-                <span className={styles.attendeeText}>
-                  <bdi className={styles.attendeeName}>{a.name}</bdi>
-                  <span className={styles.attendeeSub}>{t('bookedOn', { date: l.dayMonth(a.bookedAt) })}</span>
-                </span>
-              </Link>
+              <div key={a.bookingId} className={styles.attendee}>
+                <Link href={`/coach/users/${a.memberId}`} className={styles.attendeeLink}>
+                  <Avatar initials={initialsOf(a.name)} size={34} />
+                  <span className={styles.attendeeText}>
+                    <bdi className={styles.attendeeName}>{a.name}</bdi>
+                    <span className={styles.attendeeSub}>{t('bookedOn', { date: l.dayMonth(a.bookedAt) })}</span>
+                  </span>
+                </Link>
+                <AttendeePayment
+                  a={a}
+                  started={new Date(s.startsAt) <= new Date()}
+                  onMarked={(status) =>
+                    setRoster((r) => r.map((x) => (x.bookingId === a.bookingId && x.payment ? { ...x, payment: { ...x.payment, status } } : x)))
+                  }
+                />
+              </div>
             ))}
           </div>
         </div>

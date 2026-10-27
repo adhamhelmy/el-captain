@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 
 /** A settings line like the web's `.setting`: label and hint, with the control under it. */
-export function SettingRow({ label, hint, children }: { label: string; hint?: string; children?: ReactNode }) {
+export function SettingRow({ label, hint, children }: Readonly<{ label: string; hint?: string; children?: ReactNode }>) {
   return (
     <View style={styles.row}>
       <View style={styles.text}>

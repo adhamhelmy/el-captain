@@ -39,13 +39,13 @@ export default function OnboardingPage() {
   // Reloads when the user's coach status changes (submitted, approved, rejected), so the right screen shows.
   const coachStatus = user?.coachStatus;
   useEffect(() => {
-    load();
+    void load();
   }, [load, coachStatus]);
 
   // Approved while the app was open on a stale user: refresh it so the redirect below takes them to the dashboard.
   const status = data?.coach.status;
   useEffect(() => {
-    if (status === 'ACTIVE' && coachStatus !== 'ACTIVE') refresh();
+    if (status === 'ACTIVE' && coachStatus !== 'ACTIVE') void refresh();
   }, [status, coachStatus, refresh]);
 
   if (homeFor(user) !== '/onboarding') return <Redirect href={homeFor(user)} />;

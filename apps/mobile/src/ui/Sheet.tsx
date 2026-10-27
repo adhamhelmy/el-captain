@@ -7,7 +7,7 @@ import { LinkText } from './LinkText';
 import { Text } from './Text';
 
 /** The web's Drawer as an iOS page sheet: a title with Close, then a scrolling form that clears the keyboard. */
-export function Sheet({ visible, title, onClose, children }: { visible: boolean; title: string; onClose: () => void; children: ReactNode }) {
+export function Sheet({ visible, title, onClose, children }: Readonly<{ visible: boolean; title: string; onClose: () => void; children: ReactNode }>) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const tc = useTranslations('common');

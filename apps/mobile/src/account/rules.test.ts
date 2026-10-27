@@ -1,4 +1,4 @@
-import { passwordProblems, profileProblems, registerProblems } from './rules';
+import { confirmProblem, passwordProblems, profileProblems, registerProblems } from './rules';
 
 const ok = { name: 'Sara', email: 'Sara@Mail.com ', password: 'Password1', confirm: 'Password1' };
 
@@ -30,6 +30,15 @@ describe('passwordProblems', () => {
     expect(passwordProblems('Password1', 'Password1')).toEqual({});
     expect(passwordProblems('weak', 'weak')).toEqual({ password: 'weak_password' });
     expect(passwordProblems('Password1', 'Password2')).toEqual({ confirm: 'passwordsDontMatch' });
+  });
+});
+
+describe('confirmProblem', () => {
+  it('shows a mismatch, or an empty confirmation once the member tried', () => {
+    expect(confirmProblem('passwordsDontMatch', false, 'x')).toBe('passwordsDontMatch');
+    expect(confirmProblem(undefined, true, '')).toBe('passwordsDontMatch');
+    expect(confirmProblem(undefined, false, '')).toBeNull();
+    expect(confirmProblem(undefined, true, 'Password1')).toBeNull();
   });
 });
 

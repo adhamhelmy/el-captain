@@ -359,6 +359,8 @@ model PrivateRequest {
 
 enum PaymentProvider {
   PAYMOB
+  /// Paid to the coach at the session; the coach confirms it.
+  CASH
 }
 
 enum PaymentStatus {
@@ -386,6 +388,9 @@ model Payment {
   clientSecret          String?
   /// The app link to send the member back to after checkout; null sends them to the web.
   returnUrl             String?
+  /// Cash: when the coach marked it paid or not paid, and who.
+  settledAt             DateTime?
+  settledById           String?
   paidAt                DateTime?
   refundedAt            DateTime?
   createdAt             DateTime        @default(now())

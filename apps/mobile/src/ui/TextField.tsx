@@ -13,6 +13,9 @@ export function TextField({ label, error, hint, invalid, aside, style, ...input 
   const { colors } = useTheme();
   const { isRTL } = useLocale();
   const [focused, setFocused] = useState(false);
+  let borderColor = colors.border;
+  if (error || invalid) borderColor = colors.warn;
+  else if (focused) borderColor = colors.focusBorder;
   return (
     <View style={styles.field}>
       <View style={styles.head}>
@@ -30,13 +33,14 @@ export function TextField({ label, error, hint, invalid, aside, style, ...input 
             fontFamily: uiFont(isRTL),
             color: colors.text,
             backgroundColor: colors.surface,
-            borderColor: error || invalid ? colors.warn : focused ? colors.focusBorder : colors.border,
+            borderColor,
           },
           style,
         ]}
         {...input}
       />
-      {error ? <Text style={[styles.error, { color: colors.warn }]}>{error}</Text> : hint ? <Text variant="label">{hint}</Text> : null}
+      {!!error && <Text style={[styles.error, { color: colors.warn }]}>{error}</Text>}
+      {!error && !!hint && <Text variant="label">{hint}</Text>}
     </View>
   );
 }

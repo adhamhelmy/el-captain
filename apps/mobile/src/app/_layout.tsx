@@ -14,16 +14,16 @@ import { DetailTabBar } from '@/nav/FloatingTabBar';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { NoticeBanner } from '@/ui/NoticeBanner';
 
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync();
 
-function Root({ fontsReady }: { fontsReady: boolean }) {
+function Root({ fontsReady }: Readonly<{ fontsReady: boolean }>) {
   const { scheme, colors } = useTheme();
   const { status } = useAuth();
   const ready = fontsReady && status === 'ready';
 
   // The splash stays up until fonts are loaded and the saved sign-in is checked, so nothing flashes.
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
+    if (ready) void SplashScreen.hideAsync();
   }, [ready]);
   if (!ready) return null;
 

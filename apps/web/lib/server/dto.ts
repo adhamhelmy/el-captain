@@ -1,5 +1,5 @@
 import { blobUrlOrNull } from '@/lib/server/blob';
-import type { FailedRefundRow } from '@/prisma/models/payment';
+import type { FailedRefundRow, PaymentProvider, PaymentStatus } from '@/prisma/models/payment';
 import type { Draft } from '@/lib/shared/coach-rules';
 import type { Client } from '@/prisma/models/client-profile';
 import type { Certification } from '@/prisma/models/certification';
@@ -15,6 +15,7 @@ import type { RequestWithDetails } from '@/prisma/models/private-request';
 import type { RecentBooking } from '@/prisma/models/insights';
 import { ageOn, dateOnly } from '@/lib/shared/profile-rules';
 import { requestState } from '@/lib/shared/session-rules';
+import { offeredMethods, type PaymentMethod } from '@/lib/shared/payment-rules';
 
 // API response shapes. Each mapper keeps the record's own columns and only flattens its relations;
 // dates need no mapping because NextResponse.json writes them as ISO strings.
@@ -47,22 +48,35 @@ export const toSessionDTO = ({ coach, sport, venue, _count, ...s }: SessionWithD
   sport: toSportDTO(sport),
   venue: toVenueDTO(venue),
   coach: { id: coach.id, name: coach.name, photoUrl: blobUrlOrNull(coach.coachProfile?.photoPath) },
+  /** How a member can pay: empty for a free session. */
+  methods: offeredMethods(s.price),
 });
 
 export type SessionDTO = ReturnType<typeof toSessionDTO>;
+export const METHOD_OF: Record<PaymentProvider, PaymentMethod> = { PAYMOB: 'card', CASH: 'cash' };
+
+type PaymentRow = { provider: PaymentProvider; status: PaymentStatus; amountCents: number };
+
+/** How the member is paying for their booking. */
+export const toMemberPaymentDTO = (p: PaymentRow) => ({ method: METHOD_OF[p.provider], status: p.status, amount: p.amountCents / 100 });
+export type MemberPaymentDTO = ReturnType<typeof toMemberPaymentDTO>;
+
 /**
  * One session's page: the session plus whether the signed-in member holds a confirmed booking.
- * After booking a paid session, `checkoutUrl` is the payment page to send the member to.
+ * After booking a paid session by card, `checkoutUrl` is the payment page to send the member to.
  * `payBy` is set while the member holds an unpaid spot: they can pay until then.
+ * `payment` is how the member is paying for their booking, if they have one.
  */
-export type SessionDetailDTO = SessionDTO & { bookedByMe: boolean; checkoutUrl?: string; payBy?: Date | null };
+export type SessionDetailDTO = SessionDTO & { bookedByMe: boolean; checkoutUrl?: string; payBy?: Date | null; payment?: MemberPaymentDTO | null };
 
-export const toAttendeeDTO = ({ id, createdAt, member }: AttendeeRow) => ({
+/** A booked member, with how they're paying (null for a free session) so the coach can mark cash. */
+export const toAttendeeDTO = ({ id, createdAt, member, payments }: AttendeeRow) => ({
   bookingId: id,
   memberId: member.id,
   name: member.name,
   email: member.email,
   bookedAt: createdAt,
+  payment: payments[0] ? { id: payments[0].id, method: METHOD_OF[payments[0].provider], status: payments[0].status } : null,
 });
 export type AttendeeDTO = ReturnType<typeof toAttendeeDTO>;
 

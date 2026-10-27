@@ -25,7 +25,7 @@ export default function LoginPage() {
 
   // Sent here because the account was suspended while signed in: end that session.
   useEffect(() => {
-    if (suspendedNow) signOut({ redirect: false });
+    if (suspendedNow) void signOut({ redirect: false });
   }, [suspendedNow]);
 
   async function submit(e: React.SubmitEvent<HTMLFormElement>) {

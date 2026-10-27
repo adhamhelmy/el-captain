@@ -25,7 +25,7 @@ type AuthValue = {
 
 const AuthContext = createContext<AuthValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const { locale } = useLocale();
   const [status, setStatus] = useState<AuthValue['status']>('loading');
   const [user, setUser] = useState<MobileUser | null>(null);
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     token.current = next.token;
     // Admins have no app screens; they stay signed out here and use the web.
     if (next.user?.role === 'ADMIN') {
-      session.signOut();
+      void session.signOut();
       token.current = null;
       setUser(null);
       setNotice('adminWeb');
@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const who = `${userId}|${role}|${coachStatus}`;
     if (cachedFor.current !== null && cachedFor.current !== who) clearCache();
     cachedFor.current = who;
-    prefetch(prefetchPaths(role ? { role, coachStatus } : null));
+    void prefetch(prefetchPaths(role ? { role, coachStatus } : null));
   }, [status, userId, role, coachStatus]);
 
   // Back from the background: pick up an approval, suspension or password change made on the web meanwhile.
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sub = AppState.addEventListener('change', (state) => {
       if (!token.current || !shouldRefresh(state, lastCheck.current, Date.now())) return;
       lastCheck.current = Date.now();
-      session.restoreSession().then(accept);
+      void session.restoreSession().then(accept);
     });
     return () => sub.remove();
   }, [accept]);

@@ -229,7 +229,6 @@
     "cancelClosed": "It starts in under 2 hours, so it can't be cancelled now.",
     "privateCancel": "To cancel a one to one session, contact your coach.",
     "logInToBook": "Log in to book",
-    "reserve": "Reserve spot",
     "payAtSession": "Nothing to pay now. You pay the coach at the session.",
     "payByCard": "You pay by card on the next step. Your spot is held for 15 minutes.",
     "freeSession": "Free session. Nothing to pay.",
@@ -237,8 +236,15 @@
     "paymentPending": "Your payment is still processing. We’ll email you once it’s confirmed.",
     "paymentFailed": "Your payment didn’t go through. Your spot is held a little longer, so you can try again.",
     "paymentRefunded": "Your payment came through after the last spot was taken, so we refunded it in full.",
-    "payNow": "Pay now",
-    "payBy": "Pay by {when} to keep this spot."
+    "book": "Book",
+    "payBy": "Pay by {when} to keep this spot.",
+    "payWith": "Pay with",
+    "method": {
+      "card": "Card",
+      "cash": "Cash"
+    },
+    "payByCardNow": "You pay by card on the next step.",
+    "cashDue": "Pay {price} in cash to the coach at the session."
   },
   "coachProfile": {
     "backToExplore": "Explore",
@@ -321,7 +327,9 @@
     "passwordChanged": "Password updated. Log in with your new password.",
     "passwordRequired": "Enter your password.",
     "payment_unavailable": "Card payment isn’t available right now. Try again in a minute.",
-    "payment_closed": "The time to pay for this has passed."
+    "payment_closed": "The time to pay for this has passed.",
+    "payment_method_unavailable": "That way to pay isn’t available for this session.",
+    "cash_limit": "You have cash sessions the coach hasn’t marked paid yet. Pay by card, or settle with the coach first."
   },
   "login": {
     "title": "WELCOME BACK",
@@ -501,7 +509,10 @@
     "timeRange": "{start} – {end}",
     "paidAtSession": "Paid by card when booking",
     "bookedOf": "BOOKED · {booked} OF {capacity}",
-    "bookedOn": "Booked {date}"
+    "bookedOn": "Booked {date}",
+    "cashAtSession": "Cash at session",
+    "cashPaid": "Paid",
+    "cashUnpaid": "Not paid"
   },
   "clients": {
     "title": "MY CLIENTS",
@@ -768,8 +779,8 @@
     },
     "requestAccepted": {
       "subject": "Your private session request was accepted",
-      "intro": "The coach accepted your request. Pay by card to confirm the session.",
-      "button": "Pay now"
+      "intro": "The coach accepted your request. Book it to confirm the session: pay by card now, or in cash at the session.",
+      "button": "Book"
     },
     "requestAcceptedFree": {
       "subject": "Your private session is confirmed",
@@ -782,6 +793,7 @@
       "button": "Pick another time"
     },
     "sessionDetail": "{title} with {coach}\n{when} (Cairo time) · {minutes} min\n{venue}, {address}\n{price}",
+    "payCash": "Pay {price} in cash to the coach at the session.",
     "cancelBy": "You can cancel until {when}.",
     "requestDetail": "{member} · {sport}\n{when} (Cairo time) · {minutes} min\n{venue}",
     "reasonLine": "Reason: {reason}",
@@ -974,7 +986,7 @@
     "none": "No requests yet.",
     "awaitingPayment": "Awaiting payment",
     "notPaid": "Not paid",
-    "payNow": "Pay now",
+    "book": "Book",
     "payBy": "Pay by {when}"
   },
   "venues": {

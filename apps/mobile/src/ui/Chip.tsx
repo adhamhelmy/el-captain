@@ -3,7 +3,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { Text } from './Text';
 
 /** Toggle chip like the web's `.chip` / `.chip.on`. */
-export function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
+export function Chip({ label, on, onPress }: Readonly<{ label: string; on: boolean; onPress: () => void }>) {
   const { colors } = useTheme();
   return (
     <Pressable

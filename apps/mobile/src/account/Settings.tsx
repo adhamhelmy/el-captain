@@ -14,7 +14,7 @@ import { SettingRow } from '@/ui/SettingRow';
 import { Text } from '@/ui/Text';
 import { TextField } from '@/ui/TextField';
 import { changePassword } from './password';
-import { passwordProblems } from './rules';
+import { confirmProblem, passwordProblems } from './rules';
 
 const ltr = { writingDirection: 'ltr', textAlign: 'left' } as const;
 
@@ -34,6 +34,7 @@ function PasswordSetting() {
   const [done, setDone] = useState(false);
 
   const problems = passwordProblems(form.next, form.confirm);
+  const confirmMsg = confirmProblem(problems.confirm, tried, form.confirm);
   const edit = (patch: Partial<typeof form>) => {
     setForm({ ...form, ...patch });
     setError(null);
@@ -52,7 +53,8 @@ function PasswordSetting() {
       setOpen(false);
       setDone(true);
     } catch (e) {
-      setError(e instanceof ApiError && e.code === 'network' ? 'network' : pickError(CHANGE_PASSWORD_ERRORS, e instanceof ApiError ? e.code : undefined));
+      const code = e instanceof ApiError ? e.code : undefined;
+      setError(code === 'network' ? 'network' : pickError(CHANGE_PASSWORD_ERRORS, code));
     } finally {
       setBusy(false);
     }
@@ -97,7 +99,7 @@ function PasswordSetting() {
             secureTextEntry
             autoComplete="new-password"
             style={ltr}
-            error={problems.confirm ? te(problems.confirm) : tried && !form.confirm ? te('passwordsDontMatch') : null}
+            error={confirmMsg && te(confirmMsg)}
           />
           {error && <Text style={{ color: colors.warn }}>{te(error)}</Text>}
           <Button label={t('updatePassword')} onPress={submit} busy={busy} />

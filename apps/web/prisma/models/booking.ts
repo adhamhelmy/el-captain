@@ -1,5 +1,7 @@
 import type { Prisma } from '@prisma/client';
+import type { PaymentMethod } from '@/lib/shared/payment-rules';
 import { prisma } from '../client';
+import { cashBlocked, confirmWithCash } from './payment';
 
 /** The member's booking on this session, confirmed or cancelled, or null. */
 export function findBooking(sessionId: string, memberId: string) {
@@ -42,14 +44,15 @@ export function expireHolds(now = new Date()) {
 export type AwaitingPayment = { bookingId: string; price: number };
 export type BookOutcome =
   | { ok: true; newlyBooked: boolean; awaitingPayment: AwaitingPayment | null }
-  | { ok: false; reason: 'missing' | 'closed' | 'full' };
+  | { ok: false; reason: 'missing' | 'closed' | 'full' | 'cashLimit' };
 
 /**
  * Books a spot on a group session of an active coach, or reactivates a cancelled booking.
- * A paid session's spot is held for HOLD_MS while the member pays; a free one is confirmed straight away.
+ * A paid session's spot is held for HOLD_MS while the member pays by card; a free one is confirmed straight away,
+ * and so is one paid in cash at the session.
  * The session row is locked for the transaction, so two members can't both take the last spot.
  */
-export function bookSession(sessionId: string, memberId: string, now = new Date()): Promise<BookOutcome> {
+export function bookSession(sessionId: string, memberId: string, now = new Date(), method: PaymentMethod = 'card'): Promise<BookOutcome> {
   return prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Session" WHERE id = ${sessionId} FOR UPDATE`;
     const session = await tx.session.findUnique({
@@ -59,11 +62,13 @@ export function bookSession(sessionId: string, memberId: string, now = new Date(
     if (!session) return { ok: false, reason: 'missing' };
     const coachActive = session.coach.coachProfile?.status === 'ACTIVE';
     if (session.type !== 'GROUP' || session.status !== 'SCHEDULED' || session.startsAt <= now || !coachActive) return { ok: false, reason: 'closed' };
+    const cash = method === 'cash' && session.price > 0;
 
     const key = { sessionId_memberId: { sessionId, memberId } };
     const existing = await tx.booking.findUnique({ where: key });
     if (existing?.status === 'CONFIRMED') return { ok: true, newlyBooked: false, awaitingPayment: null };
     if (existing?.status === 'PENDING_PAYMENT' && existing.holdUntil && existing.holdUntil > now) {
+      if (cash) return payHeldInCash(tx, existing.id, memberId, session.price, now);
       return { ok: true, newlyBooked: false, awaitingPayment: { bookingId: existing.id, price: session.price } };
     }
     const taken = await tx.booking.count({ where: { sessionId, memberId: { not: memberId }, OR: [{ status: 'CONFIRMED' }, liveHold(now)] } });
@@ -73,6 +78,12 @@ export function bookSession(sessionId: string, memberId: string, now = new Date(
       await tx.booking.upsert({ where: key, create: { sessionId, memberId }, update: { status: 'CONFIRMED', cancelledAt: null, cancelledBy: null, holdUntil: null } });
       return { ok: true, newlyBooked: true, awaitingPayment: null };
     }
+    if (cash) {
+      if (await cashBlocked(tx, memberId, now)) return { ok: false, reason: 'cashLimit' };
+      const booking = await tx.booking.upsert({ where: key, create: { sessionId, memberId }, update: { status: 'CONFIRMED', cancelledAt: null, cancelledBy: null, holdUntil: null } });
+      await confirmWithCash(tx, booking.id, memberId, session.price);
+      return { ok: true, newlyBooked: true, awaitingPayment: null };
+    }
     const holdUntil = new Date(now.getTime() + HOLD_MS);
     const booking = await tx.booking.upsert({
       where: key,
@@ -80,6 +91,35 @@ export function bookSession(sessionId: string, memberId: string, now = new Date(
       update: { status: 'PENDING_PAYMENT', holdUntil, cancelledAt: null, cancelledBy: null },
     });
     return { ok: true, newlyBooked: true, awaitingPayment: { bookingId: booking.id, price: session.price } };
+  });
+}
+
+/** Turns the member's live hold into a cash booking, unless they already owe for too many cash sessions. */
+async function payHeldInCash(tx: Tx, bookingId: string, memberId: string, price: number, now: Date): Promise<BookOutcome> {
+  if (await cashBlocked(tx, memberId, now)) return { ok: false, reason: 'cashLimit' };
+  await confirmWithCash(tx, bookingId, memberId, price);
+  return { ok: true, newlyBooked: true, awaitingPayment: null };
+}
+
+/**
+ * The member chooses to pay for the spot they hold in cash at the session: a private session the coach accepted,
+ * or a group spot they hadn't paid for.
+ */
+export function payHeldInCashAt(sessionId: string, memberId: string, now = new Date()): Promise<BookOutcome> {
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Session" WHERE id = ${sessionId} FOR UPDATE`;
+    const booking = await tx.booking.findUnique({
+      where: { sessionId_memberId: { sessionId, memberId } },
+      select: {
+        id: true,
+        status: true,
+        holdUntil: true,
+        session: { select: { status: true, price: true } },
+      },
+    });
+    const holding = booking?.status === 'PENDING_PAYMENT' && !!booking.holdUntil && booking.holdUntil > now;
+    if (!holding || booking.session.status !== 'SCHEDULED') return { ok: false, reason: 'closed' };
+    return payHeldInCash(tx, booking.id, memberId, booking.session.price, now);
   });
 }
 
@@ -95,7 +135,11 @@ export async function unbookSession(sessionId: string, memberId: string) {
   return count > 0 ? booking.id : null;
 }
 
-const withMember = { member: { select: { id: true, name: true, email: true } } } satisfies Prisma.BookingInclude;
+const withMember = {
+  member: { select: { id: true, name: true, email: true } },
+  // The latest payment says how the member paid; the coach marks cash ones.
+  payments: { select: { id: true, provider: true, status: true }, orderBy: { createdAt: 'desc' }, take: 1 },
+} satisfies Prisma.BookingInclude;
 export type AttendeeRow = Prisma.BookingGetPayload<{ include: typeof withMember }>;
 
 /** Confirmed bookings, earliest first. */

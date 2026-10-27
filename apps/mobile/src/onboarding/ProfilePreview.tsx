@@ -12,7 +12,7 @@ import { Tag } from '@/ui/Tag';
 import { Text } from '@/ui/Text';
 
 /** The web's ProfilePreview: "what members see", the coach's public card, updated as they type. */
-export function ProfilePreview({ name, form }: { name: string; form: CoachForm<Sport, unknown> }) {
+export function ProfilePreview({ name, form }: Readonly<{ name: string; form: CoachForm<Sport, unknown> }>) {
   const t = useTranslations('onboarding');
   const { locale } = useLocale();
   const { colors } = useTheme();

@@ -53,7 +53,7 @@ function primaryKey(last: boolean, rejected: boolean, busy: boolean) {
 }
 
 /** The web's seven-step profile wizard, on a phone: a progress bar instead of the rail. Every way out of a step saves it first. */
-export function Wizard({ data, onSubmitted }: { data: Onboarding; onSubmitted: () => Promise<void> }) {
+export function Wizard({ data, onSubmitted }: Readonly<{ data: Onboarding; onSubmitted: () => Promise<void> }>) {
   const t = useTranslations('onboarding');
   const te = useTranslations('errors');
   const tv = useTranslations('venues');

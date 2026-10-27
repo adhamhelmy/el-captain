@@ -27,10 +27,10 @@ export default function UserDashboard() {
   const [picked, setPicked] = useState<SessionDTO[]>([]);
 
   useEffect(() => {
-    mySessions('past').then((r) => r.ok && setCompleted(r.data.length));
-    myCoaches().then((r) => r.ok && setCoaches(r.data.length));
+    void mySessions('past').then((r) => r.ok && setCompleted(r.data.length));
+    void myCoaches().then((r) => r.ok && setCoaches(r.data.length));
     // Suggestions: open sessions the member isn't booked on, favourite sports first.
-    Promise.all([mySessions('upcoming'), getMe(), listSessions({ limit: 24 })]).then(([mine, me, open]) => {
+    void Promise.all([mySessions('upcoming'), getMe(), listSessions({ limit: 24 })]).then(([mine, me, open]) => {
       const booked = mine.ok ? mine.data : [];
       setUpcoming(booked);
       const favs = new Set(me.ok ? me.data.sports.map((s) => s.id) : []);

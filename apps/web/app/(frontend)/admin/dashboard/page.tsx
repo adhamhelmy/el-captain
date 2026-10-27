@@ -26,9 +26,9 @@ export default function AdminDashboard() {
   const [recent, setRecent] = useState<RecentBookingDTO[]>([]);
   const [failedRefunds, setFailedRefunds] = useState<FailedRefundDTO[]>([]);
   useEffect(() => {
-    adminStats().then((r) => r.ok && setStats(r.data));
-    adminRecentBookings().then((r) => r.ok && setRecent(r.data));
-    adminFailedRefunds().then((r) => r.ok && setFailedRefunds(r.data));
+    void adminStats().then((r) => r.ok && setStats(r.data));
+    void adminRecentBookings().then((r) => r.ok && setRecent(r.data));
+    void adminFailedRefunds().then((r) => r.ok && setFailedRefunds(r.data));
   }, []);
 
   return (

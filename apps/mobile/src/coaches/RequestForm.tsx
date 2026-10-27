@@ -22,7 +22,7 @@ const ltr = { writingDirection: 'ltr', textAlign: 'left' } as const;
  * The web's PrivateRequestForm: place, sport, a Cairo date and time, and an optional message.
  * Rules show beside each field; Send explains what's wrong instead of being disabled.
  */
-export function RequestForm({ coach, onSent }: { coach: PublicCoach; onSent: () => void }) {
+export function RequestForm({ coach, onSent }: Readonly<{ coach: PublicCoach; onSent: () => void }>) {
   const t = useTranslations('coachProfile');
   const te = useTranslations('errors');
   const { locale } = useLocale();

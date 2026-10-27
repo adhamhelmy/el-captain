@@ -38,11 +38,11 @@ export default function MySessions() {
     useCallback(() => {
       let stale = false;
       if (tab === 'requests') {
-        load<PrivateRequest[]>(PATHS.myRequests)
+        void load<PrivateRequest[]>(PATHS.myRequests)
           .catch(() => [])
           .then((r) => !stale && setRequests(r));
       } else {
-        load<Session[]>(pathOf(tab))
+        void load<Session[]>(pathOf(tab))
           .catch(() => [])
           .then((r) => !stale && setList(r));
       }
@@ -78,17 +78,16 @@ export default function MySessions() {
           { value: 'requests' as const, label: t('requests') },
         ]}
       />
-      {tab === 'requests' ? (
-        requests ? (
+      {tab === 'requests' &&
+        (requests ? (
           <FadeIn>
             <RequestList role="member" requests={requests} onChange={(r) => setRequests(requests.map((x) => (x.id === r.id ? r : x)))} />
           </FadeIn>
         ) : (
           skeleton
-        )
-      ) : list === null ? (
-        skeleton
-      ) : (
+        ))}
+      {tab !== 'requests' && list === null && skeleton}
+      {tab !== 'requests' && list !== null && (
         <FadeIn key={tab} style={styles.list}>
           {list.map((s) => (
             <Pressable

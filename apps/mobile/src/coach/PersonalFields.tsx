@@ -13,7 +13,7 @@ import { languageName } from './languages';
 export type Personal = { birthDate: string; gender: Gender | ''; languages: string[] };
 
 /** The web's PersonalFields and LanguagePicker for coaches: optional birth date (picked on a calendar) and gender, and spoken languages. */
-export function PersonalFields({ value, onChange, hint }: { value: Personal; onChange: (v: Personal) => void; hint: string }) {
+export function PersonalFields({ value, onChange, hint }: Readonly<{ value: Personal; onChange: (v: Personal) => void; hint: string }>) {
   const t = useTranslations('profile');
   const td = useTranslations('data');
   const { locale } = useLocale();

@@ -5,7 +5,7 @@ import { Text } from './Text';
 export type TagKind = 'accent' | 'warn' | 'pending' | 'past' | 'solid';
 
 /** Pill tag like the web's `.tag` variants. */
-export function Tag({ kind = 'accent', label }: { kind?: TagKind; label: string }) {
+export function Tag({ kind = 'accent', label }: Readonly<{ kind?: TagKind; label: string }>) {
   const { colors } = useTheme();
   const look = {
     accent: { color: colors.accentText, backgroundColor: colors.accentTag },

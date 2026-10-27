@@ -6,7 +6,7 @@ import { Text } from './Text';
 /**
  * The web's dashed `.empty` box. `rich` takes a message with a <link> part and turns it into tappable text.
  */
-export function Empty({ text, link }: { text: (link: (chunks: React.ReactNode) => React.ReactNode) => React.ReactNode; link?: () => void }) {
+export function Empty({ text, link }: Readonly<{ text: (link: (chunks: React.ReactNode) => React.ReactNode) => React.ReactNode; link?: () => void }>) {
   const { colors } = useTheme();
   return (
     <View style={[styles.box, { borderColor: colors.border }]}>

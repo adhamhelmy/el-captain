@@ -24,7 +24,7 @@ const errorKey = (code?: string) => KNOWN_ERRORS.find((c) => c === code) ?? 'gen
  * The web's MediaList: photos and videos for the public profile. Uploads, captions, sports and removals save right
  * away, so they stay out of the profile's save bar. `sports` are the coach's saved sports.
  */
-export function MediaList({ coachId, items, sports, onChange }: { coachId: string; items: Media[]; sports: Sport[]; onChange: Dispatch<SetStateAction<Media[]>> }) {
+export function MediaList({ coachId, items, sports, onChange }: Readonly<{ coachId: string; items: Media[]; sports: Sport[]; onChange: Dispatch<SetStateAction<Media[]>> }>) {
   const t = useTranslations('coachEdit');
   const to = useTranslations('onboarding');
   const te = useTranslations('errors');

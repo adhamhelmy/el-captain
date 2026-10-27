@@ -40,13 +40,15 @@ const hostOf = (url: string) => {
   }
 };
 
-function SessionRow({ s }: { s: Session }) {
+function SessionRow({ s }: Readonly<{ s: Session }>) {
   const t = useTranslations('coachProfile');
   const td = useTranslations('data');
   const l = useSessionLabels();
   const { colors } = useTheme();
   const left = Math.max(s.capacity - s.booked, 0);
-  const spotsColor = left === 0 ? colors.warn : left <= LOW_SPOTS ? colors.accentText : colors.text2;
+  let spotsColor = colors.text2;
+  if (left === 0) spotsColor = colors.warn;
+  else if (left <= LOW_SPOTS) spotsColor = colors.accentText;
   return (
     <Pressable
       accessibilityRole="link"
@@ -113,7 +115,7 @@ export default function CoachProfilePage() {
       .then((d) => !stale && setC(d))
       // Offline with this page already showing from the cache: keep it rather than swap in the error.
       .catch(() => !stale && setC((shown) => shown ?? null));
-    load<Session[]>(DETAIL.coachSessions(id))
+    void load<Session[]>(DETAIL.coachSessions(id))
       .catch(() => [])
       .then((list) => !stale && setSessions(list));
     return () => {

@@ -45,7 +45,7 @@ function words(locale: AppLocale) {
       minutes: r.durationMin,
       venue: r.venue.name,
     });
-  return { t, when, sessionDetail, requestDetail };
+  return { t, when, price, sessionDetail, requestDetail };
 }
 
 /** Notifications never undo the change they report: a failed send is logged. */
@@ -57,13 +57,14 @@ async function send(mail: Mail, what: string) {
   }
 }
 
-const lines = (...parts: (string | null | undefined)[]) => parts.filter(Boolean).join('\n\n');
+const lines = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join('\n\n');
 
-export async function sendBookingConfirmed(member: Recipient, session: EmailSession) {
+/** `cash` reminds the member to bring the money: they chose to pay at the session. */
+export async function sendBookingConfirmed(member: Recipient, session: EmailSession, cash = false) {
   const locale = localeOf(member);
   const w = words(locale);
   const cutoff = new Date(new Date(session.startsAt).getTime() - CANCEL_CUTOFF_MS);
-  const detail = lines(w.sessionDetail(session), w.t('cancelBy', { when: w.when(cutoff) }));
+  const detail = lines(w.sessionDetail(session), cash && w.t('payCash', { price: w.price(session.price) }), w.t('cancelBy', { when: w.when(cutoff) }));
   await send(
     noticeMail(member.email, locale, MESSAGES[locale].emails.bookingConfirmed, appUrl(`/user/sessions/${session.id}`), detail),
     `booking email to ${member.id}`,
@@ -71,15 +72,18 @@ export async function sendBookingConfirmed(member: Recipient, session: EmailSess
 }
 
 export async function sendSessionCancelled(members: Recipient[], session: EmailSession, reason: string | null) {
-  for (const member of members) {
-    const locale = localeOf(member);
-    const w = words(locale);
-    const detail = lines(w.sessionDetail(session), reason && w.t('reasonLine', { reason }));
-    await send(
-      noticeMail(member.email, locale, MESSAGES[locale].emails.sessionCancelled, appUrl('/user/explore'), detail),
-      `cancel email to ${member.id}`,
-    );
-  }
+  // send never throws, so one failed email can't stop the others.
+  await Promise.all(
+    members.map((member) => {
+      const locale = localeOf(member);
+      const w = words(locale);
+      const detail = lines(w.sessionDetail(session), reason && w.t('reasonLine', { reason }));
+      return send(
+        noticeMail(member.email, locale, MESSAGES[locale].emails.sessionCancelled, appUrl('/user/explore'), detail),
+        `cancel email to ${member.id}`,
+      );
+    }),
+  );
 }
 
 export async function sendPrivateRequested(coach: Recipient, request: EmailRequest) {
@@ -92,7 +96,7 @@ export async function sendPrivateRequested(coach: Recipient, request: EmailReque
   );
 }
 
-/** A paid session asks the member to pay by `payBy`; a free one (null) is confirmed. Both link to the session, where Pay now is. */
+/** A paid session asks the member to pay by `payBy`; a free one (null) is confirmed. Both link to the session, where the member books it. */
 export async function sendRequestAccepted(member: Recipient, session: EmailSession, payBy: Date | null) {
   const locale = localeOf(member);
   const w = words(locale);
@@ -114,3 +118,4 @@ export async function sendRequestRejected(member: Recipient, request: EmailReque
     `rejected email to ${member.id}`,
   );
 }
+

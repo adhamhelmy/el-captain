@@ -38,3 +38,4 @@
 /* Beats .btn.block's padding. */
 .book:global(.block) { padding: 16px; }
 .fine { font-size: 12px; text-align: center; }
+.methods { display: grid; gap: 8px; }

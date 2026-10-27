@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Text as RNText, type TextProps } from 'react-native';
 import { useLocale } from '@/i18n/IntlProvider';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -23,3 +24,12 @@ export function Text({ variant = 'body', muted, style, ...rest }: Props) {
 
   return <RNText style={[base, muted && { color: colors.text2 }, style]} {...rest} />;
 }
+
+/**
+ * A tag in `t.rich` text, drawn as Text with these props (a colour, a tap). Made outside components, so the tag
+ * isn't a new component on every render.
+ */
+export const richText = (props: Props) =>
+  function RichText(chunks: ReactNode) {
+    return <Text {...props}>{chunks}</Text>;
+  };

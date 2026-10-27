@@ -113,3 +113,11 @@ describe('sendRequestRejected', () => {
     expect(text).toContain('/user/coaches/k1');
   });
 });
+
+describe('cash bookings', () => {
+  it('reminds a member paying cash to bring it', async () => {
+    await sendBookingConfirmed(member, session, true);
+    expect(vi.mocked(sendMail).mock.calls[0][0].text).toMatch(/Pay EGP\s350 in cash to the coach at the session\./);
+  });
+
+});

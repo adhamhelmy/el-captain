@@ -28,7 +28,7 @@ export default function OnboardingPage() {
   );
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
   // An admin's decision reaches the session on the next read; check whenever the coach comes back to the tab.
@@ -37,7 +37,7 @@ export default function OnboardingPage() {
     const onFocus = async () => {
       const s = await update();
       if (s?.user.coachStatus === 'ACTIVE') router.replace('/coach/dashboard');
-      else if (s?.user.coachStatus && s.user.coachStatus !== status) load();
+      else if (s?.user.coachStatus && s.user.coachStatus !== status) void load();
     };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
@@ -46,7 +46,7 @@ export default function OnboardingPage() {
   // An approved coach can arrive here on a stale session (e.g. from the approval email in a new tab):
   // refresh the session so the route guard knows, then go to the dashboard.
   useEffect(() => {
-    if (status === 'ACTIVE') update().then(() => router.replace('/coach/dashboard'));
+    if (status === 'ACTIVE') void update().then(() => router.replace('/coach/dashboard'));
   }, [status, update, router]);
 
   if (!data || status === 'ACTIVE') {

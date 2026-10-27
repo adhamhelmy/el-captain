@@ -19,7 +19,11 @@ const TAG_KIND: Record<RequestState, TagKind> = { PENDING: 'pending', ACCEPTED: 
 const ACTION_ERRORS = ['request_closed', 'time_conflict', 'network'] as const;
 
 /** The web's RequestList: a member sees whom they asked and can withdraw; a coach sees who asked and can accept or decline. */
-export function RequestList({ role, requests, onChange }: { role: 'member' | 'coach'; requests: PrivateRequest[]; onChange: (r: PrivateRequest) => void }) {
+export function RequestList({
+  role,
+  requests,
+  onChange,
+}: Readonly<{ role: 'member' | 'coach'; requests: PrivateRequest[]; onChange: (r: PrivateRequest) => void }>) {
   const t = useTranslations('requests');
   const te = useTranslations('errors');
   const tc = useTranslations('common');
@@ -70,7 +74,7 @@ export function RequestList({ role, requests, onChange }: { role: 'member' | 'co
           {r.message && <Text>{t('message', { message: r.message })}</Text>}
           {r.responseNote && <Text>{t('note', { note: r.responseNote })}</Text>}
           {r.payment === 'due' && role === 'member' && r.sessionId && (
-            <Button label={t('payNow')} onPress={() => openPage(`/session/${r.sessionId}`)} />
+            <Button label={t('book')} onPress={() => openPage(`/session/${r.sessionId}`)} />
           )}
           {r.status === 'ACCEPTED' && r.sessionId && (r.payment !== 'due' || role === 'coach') && (
             <LinkText label={t('viewSession')} onPress={() => openPage(`${role === 'coach' ? '/coach-session' : '/session'}/${r.sessionId}`)} />

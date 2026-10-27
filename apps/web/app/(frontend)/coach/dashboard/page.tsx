@@ -39,20 +39,20 @@ export default function CoachDashboard() {
   const [reload, setReload] = useState(0);
 
   useEffect(() => {
-    getOnboarding().then((r) => {
+    void getOnboarding().then((r) => {
       if (!r.ok) return;
       setCoach(r.data.coach);
       // localStorage only exists in the browser, so the card's state is read once the coach is known.
       setHidden(localStorage.getItem(setupHiddenKey(r.data.coach.id)) === '1');
     });
-    listVenues().then((r) => setVenues(r.ok ? r.data.filter((v) => !v.archived) : []));
-    myRequests().then((r) => r.ok && setRequests(r.data.filter((x) => x.status === 'PENDING')));
+    void listVenues().then((r) => setVenues(r.ok ? r.data.filter((v) => !v.archived) : []));
+    void myRequests().then((r) => r.ok && setRequests(r.data.filter((x) => x.status === 'PENDING')));
   }, []);
 
   useEffect(() => {
-    coachStats().then((r) => r.ok && setStats(r.data));
-    mySessions('upcoming').then((r) => setUpcoming(r.ok ? r.data.filter((s) => s.status === 'SCHEDULED') : []));
-    mySessions('past').then((r) => r.ok && setPastCount(r.data.length));
+    void coachStats().then((r) => r.ok && setStats(r.data));
+    void mySessions('upcoming').then((r) => setUpcoming(r.ok ? r.data.filter((s) => s.status === 'SCHEDULED') : []));
+    void mySessions('past').then((r) => r.ok && setPastCount(r.data.length));
   }, [reload]);
 
   async function answer(r: RequestDTO, accept: boolean) {

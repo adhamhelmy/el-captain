@@ -22,8 +22,17 @@
 .track { height: 6px; border-radius: 100px; background: var(--border); overflow: hidden; }
 .trackFill { height: 100%; width: calc(var(--fill, 0) * 100%); background: var(--accent); }
 .attendees { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
-.attendee { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--text); }
-.attendee:hover { border-color: var(--hover-border); color: var(--text); }
+.attendee { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--text); }
+.attendee:hover { border-color: var(--hover-border); }
+.attendeeLink { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; color: var(--text); }
+.attendeeLink:hover { color: var(--text); }
+.method { font-size: 12px; color: var(--text-3); white-space: nowrap; }
+/* Paid / Not paid for a cash attendee; the chosen one is filled. */
+.cash { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.cash button { padding: 5px 10px; font-size: 12px; font-weight: 600; background: transparent; color: var(--text-2); border: none; cursor: pointer; }
+.cash button + button { border-inline-start: 1px solid var(--border); }
+.cash .cashOn { background: var(--accent); color: var(--on-accent); }
+.cash .cashOff { background: var(--warn-tint); color: var(--warn); }
 .attendeeText { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .attendeeName { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .attendeeSub { font-size: 12px; color: var(--text-3); }

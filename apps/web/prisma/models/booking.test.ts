@@ -5,11 +5,14 @@ const tx = vi.hoisted(() => ({
   $queryRaw: vi.fn(),
   booking: { findUnique: vi.fn(), count: vi.fn(), upsert: vi.fn(), findMany: vi.fn(), updateMany: vi.fn() },
   session: { findUnique: vi.fn(), updateMany: vi.fn() },
+  payment: { count: vi.fn() },
 }));
 const db = vi.hoisted(() => ({ booking: { findFirst: vi.fn(), updateMany: vi.fn() } }));
 vi.mock('../client', () => ({ prisma: { ...db, $transaction: vi.fn((fn: (t: typeof tx) => unknown) => fn(tx)) } }));
+vi.mock('./payment', () => ({ cashBlocked: vi.fn(async () => false), confirmWithCash: vi.fn() }));
 
-import { bookSession, expireHolds, unbookSession } from './booking';
+import { bookSession, expireHolds, payHeldInCashAt, unbookSession } from './booking';
+import { cashBlocked, confirmWithCash } from './payment';
 
 const now = new Date('2026-10-20T10:00:00Z');
 const open = {
@@ -164,5 +167,67 @@ describe('unbookSession', () => {
     db.booking.findFirst.mockResolvedValue({ id: 'b1' });
     db.booking.updateMany.mockResolvedValue({ count: 0 });
     expect(await unbookSession('x1', 'u1')).toBeNull();
+  });
+});
+
+describe('bookSession with cash', () => {
+  it('books straight away for cash and records what is owed', async () => {
+    tx.session.findUnique.mockResolvedValue(paid);
+    expect(await bookSession('x1', 'u1', now, 'cash')).toEqual({ ok: true, newlyBooked: true, awaitingPayment: null });
+    expect(tx.booking.upsert).toHaveBeenCalledWith(expect.objectContaining({ create: { sessionId: 'x1', memberId: 'u1' } }));
+    expect(confirmWithCash).toHaveBeenCalledWith(tx, 'b1', 'u1', 350);
+  });
+
+  it('turns a live hold into a cash booking', async () => {
+    tx.session.findUnique.mockResolvedValue(paid);
+    tx.booking.findUnique.mockResolvedValue({ id: 'b1', status: 'PENDING_PAYMENT', holdUntil: new Date(now.getTime() + 60_000) });
+    expect(await bookSession('x1', 'u1', now, 'cash')).toEqual({ ok: true, newlyBooked: true, awaitingPayment: null });
+    expect(tx.booking.upsert).not.toHaveBeenCalled();
+    expect(confirmWithCash).toHaveBeenCalledWith(tx, 'b1', 'u1', 350);
+  });
+
+  it('refuses cash to a member who owes for too many cash sessions', async () => {
+    tx.session.findUnique.mockResolvedValue(paid);
+    vi.mocked(cashBlocked).mockResolvedValueOnce(true);
+    expect(await bookSession('x1', 'u1', now, 'cash')).toEqual({ ok: false, reason: 'cashLimit' });
+    expect(confirmWithCash).not.toHaveBeenCalled();
+  });
+
+  it('ignores the method on a free session', async () => {
+    expect(await bookSession('x1', 'u1', now, 'cash')).toEqual({ ok: true, newlyBooked: true, awaitingPayment: null });
+    expect(confirmWithCash).not.toHaveBeenCalled();
+  });
+});
+
+describe('payHeldInCashAt', () => {
+  const held = (over: object = {}) => ({
+    id: 'b1',
+    status: 'PENDING_PAYMENT',
+    holdUntil: new Date(now.getTime() + 60_000),
+    session: { status: 'SCHEDULED', price: 800 },
+    ...over,
+  });
+
+  it('confirms the held spot for cash, locking the session first', async () => {
+    tx.booking.findUnique.mockResolvedValue(held());
+    expect(await payHeldInCashAt('x1', 'u1', now)).toEqual({ ok: true, newlyBooked: true, awaitingPayment: null });
+    expect(tx.$queryRaw).toHaveBeenCalled();
+    expect(confirmWithCash).toHaveBeenCalledWith(tx, 'b1', 'u1', 800);
+  });
+
+  it.each([
+    ['no booking', null],
+    ['a lapsed hold', held({ holdUntil: now })],
+    ['a confirmed booking', held({ status: 'CONFIRMED' })],
+    ['a cancelled session', held({ session: { status: 'CANCELLED', price: 800 } })],
+  ])('is closed for %s', async (_, b) => {
+    tx.booking.findUnique.mockResolvedValue(b);
+    expect(await payHeldInCashAt('x1', 'u1', now)).toEqual({ ok: false, reason: 'closed' });
+  });
+
+  it('refuses a member over the cash limit', async () => {
+    tx.booking.findUnique.mockResolvedValue(held());
+    vi.mocked(cashBlocked).mockResolvedValueOnce(true);
+    expect(await payHeldInCashAt('x1', 'u1', now)).toEqual({ ok: false, reason: 'cashLimit' });
   });
 });

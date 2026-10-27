@@ -36,7 +36,7 @@ import { TextField } from '@/ui/TextField';
 const SAVE_ERRORS = ['invalid_profile', 'invalid_upload', 'network'] as const;
 const ltr = { writingDirection: 'ltr', textAlign: 'left' } as const;
 
-function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
+function Section({ title, aside, children }: Readonly<{ title: string; aside?: ReactNode; children: ReactNode }>) {
   return (
     <Card style={styles.section}>
       <View style={styles.sectionHead}>
@@ -92,7 +92,7 @@ export default function CoachProfile() {
     [te],
   );
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
   // Locations change on the Locations page, so reload on coming back. A failed load leaves the list blank, as the web does.
@@ -130,7 +130,7 @@ export default function CoachProfile() {
             label={tc('tryAgain')}
             onPress={() => {
               setError(null);
-              load();
+              void load();
             }}
           />
         )}

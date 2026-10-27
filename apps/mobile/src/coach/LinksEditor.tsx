@@ -13,7 +13,7 @@ const ltr = { writingDirection: 'ltr', textAlign: 'left' } as const;
 let next = 0;
 
 /** The web's LinksEditor: extra profile links to add, edit, reorder and remove. */
-export function LinksEditor({ links, onChange }: { links: LinkDraft[]; onChange: (l: LinkDraft[]) => void }) {
+export function LinksEditor({ links, onChange }: Readonly<{ links: LinkDraft[]; onChange: (l: LinkDraft[]) => void }>) {
   const t = useTranslations('onboarding');
   const { colors } = useTheme();
   const set = (i: number, patch: Partial<LinkDraft>) => onChange(links.map((l, j) => (j === i ? { ...l, ...patch } : l)));

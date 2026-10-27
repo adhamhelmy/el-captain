@@ -15,7 +15,7 @@ import { TextField } from '@/ui/TextField';
 const SHOWN = 16;
 
 /** The web's SportPicker: search and pick sports; offers to add one that isn't listed, and catches duplicates. */
-export function SportPicker({ selected, onChange, onBusy }: { selected: Sport[]; onChange: (s: Sport[]) => void; onBusy?: (busy: boolean) => void }) {
+export function SportPicker({ selected, onChange, onBusy }: Readonly<{ selected: Sport[]; onChange: (s: Sport[]) => void; onBusy?: (busy: boolean) => void }>) {
   const t = useTranslations('onboarding');
   const te = useTranslations('errors');
   const { locale } = useLocale();

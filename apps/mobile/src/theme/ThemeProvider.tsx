@@ -12,20 +12,20 @@ const ThemeContext = createContext<ThemeValue | null>(null);
 
 const isScheme = (v: unknown): v is Scheme => v === 'light' || v === 'dark';
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({ children }: Readonly<{ children: ReactNode }>) {
   const device = useColorScheme();
   const [saved, setSaved] = useState<Scheme | null>(null);
 
   useEffect(() => {
-    getItem(KEY).then((v) => isScheme(v) && setSaved(v));
+    void getItem(KEY).then((v) => isScheme(v) && setSaved(v));
   }, []);
 
   const value = useMemo<ThemeValue>(() => {
     const scheme: Scheme = saved ?? (device === 'light' ? 'light' : 'dark');
     const setScheme = (s: Scheme | null) => {
       setSaved(s);
-      if (s) setItem(KEY, s);
-      else deleteItem(KEY);
+      if (s) void setItem(KEY, s);
+      else void deleteItem(KEY);
     };
     return { scheme, choice: saved, colors: colors[scheme], setScheme };
   }, [saved, device]);

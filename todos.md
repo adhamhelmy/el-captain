@@ -13,6 +13,9 @@ Open work, grouped by area. Each area is ordered by priority.
 - **Smart scheduling**
 - **Automated reminders** for upcoming sessions
 - **Payments**
+  - **Embedded card checkout.** Replace the redirect to Paymob's page with Paymob Pixel inside our own pages. Same intention and webhook. Web: the card form in the booking panel. Mobile: our own Pixel page in an in-app WebView sheet (works in Expo Go). Later, Paymob's native iOS/Android SDKs for Apple Pay in the app; needs custom builds. Check Pixel is enabled on the Paymob account first.
+  - **Saved cards** (Paymob card tokens) and **Apple Pay** (ask Paymob to enable it).
+  - **InstaPay.** Dropped for now. A first version was built (manual transfer to El Captain's InstaPay with a reference, confirmed by an admin) and taken out before merging. Revisit with a bank API that confirms transfers automatically.
 - **Packages** (session bundles)
 - **Ratings and reviews.** Only members who have attended a session with a coach can rate them. The Explore card already accepts a rating, but nothing stores ratings yet.
 - **Performance notes** per member ★

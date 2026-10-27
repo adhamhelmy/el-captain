@@ -31,9 +31,11 @@ const RELOADED_KEY = 'directionReloadedFor';
 async function applyDirection(locale: AppLocale) {
   if (Platform.OS === 'web') return false;
   const lastTried = await getItem(RELOADED_KEY);
-  const reloading = syncDirection(locale, I18nManager.isRTL, () => {
-    setItem(RELOADED_KEY, locale).then(() => Updates.reloadAsync().catch(() => DevSettings.reload()));
-  }, lastTried);
+  const reload = async () => {
+    await setItem(RELOADED_KEY, locale);
+    await Updates.reloadAsync().catch(() => DevSettings.reload());
+  };
+  const reloading = syncDirection(locale, I18nManager.isRTL, () => void reload(), lastTried);
   if (!reloading && I18nManager.isRTL === (locale === 'ar')) await deleteItem(RELOADED_KEY);
   return reloading;
 }
@@ -44,23 +46,23 @@ const LocaleContext = createContext<LocaleValue>({ locale: 'en', isRTL: false, s
 const deviceLanguages = () => getLocales().map((l) => l.languageCode);
 
 /** The language picked in Profile, else the device's. Renders nothing (the splash stays up) until it is known. */
-export function IntlProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<AppLocale | null>(null);
+export function IntlProvider({ children }: Readonly<{ children: ReactNode }>) {
+  const [current, setCurrent] = useState<AppLocale | null>(null);
 
   useEffect(() => {
-    getItem(LOCALE_KEY).then(async (saved) => {
+    void getItem(LOCALE_KEY).then(async (saved) => {
       const next = pickLocale(deviceLanguages(), saved);
-      if (!(await applyDirection(next))) setLocaleState(next);
+      if (!(await applyDirection(next))) setCurrent(next);
     });
   }, []);
 
   const setLocale = useCallback((next: AppLocale) => {
-    setItem(LOCALE_KEY, next)
+    void setItem(LOCALE_KEY, next)
       .then(() => applyDirection(next))
-      .then((reloading) => !reloading && setLocaleState(next));
+      .then((reloading) => !reloading && setCurrent(next));
   }, []);
 
-  const value = useMemo(() => locale && { locale, isRTL: locale === 'ar', setLocale }, [locale, setLocale]);
+  const value = useMemo(() => current && { locale: current, isRTL: current === 'ar', setLocale }, [current, setLocale]);
   if (!value) return null;
 
   return (

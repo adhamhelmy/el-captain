@@ -10,6 +10,7 @@ import { api, ApiError } from '@/api/client';
 import { DETAIL } from '@/api/paths';
 import type { Attendee, SessionDetail, Sport, Venue } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
+import { AttendeePayment } from '@/coach/AttendeePayment';
 import { approvedSports, myVenues } from '@/coach/data';
 import { SessionForm } from '@/coach/SessionForm';
 import { openPage } from '@/nav/open';
@@ -72,8 +73,13 @@ export default function CoachSessionPage() {
 
   useEffect(() => {
     if (!editing) return;
-    approvedSports().then(setSports);
-    myVenues({ active: true }).then(setVenues);
+    // Offline, the pickers just stay empty; saving then says what's wrong.
+    approvedSports()
+      .then(setSports)
+      .catch(() => {});
+    myVenues({ active: true })
+      .then(setVenues)
+      .catch(() => {});
   }, [editing]);
 
   if (s === null) {
@@ -197,6 +203,13 @@ export default function CoachSessionPage() {
                 <Text>{a.name}</Text>
                 <Text variant="label">{t('bookedOn', { date: l.dayMonth(a.bookedAt) })}</Text>
               </View>
+              <AttendeePayment
+                a={a}
+                started={new Date(s.startsAt) <= new Date()}
+                onMarked={(status) =>
+                  setRoster((r) => r.map((x) => (x.bookingId === a.bookingId && x.payment ? { ...x, payment: { ...x.payment, status } } : x)))
+                }
+              />
             </Pressable>
           ))}
         </View>

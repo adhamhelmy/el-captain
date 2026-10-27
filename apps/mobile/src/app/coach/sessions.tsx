@@ -21,7 +21,7 @@ import { Segmented } from '@/ui/Segmented';
 import { Sheet } from '@/ui/Sheet';
 import { Bone, FadeIn, Loading, RowSkeleton } from '@/ui/Skeleton';
 import { Tag, typeTagKind } from '@/ui/Tag';
-import { Text } from '@/ui/Text';
+import { richText, Text } from '@/ui/Text';
 
 type Tab = 'upcoming' | 'past' | 'requests';
 type View_ = 'week' | 'list';
@@ -74,11 +74,11 @@ export default function CoachSessions() {
     useCallback(() => {
       let stale = false;
       setFocused((n) => n + 1);
-      approvedSports().then((s) => !stale && setSports(s));
-      myVenues({ active: true }).then((v) => !stale && setVenues(v));
-      list<Session>(PATHS.myUpcoming).then((r) => !stale && setUpcoming(r));
-      list<Session>(PATHS.myPast).then((r) => !stale && setPast(r));
-      list<PrivateRequest>(PATHS.myRequests).then((r) => !stale && setRequests(r));
+      void approvedSports().then((s) => !stale && setSports(s));
+      void myVenues({ active: true }).then((v) => !stale && setVenues(v));
+      void list<Session>(PATHS.myUpcoming).then((r) => !stale && setUpcoming(r));
+      void list<Session>(PATHS.myPast).then((r) => !stale && setPast(r));
+      void list<PrivateRequest>(PATHS.myRequests).then((r) => !stale && setRequests(r));
       return () => {
         stale = true;
       };
@@ -93,7 +93,7 @@ export default function CoachSessions() {
     let stale = false;
     const path = weekPath(week);
     if (!path) return;
-    list<Session>(path).then((r) => !stale && setWeekList(r));
+    void list<Session>(path).then((r) => !stale && setWeekList(r));
     return () => {
       stale = true;
     };
@@ -232,13 +232,7 @@ export default function CoachSessions() {
           )}
           {weekList && inWeek.length === 0 && (
             <Text variant="label" style={styles.center}>
-              {t.rich('emptyWeek', {
-                add: (chunks) => (
-                  <Text variant="label" style={{ color: colors.accentText }} onPress={() => setAdding(true)}>
-                    {chunks}
-                  </Text>
-                ),
-              })}
+              {t.rich('emptyWeek', { add: richText({ variant: 'label', style: { color: colors.accentText }, onPress: () => setAdding(true) }) })}
             </Text>
           )}
         </>

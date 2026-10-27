@@ -16,12 +16,12 @@ export function CoverPicker({
   url,
   onUploaded,
   onBusy,
-}: {
+}: Readonly<{
   userId: string;
   url: string | null;
   onUploaded: (path: string, previewUrl: string) => void;
   onBusy?: (busy: boolean) => void;
-}) {
+}>) {
   const t = useTranslations('coachEdit');
   const to = useTranslations('onboarding');
   const te = useTranslations('errors');
