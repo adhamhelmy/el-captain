@@ -24,7 +24,7 @@ const badgeOf = (c: Certification) => (c.contentType === 'application/pdf' ? 'PD
  * The web's CertificationList: pick files, each uploaded and saved right away. Viewing a file stays on the web for
  * now (its route reads the web login, not the app's token).
  */
-export function CertificationList({ coachId, items, onChange }: { coachId: string; items: Certification[]; onChange: (c: Certification[]) => void }) {
+export function CertificationList({ coachId, items, onChange }: Readonly<{ coachId: string; items: Certification[]; onChange: (c: Certification[]) => void }>) {
   const t = useTranslations('onboarding');
   const te = useTranslations('errors');
   const f = useFormatter();

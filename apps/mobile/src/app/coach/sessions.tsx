@@ -21,7 +21,7 @@ import { Segmented } from '@/ui/Segmented';
 import { Sheet } from '@/ui/Sheet';
 import { Bone, FadeIn, Loading, RowSkeleton } from '@/ui/Skeleton';
 import { Tag, typeTagKind } from '@/ui/Tag';
-import { Text } from '@/ui/Text';
+import { richText, Text } from '@/ui/Text';
 
 type Tab = 'upcoming' | 'past' | 'requests';
 type View_ = 'week' | 'list';
@@ -232,13 +232,7 @@ export default function CoachSessions() {
           )}
           {weekList && inWeek.length === 0 && (
             <Text variant="label" style={styles.center}>
-              {t.rich('emptyWeek', {
-                add: (chunks) => (
-                  <Text variant="label" style={{ color: colors.accentText }} onPress={() => setAdding(true)}>
-                    {chunks}
-                  </Text>
-                ),
-              })}
+              {t.rich('emptyWeek', { add: richText({ variant: 'label', style: { color: colors.accentText }, onPress: () => setAdding(true) }) })}
             </Text>
           )}
         </>

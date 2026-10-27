@@ -4,7 +4,7 @@ import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslations } from 'use-intl';
-import { registerProblems } from '@/account/rules';
+import { confirmProblem, registerProblems } from '@/account/rules';
 import { api, ApiError } from '@/api/client';
 import { useAuth } from '@/auth/AuthProvider';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -12,12 +12,12 @@ import { Button } from '@/ui/Button';
 import { LinkText } from '@/ui/LinkText';
 import { Logo } from '@/ui/Logo';
 import { Screen } from '@/ui/Screen';
-import { Text } from '@/ui/Text';
+import { richText, Text } from '@/ui/Text';
 import { TextField } from '@/ui/TextField';
 
 type Role = 'user' | 'coach';
 
-function RoleCard({ on, title, sub, onPress }: { on: boolean; title: string; sub: string; onPress: () => void }) {
+function RoleCard({ on, title, sub, onPress }: Readonly<{ on: boolean; title: string; sub: string; onPress: () => void }>) {
   const { colors } = useTheme();
   return (
     <Pressable
@@ -28,6 +28,31 @@ function RoleCard({ on, title, sub, onPress }: { on: boolean; title: string; sub
       <Text style={styles.roleTitle}>{title}</Text>
       <Text variant="label">{sub}</Text>
     </Pressable>
+  );
+}
+
+/** After signing up: the link is on its way to `email`. The member can have it sent again, or go back and fix the address. */
+function CheckEmail({ email, role, onAgain }: Readonly<{ email: string; role: Role; onAgain: () => void }>) {
+  const t = useTranslations('register');
+  const { colors } = useTheme();
+  const [resent, setResent] = useState(false);
+
+  async function resend() {
+    await api('/api/auth/resend-verification', { method: 'POST', json: { email } }).catch(() => {});
+    setResent(true);
+  }
+
+  return (
+    <Screen>
+      <Logo />
+      <View style={styles.head}>
+        <Text variant="display">{t('checkTitle')}</Text>
+        <Text muted>{t.rich(role === 'coach' ? 'checkTextCoach' : 'checkText', { email, b: richText({ style: { color: colors.text } }) })}</Text>
+      </View>
+      <Button label={t('confirmed')} onPress={() => router.replace('/guest/sign-in')} />
+      <LinkText label={resent ? t('resent') : t('resend')} onPress={resend} muted={resent} />
+      <Text muted>{t.rich('wrongAddress', { again: richText({ style: { color: colors.accentText }, onPress: onAgain }) })}</Text>
+    </Screen>
   );
 }
 
@@ -46,7 +71,6 @@ export default function Register() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState('');
-  const [resent, setResent] = useState(false);
 
   if (user) return <Redirect href="/" />;
 
@@ -57,6 +81,7 @@ export default function Register() {
   };
   // The password rule shows as a hint from the start and turns red once it's broken after a try or while typing.
   const passwordMsg = form.password && problems.password ? te(problems.password) : null;
+  const confirmMsg = confirmProblem(problems.confirm, tried, form.confirm);
 
   async function submit() {
     setTried(true);
@@ -70,44 +95,14 @@ export default function Register() {
       });
       setSentTo(email);
     } catch (e) {
-      setError(e instanceof ApiError && e.code === 'network' ? 'network' : pickError(REGISTER_ERRORS, e instanceof ApiError ? e.code : undefined));
+      const code = e instanceof ApiError ? e.code : undefined;
+      setError(code === 'network' ? 'network' : pickError(REGISTER_ERRORS, code));
     } finally {
       setBusy(false);
     }
   }
 
-  async function resend() {
-    await api('/api/auth/resend-verification', { method: 'POST', json: { email: sentTo } }).catch(() => {});
-    setResent(true);
-  }
-
-  if (sentTo) {
-    return (
-      <Screen>
-        <Logo />
-        <View style={styles.head}>
-          <Text variant="display">{t('checkTitle')}</Text>
-          <Text muted>
-            {t.rich(role === 'coach' ? 'checkTextCoach' : 'checkText', {
-              email: sentTo,
-              b: (chunks) => <Text style={{ color: colors.text }}>{chunks}</Text>,
-            })}
-          </Text>
-        </View>
-        <Button label={t('confirmed')} onPress={() => router.replace('/guest/sign-in')} />
-        <LinkText label={resent ? t('resent') : t('resend')} onPress={resend} muted={resent} />
-        <Text muted>
-          {t.rich('wrongAddress', {
-            again: (chunks) => (
-              <Text style={{ color: colors.accentText }} onPress={() => setSentTo('')}>
-                {chunks}
-              </Text>
-            ),
-          })}
-        </Text>
-      </Screen>
-    );
-  }
+  if (sentTo) return <CheckEmail email={sentTo} role={role} onAgain={() => setSentTo('')} />;
 
   return (
     <Screen>
@@ -159,7 +154,7 @@ export default function Register() {
         autoComplete="new-password"
         textContentType="newPassword"
         style={styles.ltr}
-        error={problems.confirm ? te(problems.confirm) : tried && !form.confirm ? te('passwordsDontMatch') : null}
+        error={confirmMsg && te(confirmMsg)}
       />
       {role === 'coach' && (
         <View style={[styles.notice, { borderColor: colors.border, backgroundColor: colors.surface }]}>

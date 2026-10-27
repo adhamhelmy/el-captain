@@ -73,8 +73,13 @@ export default function CoachSessionPage() {
 
   useEffect(() => {
     if (!editing) return;
-    approvedSports().then(setSports);
-    myVenues({ active: true }).then(setVenues);
+    // Offline, the pickers just stay empty; saving then says what's wrong.
+    approvedSports()
+      .then(setSports)
+      .catch(() => {});
+    myVenues({ active: true })
+      .then(setVenues)
+      .catch(() => {});
   }, [editing]);
 
   if (s === null) {

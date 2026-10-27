@@ -27,14 +27,14 @@ function usePulse() {
 }
 
 /** A shimmering block standing in for a line of text, a number or a picture. */
-export function Bone({ width = '100%', height = 12, round = 6, style }: { width?: DimensionValue; height?: number; round?: number; style?: StyleProp<ViewStyle> }) {
+export function Bone({ width = '100%', height = 12, round = 6, style }: Readonly<{ width?: DimensionValue; height?: number; round?: number; style?: StyleProp<ViewStyle> }>) {
   const { colors } = useTheme();
   usePulse();
   return <Animated.View style={[{ width, height, borderRadius: round, backgroundColor: colors.surface2, opacity }, style]} />;
 }
 
 /** Wraps a screen's placeholders; read out once as "Loading". */
-export function Loading({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+export function Loading({ children, style }: Readonly<{ children: ReactNode; style?: StyleProp<ViewStyle> }>) {
   const t = useTranslations('common');
   return (
     <View accessible accessibilityLabel={t('loading')} accessibilityState={{ busy: true }} style={[styles.stack, style]}>
@@ -44,7 +44,7 @@ export function Loading({ children, style }: { children: ReactNode; style?: Styl
 }
 
 /** Fades content in where its placeholder was, so data fills the screen rather than popping onto it. */
-export function FadeIn({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+export function FadeIn({ children, style }: Readonly<{ children: ReactNode; style?: StyleProp<ViewStyle> }>) {
   const [shown] = useState(() => new Animated.Value(0));
   useEffect(() => {
     Animated.timing(shown, { toValue: 1, duration: 220, useNativeDriver: native }).start();
@@ -53,13 +53,13 @@ export function FadeIn({ children, style }: { children: ReactNode; style?: Style
 }
 
 /** The outline every card shares: the real card's border and corners with bones inside. */
-function Shell({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+function Shell({ children, style }: Readonly<{ children: ReactNode; style?: StyleProp<ViewStyle> }>) {
   const { colors } = useTheme();
   return <View style={[styles.shell, { backgroundColor: colors.surface, borderColor: colors.border }, style]}>{children}</View>;
 }
 
 /** SessionCard / CoachCard: a 96pt head, then a title, a line and a footer. */
-export function CardSkeleton({ avatar = false }: { avatar?: boolean }) {
+export function CardSkeleton({ avatar = false }: Readonly<{ avatar?: boolean }>) {
   const { colors } = useTheme();
   return (
     <Shell style={styles.card}>
@@ -77,7 +77,7 @@ export function CardSkeleton({ avatar = false }: { avatar?: boolean }) {
 }
 
 /** A list row: an optional round picture or date block, two lines, and something on the end. */
-export function RowSkeleton({ lead = 'none', lines = 2 }: { lead?: 'none' | 'avatar' | 'date'; lines?: 1 | 2 | 3 }) {
+export function RowSkeleton({ lead = 'none', lines = 2 }: Readonly<{ lead?: 'none' | 'avatar' | 'date'; lines?: 1 | 2 | 3 }>) {
   return (
     <Shell style={styles.row}>
       {lead === 'avatar' && <Bone width={44} height={44} round={22} />}
@@ -107,7 +107,7 @@ export function StatsSkeleton() {
 }
 
 /** A form card: a few labelled fields. */
-export function FormSkeleton({ fields = 4 }: { fields?: number }) {
+export function FormSkeleton({ fields = 4 }: Readonly<{ fields?: number }>) {
   return (
     <Shell style={styles.form}>
       {Array.from({ length: fields }, (_, i) => (
@@ -121,7 +121,7 @@ export function FormSkeleton({ fields = 4 }: { fields?: number }) {
 }
 
 /** A detail page: back link, optional cover, a big title and its date line, then a card and a row of chips. */
-export function DetailSkeleton({ cover = false }: { cover?: boolean }) {
+export function DetailSkeleton({ cover = false }: Readonly<{ cover?: boolean }>) {
   return (
     <Loading>
       <Bone width={90} />

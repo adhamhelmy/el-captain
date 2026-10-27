@@ -25,6 +25,12 @@ export function passwordProblems(password: string, confirm: string) {
   return p;
 }
 
+/** The confirm field's message key: a mismatch, or an empty field once the member tried to send. */
+export function confirmProblem(problem: string | undefined, tried: boolean, confirm: string) {
+  if (problem) return problem;
+  return tried && !confirm ? 'passwordsDontMatch' : null;
+}
+
 /** Member profile: a name; phone and birth date are optional but must be valid when given. */
 export function profileProblems(f: { name: string; phone: string; birthDate: string }, today = new Date()) {
   const p: Problems<'name' | 'phone' | 'birthDate'> = {};

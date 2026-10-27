@@ -36,7 +36,7 @@ import { TextField } from '@/ui/TextField';
 const SAVE_ERRORS = ['invalid_profile', 'invalid_upload', 'network'] as const;
 const ltr = { writingDirection: 'ltr', textAlign: 'left' } as const;
 
-function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
+function Section({ title, aside, children }: Readonly<{ title: string; aside?: ReactNode; children: ReactNode }>) {
   return (
     <Card style={styles.section}>
       <View style={styles.sectionHead}>

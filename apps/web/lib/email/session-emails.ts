@@ -72,15 +72,18 @@ export async function sendBookingConfirmed(member: Recipient, session: EmailSess
 }
 
 export async function sendSessionCancelled(members: Recipient[], session: EmailSession, reason: string | null) {
-  for (const member of members) {
-    const locale = localeOf(member);
-    const w = words(locale);
-    const detail = lines(w.sessionDetail(session), reason && w.t('reasonLine', { reason }));
-    await send(
-      noticeMail(member.email, locale, MESSAGES[locale].emails.sessionCancelled, appUrl('/user/explore'), detail),
-      `cancel email to ${member.id}`,
-    );
-  }
+  // send never throws, so one failed email can't stop the others.
+  await Promise.all(
+    members.map((member) => {
+      const locale = localeOf(member);
+      const w = words(locale);
+      const detail = lines(w.sessionDetail(session), reason && w.t('reasonLine', { reason }));
+      return send(
+        noticeMail(member.email, locale, MESSAGES[locale].emails.sessionCancelled, appUrl('/user/explore'), detail),
+        `cancel email to ${member.id}`,
+      );
+    }),
+  );
 }
 
 export async function sendPrivateRequested(coach: Recipient, request: EmailRequest) {

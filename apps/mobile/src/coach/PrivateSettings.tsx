@@ -15,7 +15,7 @@ const ltr = { writingDirection: 'ltr', textAlign: 'left' } as const;
  * The web's PrivateSessionSettings: Yes / No, the price and length when Yes, and a line saying whether members can
  * request one. `active` is what's switched on right now.
  */
-export function PrivateSettings({ value, onChange, active }: { value: PrivateDraft; onChange: (v: PrivateDraft) => void; active: { price: number; duration: number } | null }) {
+export function PrivateSettings({ value, onChange, active }: Readonly<{ value: PrivateDraft; onChange: (v: PrivateDraft) => void; active: { price: number; duration: number } | null }>) {
   const t = useTranslations('coachEdit');
   const l = useSessionLabels();
   const { colors } = useTheme();

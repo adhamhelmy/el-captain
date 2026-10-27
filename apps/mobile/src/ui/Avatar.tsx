@@ -13,7 +13,7 @@ export const initialsOf = (name: string) =>
     .toUpperCase();
 
 /** Initials in a circle like the web's <Avatar accent>. */
-export function Avatar({ name, size = 64 }: { name: string; size?: number }) {
+export function Avatar({ name, size = 64 }: Readonly<{ name: string; size?: number }>) {
   const { colors } = useTheme();
   return (
     <View style={[styles.circle, { width: size, height: size, borderRadius: size / 2, backgroundColor: colors.accentTint }]}>

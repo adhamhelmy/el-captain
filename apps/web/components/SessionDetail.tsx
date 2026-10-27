@@ -51,7 +51,7 @@ export function SessionDetail({ guest }: Readonly<{ guest?: boolean }>) {
       .then((r) => setS(r.ok ? r.data : null))
       .catch(() => setS(null));
   useEffect(() => {
-    load();
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 

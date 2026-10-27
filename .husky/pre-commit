@@ -7,6 +7,8 @@ echo "Running eslint..."
 npm run lint --workspace=apps/web || { echo "ESLint errors — commit blocked."; exit 1; }
 echo "Running tests with coverage..."
 npm run test:coverage --workspace=apps/web || { echo "Tests failed — commit blocked."; exit 1; }
+echo "Running app tests with coverage..."
+(cd apps/mobile && npx jest --coverage --coverageReporters=lcov --silent) || { echo "App tests failed — commit blocked."; exit 1; }
 echo "Running sonarqube..."
 # sonar-scanner, not `sonar analyze`: the CLI's analyze uses /api/v2/a3s, which
 # SonarQube Community Edition doesn't have. Settings live in sonar-project.properties.

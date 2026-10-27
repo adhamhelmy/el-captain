@@ -17,7 +17,7 @@ import { Text } from '@/ui/Text';
 const placeOf = (c: PublicCoach) => c.city || [...new Set(c.venues.map((v) => v.city).filter(Boolean))].join(' · ');
 
 /** The web's ExploreCoachCard: photo and (not yet) rating, name, sports, where they train. */
-export function CoachCard({ c }: { c: PublicCoach }) {
+export function CoachCard({ c }: Readonly<{ c: PublicCoach }>) {
   const t = useTranslations('explore');
   const { colors } = useTheme();
   const { locale } = useLocale();

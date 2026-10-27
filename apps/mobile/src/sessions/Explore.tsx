@@ -23,7 +23,7 @@ const SEARCH_DELAY_MS = 300;
 const COACHES_SHOWN = 4;
 const paths = (query: string) => [`/api/coaches?${query}`, `/api/sessions?${query}`] as const;
 
-function Empty({ text }: { text: string }) {
+function Empty({ text }: Readonly<{ text: string }>) {
   const { colors } = useTheme();
   return (
     <View style={[styles.empty, { borderColor: colors.border }]}>

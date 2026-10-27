@@ -27,7 +27,7 @@ import { VenueForm } from './VenueForm';
 const SAVE_ERRORS = ['invalid_session', 'session_closed', 'time_conflict', 'network'] as const;
 const ltr = { writingDirection: 'ltr', textAlign: 'left' } as const;
 
-type Props = {
+type Props = Readonly<{
   session?: Session;
   sports: Sport[];
   venues: Venue[];
@@ -35,7 +35,7 @@ type Props = {
   onCancel: () => void;
   /** A location added from inside the form, so the screen's own list stays current. */
   onVenueAdded?: (v: Venue) => void;
-};
+}>;
 
 /**
  * The web's SessionDrawer: publish a group session (once or weekly for a few weeks) or edit one.
@@ -268,7 +268,7 @@ export function SessionForm({ session, sports: activeSports, venues: initialVenu
           {venues.map((v) => (
             <Chip
               key={v.id}
-              label={`${v.name} · ${v.city}${v.archived ? ` · ${tv('archived')}` : ''}`}
+              label={[v.name, v.city, ...(v.archived ? [tv('archived')] : [])].join(' · ')}
               on={d.venueId === v.id}
               onPress={() => !locked && edit({ venueId: v.id })}
             />

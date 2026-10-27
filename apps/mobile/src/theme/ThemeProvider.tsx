@@ -12,7 +12,7 @@ const ThemeContext = createContext<ThemeValue | null>(null);
 
 const isScheme = (v: unknown): v is Scheme => v === 'light' || v === 'dark';
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({ children }: Readonly<{ children: ReactNode }>) {
   const device = useColorScheme();
   const [saved, setSaved] = useState<Scheme | null>(null);
 

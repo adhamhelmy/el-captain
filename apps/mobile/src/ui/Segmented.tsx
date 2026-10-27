@@ -5,7 +5,7 @@ import { Text } from './Text';
 type Option<V extends string> = { value: V; label: string };
 
 /** Segmented control like the web's `.seg`: one choice from a few. */
-export function Segmented<V extends string>({ options, value, onChange, label }: { options: Option<V>[]; value: V; onChange: (v: V) => void; label: string }) {
+export function Segmented<V extends string>({ options, value, onChange, label }: Readonly<{ options: Option<V>[]; value: V; onChange: (v: V) => void; label: string }>) {
   const { colors } = useTheme();
   return (
     <View accessibilityRole="radiogroup" accessibilityLabel={label} style={[styles.seg, { backgroundColor: colors.surface2, borderColor: colors.border }]}>

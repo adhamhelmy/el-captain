@@ -59,5 +59,7 @@ async function refundPayment(paymentId: string, transactionId: string, amountCen
 export async function refundBookings(bookingIds: string[]) {
   if (bookingIds.length === 0) return;
   await closeCashPayments(bookingIds);
-  for (const p of await paidPayments(bookingIds)) await refundPayment(p.id, p.providerTransactionId!, p.amountCents);
+  // refundPayment never throws, so one refusal can't stop the others.
+  const paid = await paidPayments(bookingIds);
+  await Promise.all(paid.map((p) => refundPayment(p.id, p.providerTransactionId!, p.amountCents)));
 }

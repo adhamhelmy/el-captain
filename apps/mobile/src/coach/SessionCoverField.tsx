@@ -25,14 +25,14 @@ export function SessionCoverField({
   onChange,
   onGoToPhotos,
   onBusy,
-}: {
+}: Readonly<{
   coachId: string;
   url: string | null;
   onChange: (c: CoverChoice) => void;
   onGoToPhotos: () => void;
   /** Told while an upload runs, so the form waits before publishing. */
   onBusy?: (busy: boolean) => void;
-}) {
+}>) {
   const t = useTranslations('schedule');
   const to = useTranslations('onboarding');
   const te = useTranslations('errors');

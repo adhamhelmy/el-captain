@@ -25,7 +25,7 @@ type AuthValue = {
 
 const AuthContext = createContext<AuthValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const { locale } = useLocale();
   const [status, setStatus] = useState<AuthValue['status']>('loading');
   const [user, setUser] = useState<MobileUser | null>(null);

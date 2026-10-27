@@ -11,7 +11,7 @@ import { Text } from '@/ui/Text';
 import { useSessionLabels } from './labels';
 
 /** The web's SessionCard: cover or stripes with sport and type, then title, coach · place, start and price. */
-export function SessionCard({ s }: { s: Session }) {
+export function SessionCard({ s }: Readonly<{ s: Session }>) {
   const { colors } = useTheme();
   const l = useSessionLabels();
   const td = useTranslations('data');

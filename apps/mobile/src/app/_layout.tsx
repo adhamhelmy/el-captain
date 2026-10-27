@@ -16,7 +16,7 @@ import { NoticeBanner } from '@/ui/NoticeBanner';
 
 SplashScreen.preventAutoHideAsync();
 
-function Root({ fontsReady }: { fontsReady: boolean }) {
+function Root({ fontsReady }: Readonly<{ fontsReady: boolean }>) {
   const { scheme, colors } = useTheme();
   const { status } = useAuth();
   const ready = fontsReady && status === 'ready';

@@ -9,14 +9,14 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Screen } from '@/ui/Screen';
 import { Tag } from '@/ui/Tag';
-import { Text } from '@/ui/Text';
+import { richText, Text } from '@/ui/Text';
 import { ProfilePreview } from './ProfilePreview';
 
 type Stage = 'done' | 'now' | 'todo';
 const contact = () => Linking.openURL(apiUrl('/contact')).catch(() => {});
 
 /** The web's StatusScreen: what a coach sees while their profile is in review, or after it was suspended. */
-export function StatusScreen({ data }: { data: Onboarding }) {
+export function StatusScreen({ data }: Readonly<{ data: Onboarding }>) {
   const t = useTranslations('onboarding');
   const tc = useTranslations('common');
   const f = useFormatter();
@@ -70,13 +70,7 @@ export function StatusScreen({ data }: { data: Onboarding }) {
           <Text variant="eyebrow">{t('previewWillSee')}</Text>
           <ProfilePreview name={data.coach.coachName} form={formOf(data)} />
           <Text variant="label">
-            {t.rich('lockedNote', {
-              contact: (chunks) => (
-                <Text variant="label" style={{ color: colors.accentText }} onPress={contact}>
-                  {chunks}
-                </Text>
-              ),
-            })}
+            {t.rich('lockedNote', { contact: richText({ variant: 'label', style: { color: colors.accentText }, onPress: contact }) })}
           </Text>
         </>
       ) : (

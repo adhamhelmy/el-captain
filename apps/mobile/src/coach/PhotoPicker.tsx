@@ -18,14 +18,14 @@ export function PhotoPicker({
   warn,
   onUploaded,
   onBusy,
-}: {
+}: Readonly<{
   userId: string;
   url: string | null;
   warn?: boolean;
   onUploaded: (path: string, previewUrl: string) => void;
   /** Told while an upload runs, so the screen can wait before saving or moving on. */
   onBusy?: (busy: boolean) => void;
-}) {
+}>) {
   const t = useTranslations('onboarding');
   const te = useTranslations('errors');
   const { colors } = useTheme();

@@ -1,3 +1,1 @@
-import { Explore } from '@/sessions/Explore';
-
-export default Explore;
+export { Explore as default } from '@/sessions/Explore';

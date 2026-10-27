@@ -14,7 +14,7 @@ export type VenueSaved = { venue: Venue; action: 'added' | 'saved' | 'archived' 
 const ltr = { writingDirection: 'ltr', textAlign: 'left' } as const;
 
 /** The web's VenueDrawer body: add or edit one location; it saves straight away and hands the result back. */
-export function VenueForm({ venue, onSaved, onCancel }: { venue?: Venue; onSaved: (r: VenueSaved) => void; onCancel: () => void }) {
+export function VenueForm({ venue, onSaved, onCancel }: Readonly<{ venue?: Venue; onSaved: (r: VenueSaved) => void; onCancel: () => void }>) {
   const t = useTranslations('venues');
   const te = useTranslations('errors');
   const tc = useTranslations('common');
@@ -42,7 +42,8 @@ export function VenueForm({ venue, onSaved, onCancel }: { venue?: Venue; onSaved
     } catch (e) {
       const ae = e instanceof ApiError ? e : null;
       setBad(ae?.fields ?? []);
-      setError(ae?.code === 'invalid_venue' ? problem : te(ae?.code === 'network' ? 'network' : 'generic'));
+      if (ae?.code === 'invalid_venue') setError(problem);
+      else setError(te(ae?.code === 'network' ? 'network' : 'generic'));
     } finally {
       setBusy(false);
     }

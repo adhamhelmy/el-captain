@@ -78,17 +78,16 @@ export default function MySessions() {
           { value: 'requests' as const, label: t('requests') },
         ]}
       />
-      {tab === 'requests' ? (
-        requests ? (
+      {tab === 'requests' &&
+        (requests ? (
           <FadeIn>
             <RequestList role="member" requests={requests} onChange={(r) => setRequests(requests.map((x) => (x.id === r.id ? r : x)))} />
           </FadeIn>
         ) : (
           skeleton
-        )
-      ) : list === null ? (
-        skeleton
-      ) : (
+        ))}
+      {tab !== 'requests' && list === null && skeleton}
+      {tab !== 'requests' && list !== null && (
         <FadeIn key={tab} style={styles.list}>
           {list.map((s) => (
             <Pressable
